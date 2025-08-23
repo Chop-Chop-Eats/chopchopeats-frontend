@@ -186,3 +186,21 @@ final authRepositoryProvider = FutureProvider<AuthRepository>((ref) async {
     cacheService: cacheService,
   );
 });
+
+final authNotifierProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
+  // 这个 Notifier 依赖于 AuthRepository
+  // 我们 watch authRepositoryProvider，当它准备好时，它的值 (data) 会被用来创建 AuthNotifier
+  final authRepository = ref.watch(authRepositoryProvider);
+
+  // authRepositoryProvider 是一个 FutureProvider，在它加载完成前，我们需要一个优雅的处理
+  // .when() 是处理 FutureProvider/StreamProvider 状态的最佳方式
+  return authRepository.when(
+    // 当 Future 成功完成时，我们用返回的 repository 创建 AuthNotifier
+    data: (repository) => AuthNotifier(repository),
+    // 在加载期间，我们可以提供一个临时的、不能执行任何操作的 Notifier
+    // 这里我们简单地抛出异常，因为理论上在访问需要登录的页面时，这个 Provider 应该已经加载完毕了
+    loading: () => throw Exception("AuthRepository is not yet available."),
+    // 处理错误情况
+    error: (err, stack) => throw Exception("Failed to initialize AuthRepository: $err"),
+  );
+});

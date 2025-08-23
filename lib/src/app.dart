@@ -17,7 +17,7 @@ class App extends StatelessWidget {
       builder: (context, child) {
         return MaterialApp(
           navigatorKey: navigatorKey,
-          title: "Collect Record",
+          title: "Chop Chop",
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
           themeMode: AppServices.appSettings.themeMode,

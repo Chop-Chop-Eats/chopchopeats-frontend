@@ -1,6 +1,4 @@
 /// 应用配置模型
-///
-/// 使用 final 属性确保配置在运行时不可变。
 class AppConfig {
 
   final String baseApi;
@@ -17,8 +15,6 @@ class AppConfig {
   /// 正式环境基地址
   static const String proApi = 'https://api.ops-track.com/';
 
-
-  // ================== API 响应配置 ==================
 
   /// API 响应中代表业务『成功』的 code 码集合
   static const List<int> successCodes = [200];

@@ -1,12 +1,13 @@
-import '../../../core/network/base_api_service.dart';
+import '../../../core/network/api_client.dart';
 import '../../../core/utils/logger/logger.dart';
 
 /// 认证 API 服务
-/// 
-/// 继承 BaseApiService，减少样板代码
+///
 /// 模拟后端认证接口，用于演示登录流程
-class AuthApiService extends BaseApiService {
-  const AuthApiService(super.apiClient);
+class AuthApiService {
+  final ApiClient _apiClient;
+
+   const AuthApiService( this._apiClient);
 
   /// 模拟用户登录
   /// 延迟 1 秒模拟网络请求

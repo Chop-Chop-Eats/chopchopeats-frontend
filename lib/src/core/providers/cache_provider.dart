@@ -3,7 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../../data/datasources/local/cache_service.dart';
 import '../utils/logger/logger.dart';
 
-/// 真实的 SharedPreferences Provider
+/// SharedPreferences Provider
 final sharedPreferencesProvider = FutureProvider<SharedPreferences>((ref) async {
   Logger.info('CacheProvider', '初始化真实的 SharedPreferences');
   return await SharedPreferences.getInstance();

@@ -75,9 +75,7 @@ class _SplashPageState extends ConsumerState<SplashPage> {
   @override
   Widget build(BuildContext context) {
     Logger.debug('SplashPage', '构建闪屏页面 UI');
-    
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.primary,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -92,26 +90,6 @@ class _SplashPageState extends ConsumerState<SplashPage> {
               strokeWidth: 3,
             ),
             const SizedBox(height: 24),
-            
-            // 应用名称
-            const Text(
-              'Collect Record',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-            const SizedBox(height: 8),
-            
-            // 版本信息
-            const Text(
-              'v1.0.0',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.white70,
-              ),
-            ),
           ],
         ),
       ),
