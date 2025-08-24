@@ -29,20 +29,17 @@ class _MinePageState extends ConsumerState<MinePage> {
             const Text("Mine Page"),
             const SizedBox(height: 20),
             ElevatedButton(
-
               onPressed: isLoading ? null : () async {
                 await ref.read(authNotifierProvider.notifier).logout();
                 if (mounted) {
                   Navigate.replace(context, Routes.login);
                 }
               },
-              child: isLoading
-                  ? const SizedBox(
+              child: isLoading ? const SizedBox(
                 width: 20,
                 height: 20,
                 child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-              )
-                  : const Text("Log out"),
+              ) : const Text("Log out"),
             ),
           ],
         ),

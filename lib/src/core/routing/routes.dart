@@ -1,7 +1,13 @@
 class Routes {
-  static const String splash = '/';
-  static const String home = '/home';
-  static const String detail = '/detail';
-  static const String login = '/login';
-  static const String webview = '/webview';
+  static const String splash = '/'; // 启动页
+  static const String home = '/home'; // 主页
+  static const String detail = '/detail'; // 详情页
+  static const String login = '/login'; // 登录页
+  static const String verificationCode = '/verificationCode'; // 验证码页面
+  static const String passwordLogin = '/passwordLogin'; // 密码登录页面
+  static const String forgotPassword = '/forgotPassword'; // 忘记密码页面
+  static const String setNewPasswordPage = '/setNewPasswordPage'; // 设置新密码页面
+
+    static const String webview = '/webview'; // 网页视图页面
+
 }

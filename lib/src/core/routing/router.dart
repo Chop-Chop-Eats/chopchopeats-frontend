@@ -1,4 +1,8 @@
+import 'package:chop_user/src/features/auth/presentation/pages/forgot_password_page.dart';
 import 'package:flutter/material.dart';
+import '../../features/auth/presentation/pages/password_login_page.dart';
+import '../../features/auth/presentation/pages/set_new_password_page.dart';
+import '../../features/auth/presentation/pages/verification_code_page.dart';
 import '../../features/error_page.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/main_screen.dart';
@@ -13,22 +17,20 @@ class AppRouter {
     // === 无需参数的页面 ===
     Routes.home: (settings) => const MainScreen(),
     Routes.login: (settings) => const LoginPage(),
+   
+    Routes.passwordLogin: (settings) => const PasswordLoginPage(),
+    Routes.forgotPassword: (settings) => const ForgotPasswordPage(),
+    Routes.setNewPasswordPage: (settings) => const SetNewPasswordPage(),
 
-    // === 需要参数的页面 ===
-    // Routes.detail: (settings) {
-    //   if (settings.arguments is Map<String, dynamic>) {
-    //     final args = settings.arguments as Map<String, dynamic>;
-    //     final List<TaskItemModel> items = args["items"];
-    //     final int initialIndex = args["initialIndex"];
-    //     final int initialTabIndex = args["initialTabIndex"] ?? 0;
-    //     return DetailPage(
-    //       items: items,
-    //       initialIndex: initialIndex,
-    //       initialTabIndex: initialTabIndex,
-    //     );
-    //   }
-    //   return const ErrorPage(message: "参数错误或缺失");
-    // },
+    Routes.verificationCode: (settings) {
+      if (settings.arguments is Map<String, dynamic>) {
+        final args = settings.arguments as Map<String, dynamic>;
+        final phoneNumber = args["phoneNumber"];
+        final type = args["type"];
+        return VerificationCodePage(phoneNumber: phoneNumber, type: type);
+      }
+      return const ErrorPage(message: "参数错误或缺失");
+     },
   };
 
   /// 创建路由方法

@@ -1,11 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../data/repositories/auth_repository.dart';
 import '../../../../data/datasources/remote/auth_api_service.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/providers/cache_provider.dart' as cache_provider;
 import '../../../../core/utils/logger/logger.dart';
-import '../../../../data/datasources/local/cache_service.dart';
 
 /// 认证状态
 class AuthState {
@@ -85,14 +83,17 @@ class AuthNotifier extends StateNotifier<AuthState> {
           isLoading: false,
           isAuthenticated: true,
           user: user,
+          error: null,
         );
         
         Logger.info('AuthNotifier', '登录成功: ${user['username']}');
         return true;
       } else {
-        final error = response['message'] as String;
+        final error = response['message'] as String? ?? '登录失败';
         state = state.copyWith(
           isLoading: false,
+          isAuthenticated: false,
+          user: null,
           error: error,
         );
         
@@ -103,6 +104,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
       Logger.error('AuthNotifier', '登录异常', error: e);
       state = state.copyWith(
         isLoading: false,
+        isAuthenticated: false,
+        user: null,
         error: '登录失败: ${e.toString()}',
       );
       return false;
