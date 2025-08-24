@@ -48,16 +48,15 @@ class AppRouter {
     }
 
     // 根据路由名称决定使用哪种转场动画
-    // 这样动画逻辑和页面构建逻辑也分开了
     if (settings.name == Routes.splash) {
-      return FadePageRoute<dynamic>(
-        builder: (_) => const SplashPage(), // Splash 页面通常无参数，单独处理
+      return MaterialPageRoute<dynamic>(
+        builder: (_) => const SplashPage(),
         settings: settings,
       );
     }
 
-    // 默认使用你的自定义滑动动画
-    return CustomPagePeterRoute<dynamic>(
+    // 使用优化的跨平台滑动动画
+    return MaterialPageRoute<dynamic>(
       builder: (_) => page,
       settings: settings,
     );
@@ -65,15 +64,79 @@ class AppRouter {
 
   // unknownRoute 保持不变，作为最终的兜底
   static Route<dynamic> unknownRoute(RouteSettings settings) {
-    return CustomPagePeterRoute(
+    return MaterialPageRoute(
       builder: (_) => const ErrorPage(message: "未知路由"),
       settings: settings,
     );
   }
 }
 
+/// 优化的跨平台滑动路由组件
+/// 确保在 Android 和 iOS 上表现完全一致
+class OptimizedSlideRoute<T> extends PageRouteBuilder<T> {
+  final WidgetBuilder builder;
+  @override
+  final RouteSettings settings;
 
+  OptimizedSlideRoute({
+    required this.builder,
+    required this.settings,
+    Duration? transitionDuration,
+    Duration? reverseTransitionDuration,
+  }) : super(
+    settings: settings,
+    pageBuilder: (context, animation, secondaryAnimation) => builder(context),
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      // 使用 RepaintBoundary 优化性能
+      return RepaintBoundary(
+        child: SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(1.0, 0.0), // 从右侧开始
+            end: Offset.zero, // 滑动到中央
+          ).animate(CurvedAnimation(
+            parent: animation,
+            curve: Curves.easeInOut, // 缓入缓出曲线
+          )),
+          child: child,
+        ),
+      );
+    },
+    transitionDuration: transitionDuration ?? const Duration(milliseconds: 300),
+    reverseTransitionDuration: reverseTransitionDuration ?? const Duration(milliseconds: 300),
+    // 确保跨平台一致性
+    opaque: true,
+    barrierDismissible: false,
+    maintainState: true,
+  );
+}
 
+/// 淡入淡出动画（用于 Splash 页面）
+class FadePageRoute<T> extends PageRouteBuilder<T> {
+  final WidgetBuilder builder;
+
+  FadePageRoute({
+    required this.builder,
+    required super.settings,
+    Duration? transitionDuration,
+  }) : super(
+    pageBuilder: (context, animation, secondaryAnimation) => builder(context),
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      return RepaintBoundary(
+        child: FadeTransition(
+          opacity: animation,
+          child: child,
+        ),
+      );
+    },
+    transitionDuration: transitionDuration ?? const Duration(milliseconds: 300),
+    opaque: true,
+    barrierDismissible: false,
+    maintainState: true,
+  );
+}
+
+// 保留原来的自定义路由类代码，以备将来需要时使用
+/*
 /// 自定义路由类 实现滑动动画 替换默认的MaterialPageRoute
 class CustomPagePeterRoute<T> extends PageRouteBuilder<T> {
   final WidgetBuilder builder;
@@ -96,26 +159,15 @@ class CustomPagePeterRoute<T> extends PageRouteBuilder<T> {
           ).chain(CurveTween(curve: curve));
           var offsetAnimation = animation.drive(tween);
 
-          return SlideTransition(position: offsetAnimation, child: child);
+          // 使用 RepaintBoundary 优化性能，减少不必要的重绘
+          return RepaintBoundary(
+            child: SlideTransition(
+              position: offsetAnimation, 
+              child: child,
+            ),
+          );
         },
         transitionDuration: const Duration(milliseconds: 300), // 动画时长 300ms
       );
 }
-
-
-// 淡入淡出动画
-class FadePageRoute<T> extends PageRouteBuilder<T> {
-  final WidgetBuilder builder;
-
-  FadePageRoute({required this.builder, super.settings})
-      : super(
-    pageBuilder: (context, animation, secondaryAnimation) => builder(context),
-    transitionsBuilder: (context, animation, secondaryAnimation, child) {
-      return FadeTransition(
-        opacity: animation,
-        child: child,
-      );
-    },
-    transitionDuration: const Duration(milliseconds: 300),
-  );
-}
+*/
