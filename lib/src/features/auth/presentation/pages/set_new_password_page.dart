@@ -4,7 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../core/routing/navigate.dart';
 import '../../../../core/routing/routes.dart';
 import '../../../../core/utils/logger/logger.dart';
-import '../../../../core/widgets/system_ui_wrapper.dart';
+import '../../../../core/widgets/keyboard_aware_page.dart';
 import '../widgets/auth_header.dart';
 import '../widgets/auth_title.dart';
 import '../widgets/auth_password_field.dart';
@@ -29,47 +29,44 @@ class _SetNewPasswordPageState extends ConsumerState<SetNewPasswordPage> {
 
   @override
   Widget build(BuildContext context) {
-    return AuthPageWrapper(
-      child: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 导航头部
-            const AuthHeader(),
-            
-            // 主要内容
-            Expanded(
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 24.0.w),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(height: 60.h),
-                    
-                    // 标题
-                    const AuthTitle(title: '设置新密码'),
-                    SizedBox(height: 40.h),
-                    
-                    // 密码输入框
-                    _buildPasswordInput(),
-                    SizedBox(height: 16.h),
-                    
-                    // 密码提示
-                    const AuthHintText(
-                      text: '密码至少8位,包含数字/字母',
-                      padding: EdgeInsets.zero,
-                    ),
-                    
-                    SizedBox(height: 32.h),
-                    // 保存按钮
-                    _buildSaveButton(),
-      
-                  ],
-                ),
+    return AuthKeyboardAwarePage(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 导航头部
+          const AuthHeader(),
+          
+          // 主要内容
+          Expanded(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 24.0.w),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(height: 60.h),
+                  
+                  // 标题
+                  const AuthTitle(title: '设置新密码'),
+                  SizedBox(height: 40.h),
+                  
+                  // 密码输入框
+                  _buildPasswordInput(),
+                  SizedBox(height: 16.h),
+                  
+                  // 密码提示
+                  const AuthHintText(
+                    text: '密码至少8位,包含数字/字母',
+                    padding: EdgeInsets.zero,
+                  ),
+                  
+                  SizedBox(height: 32.h),
+                  // 保存按钮
+                  _buildSaveButton(),
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

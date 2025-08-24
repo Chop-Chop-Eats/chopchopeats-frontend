@@ -39,28 +39,41 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return AuthGradientPageWrapper(
-      child: Stack(
-        children: [
-          // 装饰性圆形渐变背景光晕
-          _buildDecorativeCircles(),
-          // 主体内容
-          SafeArea(
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _buildHeader(),
-                  SizedBox(height: 60.h),
-                  _buildLoginForm(context),
-                  // 底部协议
-                  SizedBox(height: 100.h),
-                  const AuthFooter()
-                ],
+      child: Scaffold(
+        resizeToAvoidBottomInset: true,
+        body: Stack(
+          children: [
+            // 装饰性圆形渐变背景光晕
+            _buildDecorativeCircles(),
+            // 主体内容
+            SafeArea(
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: MediaQuery.of(context).size.height - 
+                              MediaQuery.of(context).padding.top - 
+                              MediaQuery.of(context).padding.bottom,
+                  ),
+                  child: IntrinsicHeight(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        _buildHeader(),
+                        SizedBox(height: 60.h),
+                        _buildLoginForm(context),
+                        // 底部协议
+                        SizedBox(height: 100.h),
+                        const AuthFooter()
+                      ],
+                    ),
+                  ),
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

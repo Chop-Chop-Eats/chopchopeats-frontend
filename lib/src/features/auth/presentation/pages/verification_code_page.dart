@@ -4,7 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../core/routing/navigate.dart';
 import '../../../../core/routing/routes.dart';
 import '../../../../core/utils/logger/logger.dart';
-import '../../../../core/widgets/system_ui_wrapper.dart';
+import '../../../../core/widgets/keyboard_aware_page.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../widgets/auth_header.dart';
 import '../widgets/auth_title.dart';
@@ -64,64 +64,62 @@ class _VerificationCodePageState extends ConsumerState<VerificationCodePage> {
 
   @override
   Widget build(BuildContext context) {
-    return AuthPageWrapper(
-      child: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 导航头部
-            const AuthHeader(),
-            
-            // 主要内容
-            Expanded(
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 24.0.w),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(height: 60.h),
-                    
-                    // 标题
-                    AuthTitle(
-                      title: widget.type == VerificationCodeType.login ? '输入验证码' : '验证身份',
-                    ),
-                    SizedBox(height: 16.h),
-                    
-                    // 提示信息
-                    RichText(
-                      text: TextSpan(
-                        style: TextStyle(
-                          fontSize: 14.sp,
-                          color: Colors.grey.shade600,
-                        ),
-                        children: [
-                          const TextSpan(text: '已发送至手机号 '),
-                          TextSpan(
-                            text: widget.phoneNumber,
-                            style: TextStyle(
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ],
+    return AuthKeyboardAwarePage(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 导航头部
+          const AuthHeader(),
+          
+          // 主要内容
+          Expanded(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 24.0.w),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(height: 60.h),
+                  
+                  // 标题
+                  AuthTitle(
+                    title: widget.type == VerificationCodeType.login ? '输入验证码' : '验证身份',
+                  ),
+                  SizedBox(height: 16.h),
+                  
+                  // 提示信息
+                  RichText(
+                    text: TextSpan(
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        color: Colors.grey.shade600,
                       ),
+                      children: [
+                        const TextSpan(text: '已发送至手机号 '),
+                        TextSpan(
+                          text: widget.phoneNumber,
+                          style: TextStyle(
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
                     ),
-                    SizedBox(height: 40.h),
-                    
-                    // 验证码输入框
-                    _buildCodeInputs(),
-                    SizedBox(height: 32.h),
-                    
-                    // 重新发送
-                    _buildResendSection(),
-                    SizedBox(height: 12.h),
-                    // 操作按钮
-                    _buildActionButton(),
-                  ],
-                ),
+                  ),
+                  SizedBox(height: 40.h),
+                  
+                  // 验证码输入框
+                  _buildCodeInputs(),
+                  SizedBox(height: 32.h),
+                  
+                  // 重新发送
+                  _buildResendSection(),
+                  SizedBox(height: 12.h),
+                  // 操作按钮
+                  _buildActionButton(),
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

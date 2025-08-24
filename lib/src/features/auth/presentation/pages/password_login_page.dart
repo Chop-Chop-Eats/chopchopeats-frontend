@@ -5,7 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../core/routing/navigate.dart';
 import '../../../../core/routing/routes.dart';
 import '../../../../core/utils/logger/logger.dart';
-import '../../../../core/widgets/system_ui_wrapper.dart';
+import '../../../../core/widgets/keyboard_aware_page.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../widgets/auth_footer.dart';
 import '../widgets/auth_header.dart';
@@ -26,8 +26,6 @@ class _PasswordLoginPageState extends ConsumerState<PasswordLoginPage> {
   final _phoneController = TextEditingController(text: '7185937697');
   final _passwordController = TextEditingController(text: '123456');
 
-  
-
   @override
   void dispose() {
     _phoneController.dispose();
@@ -37,63 +35,61 @@ class _PasswordLoginPageState extends ConsumerState<PasswordLoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    return AuthPageWrapper(
-      child: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 导航头部
-            const AuthHeader(),
-            
-            // 主要内容
-            Expanded(
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 24.0.w),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(height: 60.h),
-                        // 标题
-                        const AuthTitle(
-                          title: '密码登录',
-                          textAlign: TextAlign.left,
-                        ),
-                        SizedBox(height: 40.h),
-                        
-                        // 手机号输入框
-                        _buildPhoneInput(),
-                        SizedBox(height: 32.h),
-                        
-                        // 密码输入框
-                        _buildPasswordInput(),
-                        SizedBox(height: 24.h),
-                        
-                        // 忘记密码
-                        _buildForgotPassword(),
-                        SizedBox(height: 24.h),
-                        
-                        // 登录按钮
-                        _buildLoginButton(),
-                        SizedBox(height: 24.h),
-                        
-                        // 验证码登录
-                        _buildVerificationCodeLogin(),
-                        SizedBox(height: 40.h),
-                      ],
-                    ),
-                    
-                    // 底部协议
-                    const AuthFooter(),
-                  ],
-                ),
+    return AuthKeyboardAwarePage(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 导航头部
+          const AuthHeader(),
+          
+          // 主要内容
+          Expanded(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 24.0.w),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(height: 60.h),
+                      // 标题
+                      const AuthTitle(
+                        title: '密码登录',
+                        textAlign: TextAlign.left,
+                      ),
+                      SizedBox(height: 40.h),
+                      
+                      // 手机号输入框
+                      _buildPhoneInput(),
+                      SizedBox(height: 32.h),
+                      
+                      // 密码输入框
+                      _buildPasswordInput(),
+                      SizedBox(height: 24.h),
+                      
+                      // 忘记密码
+                      _buildForgotPassword(),
+                      SizedBox(height: 24.h),
+                      
+                      // 登录按钮
+                      _buildLoginButton(),
+                      SizedBox(height: 24.h),
+                      
+                      // 验证码登录
+                      _buildVerificationCodeLogin(),
+                      SizedBox(height: 40.h),
+                    ],
+                  ),
+                  
+                  // 底部协议
+                  const AuthFooter(),
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
