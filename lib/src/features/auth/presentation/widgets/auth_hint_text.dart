@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class AuthHintText extends StatelessWidget {
   final String text;
@@ -21,7 +22,7 @@ class AuthHintText extends StatelessWidget {
       child: Text(
         text,
         style: style ?? TextStyle(
-          fontSize: 14,
+          fontSize: 12.sp,
           color: Colors.grey.shade600,
         ),
         textAlign: textAlign,

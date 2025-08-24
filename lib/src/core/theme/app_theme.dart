@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart'; // 导入 services 包
 
 class AppTheme {
+  // 主体橙色
+  static const Color primaryOrange = Color(0xFFFE5100);
+  // Loading 状态按钮颜色
+  static const Color loadingButtonColor = Color(0xFFFF9473);
+
   // 亮色主题
   static final ThemeData lightTheme = ThemeData(
     useMaterial3: true,
@@ -9,7 +14,7 @@ class AppTheme {
     primarySwatch: Colors.orange,
     scaffoldBackgroundColor: Colors.grey[100],
     appBarTheme: const AppBarTheme(
-      backgroundColor: Colors.orange,
+      backgroundColor: primaryOrange,
       foregroundColor: Colors.white,
       //  添加 systemOverlayStyle
       systemOverlayStyle: SystemUiOverlayStyle(
@@ -32,7 +37,7 @@ class AppTheme {
     scaffoldBackgroundColor: const Color(0xFF121212),
     appBarTheme: AppBarTheme(
       backgroundColor: Colors.grey[900],
-      foregroundColor: Colors.orange,
+      foregroundColor: primaryOrange,
       // 有appbar的页面设置 无appbar页面使用 AnnotatedRegion<SystemUiOverlayStyle>
       //  添加 systemOverlayStyle
       systemOverlayStyle: const SystemUiOverlayStyle(

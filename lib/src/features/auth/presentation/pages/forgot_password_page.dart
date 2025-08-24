@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../core/routing/navigate.dart';
 import '../../../../core/routing/routes.dart';
 import '../../../../core/utils/logger/logger.dart';
 import '../../../../core/widgets/system_ui_wrapper.dart';
+import '../../../../core/theme/app_theme.dart';
 import 'verification_code_page.dart';
 import '../widgets/auth_header.dart';
 import '../widgets/auth_title.dart';
@@ -40,19 +42,19 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
             // 主要内容
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                padding: EdgeInsets.symmetric(horizontal: 24.0.w),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: 60),
+                    SizedBox(height: 60.h),
                     
                     // 标题
                     const AuthTitle(title: '找回密码'),
-                    const SizedBox(height: 40),
+                    SizedBox(height: 40.h),
                     
                     // 手机号输入框
                     _buildPhoneInput(),
-                    const SizedBox(height: 40),
+                    SizedBox(height: 40.h),
                     
                     // 获取验证码按钮
                     _buildGetCodeButton(),
@@ -74,19 +76,19 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
       prefix: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text(
+          Text(
             '+1',
             style: TextStyle(
-              fontSize: 18,
+              fontSize: 18.sp,
               color: Colors.black,
               fontWeight: FontWeight.w500,
             ),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: 12.w),
           Container(
-            width: 1,
-            height: 24,
-            color: const Color(0xFFFF8A5B),
+            width: 1.w,
+            height: 24.h,
+            color: AppTheme.primaryOrange,
           ),
         ],
       ),

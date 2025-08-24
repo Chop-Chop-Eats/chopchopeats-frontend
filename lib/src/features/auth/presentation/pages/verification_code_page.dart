@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../core/routing/navigate.dart';
 import '../../../../core/routing/routes.dart';
 import '../../../../core/utils/logger/logger.dart';
 import '../../../../core/widgets/system_ui_wrapper.dart';
+import '../../../../core/theme/app_theme.dart';
 import '../widgets/auth_header.dart';
 import '../widgets/auth_title.dart';
 import '../widgets/auth_button.dart';
@@ -73,45 +75,45 @@ class _VerificationCodePageState extends ConsumerState<VerificationCodePage> {
             // 主要内容
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                padding: EdgeInsets.symmetric(horizontal: 24.0.w),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: 60),
+                    SizedBox(height: 60.h),
                     
                     // 标题
                     AuthTitle(
                       title: widget.type == VerificationCodeType.login ? '输入验证码' : '验证身份',
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16.h),
                     
                     // 提示信息
                     RichText(
                       text: TextSpan(
                         style: TextStyle(
-                          fontSize: 16,
+                          fontSize: 14.sp,
                           color: Colors.grey.shade600,
                         ),
                         children: [
                           const TextSpan(text: '已发送至手机号 '),
                           TextSpan(
                             text: widget.phoneNumber,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontWeight: FontWeight.w500,
                             ),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 40),
+                    SizedBox(height: 40.h),
                     
                     // 验证码输入框
                     _buildCodeInputs(),
-                    const SizedBox(height: 32),
+                    SizedBox(height: 32.h),
                     
                     // 重新发送
                     _buildResendSection(),
-                    const SizedBox(height: 12),
+                    SizedBox(height: 12.h),
                     // 操作按钮
                     _buildActionButton(),
                   ],
@@ -129,22 +131,22 @@ class _VerificationCodePageState extends ConsumerState<VerificationCodePage> {
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: List.generate(6, (index) {
         return Container(
-          width: 50,
-          height: 50,
+          width: 50.w,
+          height: 50.h,
           decoration: BoxDecoration(
             color: Colors.grey.shade100,
-            borderRadius: BorderRadius.circular(8),
+            borderRadius: BorderRadius.circular(8.r),
             border: Border.all(
-              color: index == 0 ? const Color(0xFFFF8A5B) : Colors.grey.shade300,
-              width: index == 0 ? 2 : 1,
+              color: index == 0 ? AppTheme.primaryOrange : Colors.grey.shade300,
+              width: index == 0 ? 2.w : 1.w,
             ),
           ),
           child: TextFormField(
             controller: _codeControllers[index],
             focusNode: _focusNodes[index],
             textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 20,
+            style: TextStyle(
+              fontSize: 20.sp,
               fontWeight: FontWeight.bold,
               color: Colors.black,
             ),
@@ -167,27 +169,28 @@ class _VerificationCodePageState extends ConsumerState<VerificationCodePage> {
 
   Widget _buildResendSection() {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.start,
       children: [
         Text(
           '未收到验证码?',
           style: TextStyle(
-            fontSize: 16,
+            fontSize: 12.sp,
             color: Colors.grey.shade600,
+            fontWeight: FontWeight.w400,
           ),
         ),
-        const SizedBox(width: 8),
+        SizedBox(width: 8.w),
         GestureDetector(
           onTap: () {
             Logger.info("VerificationCodePage", "重新发送验证码点击事件");
             // TODO: Implement resend verification code logic
           },
-          child: const Text(
+          child: Text(
             '重新发送',
             style: TextStyle(
-              fontSize: 16,
-              color: Color(0xFFFF8A5B),
-              fontWeight: FontWeight.w500,
+              fontSize: 12.sp,
+              color: AppTheme.primaryOrange,
+              fontWeight: FontWeight.w400,
             ),
           ),
         ),

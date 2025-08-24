@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../../../core/theme/app_theme.dart';
 
 class AuthButton extends StatelessWidget {
   final String text;
@@ -31,28 +33,28 @@ class AuthButton extends StatelessWidget {
       child: ElevatedButton(
         onPressed: isLoading ? null : onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: backgroundColor ?? const Color(0xFFFF8A5B),
-          padding: padding ?? const EdgeInsets.symmetric(vertical: 16),
+          backgroundColor: backgroundColor ?? AppTheme.primaryOrange,
+          padding: padding ?? EdgeInsets.symmetric(vertical: 14.h),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(borderRadius ?? 12),
+            borderRadius: BorderRadius.circular(borderRadius ?? 16.r),
           ),
           elevation: 0,
         ),
         child: isLoading
-            ? const SizedBox(
-                height: 20,
-                width: 20,
+            ? SizedBox(
+                height: 20.h,
+                width: 20.w,
                 child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  strokeWidth: 2.w,
+                  valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.loadingButtonColor),
                 ),
               )
             : Text(
                 text,
                 style: TextStyle(
-                  fontSize: fontSize ?? 18,
+                  fontSize: fontSize ?? 16.sp,
                   color: textColor ?? Colors.white,
-                  fontWeight: fontWeight ?? FontWeight.w600,
+                  fontWeight: fontWeight ?? FontWeight.w500,
                 ),
               ),
       ),

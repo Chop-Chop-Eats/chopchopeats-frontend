@@ -1,5 +1,6 @@
 import 'package:chop_user/src/core/routing/navigate.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class AuthHeader extends StatelessWidget {
   final VoidCallback? onBackPressed;
@@ -14,15 +15,15 @@ class AuthHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: padding ?? const EdgeInsets.only(top: 24.0, left: 24.0),
+      padding: padding ?? EdgeInsets.only(top: 24.0.h, left: 24.0.w),
       child: Row(
         children: [
           IconButton(
             onPressed: onBackPressed ?? () => Navigate.pop(context),
-            icon: const Icon(
+            icon: Icon(
               Icons.arrow_back_ios,
               color: Colors.black,
-              size: 24,
+              size: 24.w,
             ),
           ),
         ],

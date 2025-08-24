@@ -1,5 +1,6 @@
 import 'src/app_bootstrap.dart';
 import 'src/core/config/app_environment.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 void main() {
   // Dart 内置的 Stopwatch 类来精确计时 创建并启动

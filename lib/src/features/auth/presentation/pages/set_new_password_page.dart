@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../core/routing/navigate.dart';
 import '../../../../core/routing/routes.dart';
 import '../../../../core/utils/logger/logger.dart';
@@ -39,19 +40,19 @@ class _SetNewPasswordPageState extends ConsumerState<SetNewPasswordPage> {
             // 主要内容
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                padding: EdgeInsets.symmetric(horizontal: 24.0.w),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const SizedBox(height: 60),
+                    SizedBox(height: 60.h),
                     
                     // 标题
                     const AuthTitle(title: '设置新密码'),
-                    const SizedBox(height: 40),
+                    SizedBox(height: 40.h),
                     
                     // 密码输入框
                     _buildPasswordInput(),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16.h),
                     
                     // 密码提示
                     const AuthHintText(
@@ -59,7 +60,7 @@ class _SetNewPasswordPageState extends ConsumerState<SetNewPasswordPage> {
                       padding: EdgeInsets.zero,
                     ),
                     
-                    const SizedBox(height: 32),
+                    SizedBox(height: 32.h),
                     // 保存按钮
                     _buildSaveButton(),
       

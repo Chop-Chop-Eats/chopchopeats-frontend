@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 /// 专门的密码输入字段组件
 /// 
@@ -35,7 +36,7 @@ class _AuthPasswordFieldState extends State<AuthPasswordField> {
         border: Border(
           bottom: BorderSide(
             color: Colors.grey.shade300,
-            width: 1,
+            width: 1.w,
           ),
         ),
       ),
@@ -43,7 +44,7 @@ class _AuthPasswordFieldState extends State<AuthPasswordField> {
         children: [
           if (widget.prefix != null) ...[
             widget.prefix!,
-            const SizedBox(width: 12),
+            SizedBox(width: 12.w),
           ],
           Expanded(
             child: TextFormField(
@@ -53,16 +54,16 @@ class _AuthPasswordFieldState extends State<AuthPasswordField> {
               maxLength: widget.maxLength,
               onChanged: widget.onChanged,
               validator: widget.validator,
-              style: const TextStyle(
-                fontSize: 18,
+              style: TextStyle(
+                fontSize: 18.sp,
                 color: Colors.black,
               ),
               decoration: InputDecoration(
                 border: InputBorder.none,
                 hintText: widget.hintText,
-                hintStyle: const TextStyle(
+                hintStyle: TextStyle(
                   color: Colors.grey,
-                  fontSize: 18,
+                  fontSize: 18.sp,
                 ),
                 counterText: '',
                 suffixIcon: IconButton(
@@ -74,7 +75,7 @@ class _AuthPasswordFieldState extends State<AuthPasswordField> {
                   icon: Icon(
                     _obscurePassword ? Icons.visibility_off : Icons.visibility,
                     color: Colors.grey.shade600,
-                    size: 24,
+                    size: 24.w,
                   ),
                 ),
               ),

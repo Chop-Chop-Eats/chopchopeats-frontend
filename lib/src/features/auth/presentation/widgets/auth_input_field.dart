@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class AuthInputField extends StatelessWidget {
   final TextEditingController controller;
@@ -31,7 +32,7 @@ class AuthInputField extends StatelessWidget {
         border: Border(
           bottom: BorderSide(
             color: Colors.grey.shade300,
-            width: 1,
+            width: 1.w,
           ),
         ),
       ),
@@ -39,7 +40,7 @@ class AuthInputField extends StatelessWidget {
         children: [
           if (prefix != null) ...[
             prefix!,
-            const SizedBox(width: 12),
+            SizedBox(width: 12.w),
           ],
           Expanded(
             child: TextFormField(
@@ -49,23 +50,25 @@ class AuthInputField extends StatelessWidget {
               maxLength: maxLength,
               onChanged: onChanged,
               validator: validator,
-              style: const TextStyle(
-                fontSize: 18,
+              style: TextStyle(
+                fontSize: 14.sp,
                 color: Colors.black,
+                fontWeight: FontWeight.w400,
               ),
               decoration: InputDecoration(
                 border: InputBorder.none,
                 hintText: hintText,
-                hintStyle: const TextStyle(
+                hintStyle: TextStyle(
                   color: Colors.grey,
-                  fontSize: 18,
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.w400,
                 ),
                 counterText: '',
               ),
             ),
           ),
           if (suffix != null) ...[
-            const SizedBox(width: 12),
+            SizedBox(width: 12.w),
             suffix!,
           ],
         ],

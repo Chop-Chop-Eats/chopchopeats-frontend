@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class AuthTitle extends StatelessWidget {
   final String title;
@@ -16,9 +17,9 @@ class AuthTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       title,
-      style: style ?? const TextStyle(
-        fontSize: 28,
-        fontWeight: FontWeight.bold,
+      style: style ?? TextStyle(
+        fontSize: 20.sp,
+        fontWeight: FontWeight.w500,
         color: Colors.black,
       ),
       textAlign: textAlign ?? TextAlign.left,

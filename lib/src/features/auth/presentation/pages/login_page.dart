@@ -1,9 +1,11 @@
 import 'package:chop_user/src/core/routing/navigate.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../core/utils/logger/logger.dart';
 import '../../../../core/routing/routes.dart';
 import '../../../../core/widgets/system_ui_wrapper.dart';
+import '../../../../core/theme/app_theme.dart';
 import 'verification_code_page.dart';
 import '../widgets/auth_footer.dart';
 import '../widgets/auth_title.dart';
@@ -49,10 +51,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   _buildHeader(),
-                  const SizedBox(height: 60),
+                  SizedBox(height: 60.h),
                   _buildLoginForm(context),
                   // 底部协议
-                  const SizedBox(height: 100),
+                  SizedBox(height: 100.h),
                   const AuthFooter()
                 ],
               ),
@@ -69,20 +71,20 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       children: [
         // 紫色光晕 (左上)
         Positioned(
-          top: -240,
-          left: -330,
+          top: -240.h,
+          left: -330.w,
           child: _buildDecorativeCircle(
             color: const Color(0xFFDAC5FF),
-            radius: 300,
+            radius: 300.r,
           ),
         ),
         // 橙色光晕 (右侧)
         Positioned(
-          top: -100,
-          right: -300,
+          top: -100.h,
+          right: -300.w,
           child: _buildDecorativeCircle(
             color: const Color(0xFFFFDAC5),
-            radius: 300,
+            radius: 300.r,
           ),
         ),
       ],
@@ -98,7 +100,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         gradient: RadialGradient(
           colors: [
             color,
-            color.withOpacity(0),
+            color.withAlpha(0),
           ],
         ),
       ),
@@ -106,14 +108,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   }
 
   Widget _buildHeader() {
-    const textStyle = TextStyle(
-      fontSize: 24,
+    final textStyle = TextStyle(
+      fontSize: 16.sp,
       fontWeight: FontWeight.bold,
       color: Colors.black,
     );
 
     return Padding(
-      padding: const EdgeInsets.only(top: 60.0, left: 16.0, right: 16.0),
+      padding: EdgeInsets.only(top: 60.0.h, left: 16.0.w, right: 16.0.w),
       child: Stack(
         clipBehavior: Clip.none,
         children: [
@@ -121,30 +123,30 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'The taste of home',
                 style: textStyle,
               ),
               Row(
                 children: [
-                  const Text(
+                  Text(
                     'without the ',
                     style: textStyle,
                   ),
                   Text(
                     'cooking',
-                    style: textStyle.copyWith(color: const Color(0xFFFF8A5B)),
+                    style: textStyle.copyWith(color: AppTheme.primaryOrange),
                   ),
                 ],
               ),
             ],
           ),
           Positioned(
-            top: -50,
+            top: -50.h,
             right: 0,
             child: Image.asset(
               'assets/images/chef.png',
-              height: 180,
+              height: 180.h,
             ),
           ),
         ],
@@ -154,18 +156,18 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
   Widget _buildLoginForm(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24.0),
+      padding: EdgeInsets.symmetric(horizontal: 24.0.w),
       child: Container(
-        padding: const EdgeInsets.all(24.0),
+        padding: EdgeInsets.all(24.0.w),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(20.0),
+          borderRadius: BorderRadius.circular(20.0.r),
           boxShadow: [
             BoxShadow(
               color: Colors.grey.withAlpha(10),
               spreadRadius: 5,
               blurRadius: 15,
-              offset: const Offset(0, 5),
+              offset: Offset(0, 5.h),
             ),
           ],
         ),
@@ -173,24 +175,24 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const AuthTitle(title: '登录ChopChop'),
-            const SizedBox(height: 8),
+            SizedBox(height: 8.h),
             Text(
               '未注册手机号我们将自动为您注册',
-              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+              style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w400, color: Colors.grey[400]),
             ),
-            const SizedBox(height: 30),
+            SizedBox(height: 30.h),
             
             // 邮箱输入框
             _buildEmailInput(),
-            const SizedBox(height: 20),
+            SizedBox(height: 20.h),
             
             // 手机号输入框
             _buildPhoneInput(),
-            const SizedBox(height: 30),
+            SizedBox(height: 30.h),
             
             // 获取验证码按钮
             _buildGetCodeButton(),
-            const SizedBox(height: 20),
+            SizedBox(height: 20.h),
             
             // 密码登录选项
             _buildPasswordLoginOption(),
@@ -216,18 +218,18 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       prefix: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text(
+          Text(
             '+1',
             style: TextStyle(
-              fontSize: 16,
+              fontSize: 16.sp,
               color: Colors.black,
               fontWeight: FontWeight.w500,
             ),
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: 8.w),
           Container(
-            height: 20,
-            width: 1,
+            height: 20.h,
+            width: 1.w,
             color: Colors.grey.shade400,
           ),
         ],
@@ -259,7 +261,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           '密码登录',
           style: TextStyle(
             color: Colors.grey.shade600,
-            fontSize: 14,
+            fontSize: 14.sp,
           ),
         ),
       ),

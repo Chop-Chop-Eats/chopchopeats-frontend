@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../core/routing/navigate.dart';
 import '../../../../core/routing/routes.dart';
 import '../../../../core/utils/logger/logger.dart';
 import '../../../../core/widgets/system_ui_wrapper.dart';
+import '../../../../core/theme/app_theme.dart';
 import '../widgets/auth_footer.dart';
 import '../widgets/auth_header.dart';
 import '../widgets/auth_title.dart';
@@ -46,7 +48,7 @@ class _PasswordLoginPageState extends ConsumerState<PasswordLoginPage> {
             // 主要内容
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                padding: EdgeInsets.symmetric(horizontal: 24.0.w),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -54,33 +56,33 @@ class _PasswordLoginPageState extends ConsumerState<PasswordLoginPage> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const SizedBox(height: 60),
+                        SizedBox(height: 60.h),
                         // 标题
                         const AuthTitle(
                           title: '密码登录',
                           textAlign: TextAlign.left,
                         ),
-                        const SizedBox(height: 40),
+                        SizedBox(height: 40.h),
                         
                         // 手机号输入框
                         _buildPhoneInput(),
-                        const SizedBox(height: 32),
+                        SizedBox(height: 32.h),
                         
                         // 密码输入框
                         _buildPasswordInput(),
-                        const SizedBox(height: 24),
+                        SizedBox(height: 24.h),
                         
                         // 忘记密码
                         _buildForgotPassword(),
-                        const SizedBox(height: 24),
+                        SizedBox(height: 24.h),
                         
                         // 登录按钮
                         _buildLoginButton(),
-                        const SizedBox(height: 24),
+                        SizedBox(height: 24.h),
                         
                         // 验证码登录
                         _buildVerificationCodeLogin(),
-                        const SizedBox(height: 40),
+                        SizedBox(height: 40.h),
                       ],
                     ),
                     
@@ -104,18 +106,18 @@ class _PasswordLoginPageState extends ConsumerState<PasswordLoginPage> {
       prefix: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text(
+          Text(
             '+1',
             style: TextStyle(
-              fontSize: 18,
+              fontSize: 18.sp,
               color: Colors.black,
               fontWeight: FontWeight.w500,
             ),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: 12.w),
           Container(
-            width: 1,
-            height: 24,
+            width: 1.w,
+            height: 24.h,
             color: Colors.grey.shade400,
           ),
         ],
@@ -137,22 +139,23 @@ class _PasswordLoginPageState extends ConsumerState<PasswordLoginPage> {
         Text(
           '忘记密码?',
           style: TextStyle(
-            fontSize: 16,
+            fontSize: 12.sp,
             color: Colors.grey.shade600,
+            fontWeight: FontWeight.w400,
           ),
         ),
-        const SizedBox(width: 8),
+        SizedBox(width: 8.w),
         GestureDetector(
           onTap: () {
             Logger.info("PasswordLoginPage", "忘记密码点击事件");
             Navigate.push(context, Routes.forgotPassword);
           },
-          child: const Text(
+          child: Text(
             '立即找回',
             style: TextStyle(
-              fontSize: 16,
-              color: Color(0xFFFF8A5B),
-              fontWeight: FontWeight.w500,
+              fontSize: 12.sp,
+              color: AppTheme.primaryOrange,
+              fontWeight: FontWeight.w400,
             ),
           ),
         ),
@@ -188,7 +191,7 @@ class _PasswordLoginPageState extends ConsumerState<PasswordLoginPage> {
           '验证码登录',
           style: TextStyle(
             color: Colors.grey.shade600,
-            fontSize: 16,
+            fontSize: 14.sp,
           ),
         ),
       ),

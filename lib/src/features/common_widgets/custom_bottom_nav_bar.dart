@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../core/theme/app_theme.dart';
 
 class CustomBottomNavBar extends StatelessWidget {
   final int currentIndex;
@@ -13,17 +15,17 @@ class CustomBottomNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(left: 10, right: 10, top: 6, bottom: 6),
-      padding: const EdgeInsets.symmetric(vertical: 4),
+      margin: EdgeInsets.only(left: 10.w, right: 10.w, top: 6.h, bottom: 6.h),
+      padding: EdgeInsets.symmetric(vertical: 4.h),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(30),
+        borderRadius: BorderRadius.circular(30.r),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.1),
             spreadRadius: 1,
             blurRadius: 10,
-            offset: const Offset(0, 5),
+            offset: Offset(0, 5.h),
           ),
         ],
       ),
@@ -56,24 +58,24 @@ class CustomBottomNavBar extends StatelessWidget {
     final isSelected = currentIndex == index;
     return InkWell(
       onTap: () => onTap(index),
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(20.r),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+        padding: EdgeInsets.symmetric(horizontal: 16.0.w, vertical: 4.0.h),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Image.asset(
               imagePath,
-              width: 24,
-              height: 24,
+              width: 24.w,
+              height: 24.h,
             ),
-            const SizedBox(height: 4),
+            SizedBox(height: 4.h),
             Text(
               label,
               style: TextStyle(
-                fontSize: 12,
+                fontSize: 12.sp,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                color: !isSelected ? Colors.black : Color.fromARGB(255, 242, 118, 47),
+                color: !isSelected ? Colors.black : AppTheme.primaryOrange,
               ),
             ),
           ],

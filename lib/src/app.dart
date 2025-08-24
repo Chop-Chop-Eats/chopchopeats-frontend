@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'core/l10n/app_localizations.dart';
 import 'core/routing/router.dart';
 import 'core/routing/routes.dart';
@@ -15,26 +16,33 @@ class App extends StatelessWidget {
     return AnimatedBuilder(
       animation: AppServices.appSettings,
       builder: (context, child) {
-        return MaterialApp(
-          navigatorKey: navigatorKey,
-          title: "Chop Chop",
-          theme: AppTheme.lightTheme,
-          darkTheme: AppTheme.darkTheme,
-          themeMode: AppServices.appSettings.themeMode,
-          locale: AppServices.appSettings.locale,
-          localizationsDelegates: const [
-            AppLocalizations.delegate,
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          supportedLocales: const [
-            Locale('en', ''), // English
-            Locale('zh', ''), // Chinese
-          ],
-          initialRoute: Routes.splash,
-          onGenerateRoute: AppRouter.generateRoute,
-          onUnknownRoute: AppRouter.unknownRoute,
+        return ScreenUtilInit(
+          designSize: const Size(375, 812),
+          minTextAdapt: true,
+          splitScreenMode: true,
+          builder: (context, child) {
+            return MaterialApp(
+              navigatorKey: navigatorKey,
+              title: "Chop Chop",
+              theme: AppTheme.lightTheme,
+              darkTheme: AppTheme.darkTheme,
+              themeMode: AppServices.appSettings.themeMode,
+              locale: AppServices.appSettings.locale,
+              localizationsDelegates: const [
+                AppLocalizations.delegate,
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
+              supportedLocales: const [
+                Locale('en', ''), // English
+                Locale('zh', ''), // Chinese
+              ],
+              initialRoute: Routes.splash,
+              onGenerateRoute: AppRouter.generateRoute,
+              onUnknownRoute: AppRouter.unknownRoute,
+            );
+          },
         );
       },
     );

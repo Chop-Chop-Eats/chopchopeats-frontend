@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class Logo extends StatelessWidget {
 
@@ -8,17 +9,17 @@ class Logo extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(12.r),
         boxShadow: [
           BoxShadow(
             color: Color.fromRGBO(196, 196, 196, 0.25),
-            offset: Offset(0, 2),
+            offset: Offset(0, 2.h),
             blurRadius: 12.0,
             spreadRadius: 0.0,
           ),
         ],
       ),
-      child: Image.asset("assets/images/logo.png" , height: 80,),
+      child: Image.asset("assets/images/logo.png" , height: 80.h,),
     );
   }
 }

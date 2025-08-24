@@ -1,6 +1,7 @@
 import 'package:chop_user/src/core/routing/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../core/routing/navigate.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
@@ -27,7 +28,7 @@ class _MinePageState extends ConsumerState<MinePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Text("Mine Page"),
-            const SizedBox(height: 20),
+            SizedBox(height: 20.h),
             ElevatedButton(
               onPressed: isLoading ? null : () async {
                 await ref.read(authNotifierProvider.notifier).logout();
@@ -35,10 +36,10 @@ class _MinePageState extends ConsumerState<MinePage> {
                   Navigate.replace(context, Routes.login);
                 }
               },
-              child: isLoading ? const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+              child: isLoading ? SizedBox(
+                width: 20.w,
+                height: 20.h,
+                child: const CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
               ) : const Text("Log out"),
             ),
           ],

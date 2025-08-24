@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../../core/utils/logger/logger.dart';
 import '../../../../core/routing/navigate.dart';
 import '../../../../core/routing/routes.dart';
@@ -82,14 +83,18 @@ class _SplashPageState extends ConsumerState<SplashPage> {
           children: [
             // Logo
             const Logo(),
-            const SizedBox(height: 32),
+            SizedBox(height: 32.h),
             
             // 加载指示器
-            const CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-              strokeWidth: 3,
+            SizedBox(
+              height: 24.h,
+              width: 24.w,
+              child: const CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                strokeWidth: 3,
+              ),
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: 24.h),
           ],
         ),
       ),
