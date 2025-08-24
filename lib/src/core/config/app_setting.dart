@@ -1,6 +1,5 @@
 
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../constants/cache_constant.dart';
 import '../utils/logger/logger.dart';
 import '../../app_services.dart';

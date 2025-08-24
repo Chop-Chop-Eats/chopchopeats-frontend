@@ -2,8 +2,6 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import '../utils/logger/logger.dart';
 import '../config/app_config.dart';
-import '../../app_services.dart';
-import '../config/environment_config.dart';
 import '../constants/app_constant.dart';
 import '../error/error_handler.dart';
 import 'api_exception.dart';

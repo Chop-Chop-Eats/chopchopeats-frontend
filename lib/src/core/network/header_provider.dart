@@ -1,7 +1,5 @@
 import 'package:flutter/foundation.dart';
 import 'dart:io';
-import '../../app_services.dart';
-import '../constants/cache_constant.dart';
 
 /// 负责创建网络请求所需的 Headers
 class HeaderProvider {

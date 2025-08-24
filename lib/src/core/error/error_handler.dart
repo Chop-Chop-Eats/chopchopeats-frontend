@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:unified_popups/unified_popups.dart';
 import '../../app_services.dart';
 import '../network/api_exception.dart';
-import '../utils/logger/logger.dart';
 import '../routing/navigate.dart';
 import '../routing/routes.dart';
 import '../constants/cache_constant.dart';
