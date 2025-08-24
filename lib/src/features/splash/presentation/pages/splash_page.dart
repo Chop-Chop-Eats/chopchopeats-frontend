@@ -16,26 +16,31 @@ class SplashPage extends ConsumerStatefulWidget {
 }
 
 class _SplashPageState extends ConsumerState<SplashPage> {
+  bool _isInitialized = false;
+
   @override
   void initState() {
     super.initState();
     Logger.info('SplashPage', '闪屏页面已初始化');
-    _initializeApp();
+    // 延迟初始化，避免阻塞UI渲染
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_isInitialized) {
+        _initializeApp();
+      }
+    });
   }
 
   /// 初始化应用
   Future<void> _initializeApp() async {
+    if (_isInitialized) return; // 防止重复初始化
+    
     Logger.info('SplashPage', '开始应用初始化');
+    _isInitialized = true;
     
     try {
       // 等待缓存服务初始化
       Logger.debug('SplashPage', '等待缓存服务初始化');
       await ref.read(cacheServiceProvider.future);
-      
-      // 模拟一些初始化延迟
-      // await Future.delayed(const Duration(seconds: 2));
-      
-      Logger.debug('SplashPage', '初始化延迟完成，检查认证状态');
       
       // 等待认证仓库初始化
       final authRepository = await ref.read(authRepositoryProvider.future);
@@ -43,17 +48,21 @@ class _SplashPageState extends ConsumerState<SplashPage> {
       // 检查认证状态
       final isLoggedIn = await authRepository.isLoggedIn();
       
-      if (isLoggedIn) {
-        Logger.info('SplashPage', '用户已登录，跳转到主页');
-        _navigateToHome();
-      } else {
-        Logger.info('SplashPage', '用户未登录，跳转到登录页');
-        _navigateToLogin();
+      if (mounted) {
+        if (isLoggedIn) {
+          Logger.info('SplashPage', '用户已登录，跳转到主页');
+          _navigateToHome();
+        } else {
+          Logger.info('SplashPage', '用户未登录，跳转到登录页');
+          _navigateToLogin();
+        }
       }
     } catch (e) {
       Logger.error('SplashPage', '应用初始化异常', error: e);
       // 发生异常时，默认跳转到登录页
-      _navigateToLogin();
+      if (mounted) {
+        _navigateToLogin();
+      }
     }
   }
 

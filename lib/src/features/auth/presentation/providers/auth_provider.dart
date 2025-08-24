@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../data/repositories/auth_repository.dart';
 import '../../../../data/datasources/remote/auth_api_service.dart';
@@ -37,16 +38,30 @@ class AuthState {
 /// 认证状态管理器
 class AuthNotifier extends StateNotifier<AuthState> {
   final AuthRepository _authRepository;
+  bool _isInitialized = false;
 
   AuthNotifier(this._authRepository) : super(const AuthState()) {
     Logger.info('AuthNotifier', '认证状态管理器已初始化');
-    // 延迟检查认证状态，确保缓存服务已初始化
-    Future.microtask(() => _checkAuthStatus());
+    // 延迟初始化，避免在构造函数中立即执行异步操作
+    _initializeLater();
+  }
+
+  /// 延迟初始化，避免阻塞构造函数
+  void _initializeLater() {
+    // 使用更轻量的方式延迟初始化
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_isInitialized) {
+        _checkAuthStatus();
+      }
+    });
   }
 
   /// 检查认证状态
   Future<void> _checkAuthStatus() async {
+    if (_isInitialized) return; // 防止重复初始化
+    
     try {
+      _isInitialized = true;
       Logger.debug('AuthNotifier', '检查认证状态');
       final isLoggedIn = await _authRepository.isLoggedIn();
       
@@ -68,6 +83,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   /// 用户登录
   Future<bool> login(String username, String password) async {
+    if (state.isLoading) return false; // 防止重复登录
+    
     Logger.info('AuthNotifier', '开始登录流程: username=$username');
     
     state = state.copyWith(isLoading: true, error: null);
@@ -114,6 +131,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   /// 用户登出
   Future<void> logout() async {
+    if (state.isLoading) return; // 防止重复登出
+    
     Logger.info('AuthNotifier', '开始登出流程');
     
     state = state.copyWith(isLoading: true);
