@@ -8,7 +8,6 @@ import 'package:flutter/gestures.dart';
 class KeyboardAwarePage extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry? padding;
-  final bool showScrollbar;
   final ScrollPhysics? physics;
   final Color? backgroundColor;
   final bool resizeToAvoidBottomInset;
@@ -33,7 +32,6 @@ class KeyboardAwarePage extends StatelessWidget {
     super.key,
     required this.child,
     this.padding,
-    this.showScrollbar = true,
     this.physics,
     this.backgroundColor,
     this.resizeToAvoidBottomInset = true,
@@ -105,7 +103,6 @@ class AuthKeyboardAwarePage extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry? padding;
   final Color? backgroundColor;
-  final bool showScrollbar;
   final ScrollPhysics? physics;
 
   const AuthKeyboardAwarePage({
@@ -113,7 +110,6 @@ class AuthKeyboardAwarePage extends StatelessWidget {
     required this.child,
     this.padding,
     this.backgroundColor,
-    this.showScrollbar = true,
     this.physics,
   });
 
@@ -122,7 +118,6 @@ class AuthKeyboardAwarePage extends StatelessWidget {
     return KeyboardAwarePage(
       backgroundColor: backgroundColor ?? Colors.white,
       padding: padding,
-      showScrollbar: showScrollbar,
       physics: physics,
       child: child,
     );
@@ -136,7 +131,6 @@ class AuthGradientKeyboardAwarePage extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry? padding;
   final Color? backgroundColor;
-  final bool showScrollbar;
   final ScrollPhysics? physics;
 
   const AuthGradientKeyboardAwarePage({
@@ -144,7 +138,6 @@ class AuthGradientKeyboardAwarePage extends StatelessWidget {
     required this.child,
     this.padding,
     this.backgroundColor,
-    this.showScrollbar = true,
     this.physics,
   });
 
@@ -153,7 +146,6 @@ class AuthGradientKeyboardAwarePage extends StatelessWidget {
     return KeyboardAwarePage(
       backgroundColor: backgroundColor ?? const Color(0xFFF3F4F6),
       padding: padding,
-      showScrollbar: showScrollbar,
       physics: physics,
       child: child,
     );
@@ -168,7 +160,6 @@ class ScrollableKeyboardAwarePage extends StatelessWidget {
   final EdgeInsetsGeometry? padding;
   final Color? backgroundColor;
   final ScrollPhysics? physics;
-  final bool showScrollbar;
   final Color? scrollbarColor;
   final double? scrollbarThickness;
   final Radius? scrollbarRadius;
@@ -179,7 +170,6 @@ class ScrollableKeyboardAwarePage extends StatelessWidget {
     this.padding,
     this.backgroundColor,
     this.physics,
-    this.showScrollbar = true,
     this.scrollbarColor,
     this.scrollbarThickness,
     this.scrollbarRadius,
@@ -191,15 +181,13 @@ class ScrollableKeyboardAwarePage extends StatelessWidget {
       backgroundColor: backgroundColor,
       padding: padding,
       physics: physics,
-      child: showScrollbar
-          ? Scrollbar(
-              thumbVisibility: true,
-              trackVisibility: true,
-              thickness: scrollbarThickness ?? 6.0,
-              radius: scrollbarRadius ?? const Radius.circular(3.0),
-              child: child,
-            )
-          : child,
+      child: Scrollbar(
+        thumbVisibility: true,
+        trackVisibility: true,
+        thickness: scrollbarThickness ?? 6.0,
+        radius: scrollbarRadius ?? const Radius.circular(3.0),
+        child: child,
+      ),
     );
   }
 }

@@ -7,7 +7,7 @@ import '../../../core/utils/logger/logger.dart';
 class AuthApiService {
   final ApiClient _apiClient;
 
-   const AuthApiService( this._apiClient);
+   const AuthApiService(this._apiClient);
 
   /// 模拟用户登录
   /// 延迟 1 秒模拟网络请求
