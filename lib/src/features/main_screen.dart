@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'common_widgets/custom_bottom_nav_bar.dart';
+import '../core/widgets/custom_bottom_nav_bar.dart';
 import 'home/presentation/pages/home_page.dart';
 import 'heart/presentation/pages/heart_page.dart';
 import 'message/presentation/pages/message_page.dart';

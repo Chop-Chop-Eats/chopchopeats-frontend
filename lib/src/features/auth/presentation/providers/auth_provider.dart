@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../data/repositories/auth_repository.dart';
 import '../../../../data/datasources/remote/auth_api_service.dart';
 import '../../../../core/network/api_client.dart';
-import '../../../../core/providers/cache_provider.dart' as cache_provider;
 import '../../../../core/utils/logger/logger.dart';
 
 /// 认证状态

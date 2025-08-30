@@ -44,7 +44,7 @@ class _SplashPageState extends ConsumerState<SplashPage> {
   
       
       // 检查认证状态
-      final isLoggedIn = await false;
+      final isLoggedIn = await true;
       
       if (mounted) {
         if (isLoggedIn) {
