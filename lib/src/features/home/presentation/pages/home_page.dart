@@ -83,7 +83,7 @@ class _HomePageState extends State<HomePage> {
           // TODO: 处理位置选择事件
         },
       ),
-      contentPadding: EdgeInsets.only(left: 16.w, right: 16.w,top: 32.h),
+      contentPadding: EdgeInsets.only(left: 16.w, right: 16.w, top: 32.h),
       backgroundWidget: Image.asset("assets/images/appbar_bg.png"),
       titleWidget: const HomeSearchBar(
         hintText: '想吃点什么?',

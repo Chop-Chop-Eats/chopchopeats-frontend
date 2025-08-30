@@ -40,6 +40,7 @@ class CustomSliverAppBar extends StatelessWidget {
       expandedHeight: expandedHeight,
       pinned: pinned,
       elevation: elevation,
+      centerTitle: true,
       leading: showBackButton ? IconButton(
         onPressed: onBackPressed ?? () => Navigator.of(context).pop(),
         icon: Icon(
@@ -48,6 +49,8 @@ class CustomSliverAppBar extends StatelessWidget {
           color: backButtonColor ?? Colors.black,
         ),
       ) : null,
+      // 只有当没有titleWidget在FlexibleSpaceBar中时才在这里显示title
+      title: (titleWidget != null && locationWidget == null) ? titleWidget : null,
       flexibleSpace: FlexibleSpaceBar(
         background: Stack(
           fit: StackFit.expand,
@@ -67,13 +70,15 @@ class CustomSliverAppBar extends StatelessWidget {
             ),
           ],
         ),
-        // 固定在顶部的标题组件
-        titlePadding: titlePadding ?? EdgeInsets.only(
-          left: 16.w,
-          right: 16.w,
-          bottom: 12.h,
-        ),
-        title: titleWidget,
+        // 当有locationWidget时，titleWidget在这里显示（支持大小变化效果）
+        titlePadding: (titleWidget != null && locationWidget != null) 
+            ? (titlePadding ?? EdgeInsets.only(
+                left: 16.w,
+                right: 16.w,
+                bottom: 12.h,
+              ))
+            : null,
+        title: (titleWidget != null && locationWidget != null) ? titleWidget : null,
       ),
     );
   }
