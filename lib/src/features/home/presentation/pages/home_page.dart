@@ -76,11 +76,15 @@ class _HomePageState extends State<HomePage> {
   Widget _buildSliverAppBar() {
     return CustomSliverAppBar(
       backgroundColor: const Color.fromARGB(255, 246, 247, 253),
-      expandedHeight: 108.h,
-      locationWidget: const LocationBar(
+      expandedHeight: 120.h,
+      locationWidget: LocationBar(
         location: 'Northwalk Rd, Toronto',
+        onLocationTap: () {
+          // TODO: 处理位置选择事件
+        },
       ),
-      backgroundWidget: Image.asset("assets/images/chef.png"),
+      contentPadding: EdgeInsets.only(left: 16.w, right: 16.w,top: 32.h),
+      backgroundWidget: Image.asset("assets/images/appbar_bg.png"),
       titleWidget: const HomeSearchBar(
         hintText: '想吃点什么?',
       ),

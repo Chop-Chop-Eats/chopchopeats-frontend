@@ -148,12 +148,12 @@ class _CategoryDetailPageState extends State<CategoryDetailPage> {
     );
   }
 
-     Widget _buildSliverAppBar() {
+  Widget _buildSliverAppBar() {
     return CustomSliverAppBar(
       backgroundColor: Colors.white,
       expandedHeight: 64.h,
       backgroundWidget: Image.asset(
-        "assets/images/chef.png",
+        "assets/images/appbar_bg.png",
       ),
       titleWidget: AnimatedOpacity(
         opacity: _showTitle ? 1.0 : 0.0,

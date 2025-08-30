@@ -15,7 +15,6 @@ class HomeSearchBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 36.h,
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16.r),
@@ -23,7 +22,7 @@ class HomeSearchBar extends StatelessWidget {
       child: Row(
         children: [
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: 12.w),
+            padding: EdgeInsets.symmetric(horizontal: 12.w , vertical: 6.h),
             child: Icon(Icons.search, color: Colors.grey, size: 16.sp),
           ),
           Text(

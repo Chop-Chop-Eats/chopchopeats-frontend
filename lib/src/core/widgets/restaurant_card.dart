@@ -89,7 +89,8 @@ class RestaurantCard extends StatelessWidget {
                     ),
                     Row(
                       children: [
-                        Icon(Icons.star, color: Colors.orange, size: 16.sp),
+                        Image.asset("assets/images/star.png", height: 16.h),
+                        CommonSpacing.width(4),
                         Text(
                           restaurant.rating,
                           style: TextStyle(
