@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:unified_popups/unified_popups.dart';
 import '../../app_services.dart';
+import '../constants/app_constant.dart';
 import '../network/api_exception.dart';
 import '../routing/navigate.dart';
 import '../routing/routes.dart';
-import '../constants/cache_constant.dart';
 
 class ErrorHandler {
   static final ErrorHandler _instance = ErrorHandler._internal();
@@ -34,7 +34,7 @@ class ErrorHandler {
   }
 
   static Future<void> _clearUserSession() async {
-    await AppServices.cache.remove(CacheConstant.token);
+    await AppServices.cache.remove(AppConstants.token);
   }
 
   static void _showErrorSnackBar(BuildContext context, String message) {

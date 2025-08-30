@@ -1,6 +1,6 @@
 
 import 'package:flutter/material.dart';
-import '../constants/cache_constant.dart';
+import '../constants/app_constant.dart';
 import '../utils/logger/logger.dart';
 import '../../app_services.dart';
 
@@ -22,12 +22,12 @@ class AppSettings extends ChangeNotifier {
     final settings = AppSettings._();
 
     // 加载主题设置
-    final themeName = await AppServices.cache.get<String>(CacheConstant.themeMode);
+    final themeName = await AppServices.cache.get<String>(AppConstants.themeMode);
     settings._themeMode = ThemeMode.values.firstWhere((e) => e.name == themeName, orElse: () => ThemeMode.system, // 默认跟随系统
     );
 
     // 加载语言设置
-    final langCode = await AppServices.cache.get<String>(CacheConstant.languageCode);
+    final langCode = await AppServices.cache.get<String>(AppConstants.languageCode);
     settings._locale = langCode != null ? Locale(langCode) : const Locale('en'); // 默认英文
 
     return settings;
@@ -44,7 +44,7 @@ class AppSettings extends ChangeNotifier {
     notifyListeners();
 
     // 持久化到本地
-    await AppServices.cache.set<String>(CacheConstant.themeMode, _themeMode.name);
+    await AppServices.cache.set<String>(AppConstants.themeMode, _themeMode.name);
   }
 
   /// 更新语言
@@ -58,6 +58,6 @@ class AppSettings extends ChangeNotifier {
     notifyListeners();
 
     // 持久化到本地
-    await AppServices.cache.set<String>(CacheConstant.languageCode, _locale.languageCode);
+    await AppServices.cache.set<String>(AppConstants.languageCode, _locale.languageCode);
   }
 }

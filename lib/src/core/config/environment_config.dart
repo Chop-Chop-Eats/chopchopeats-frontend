@@ -1,4 +1,4 @@
-import '../constants/cache_constant.dart';
+import '../constants/app_constant.dart';
 import '../utils/logger/logger.dart';
 import '../../app_services.dart';
 import 'app_config.dart';
@@ -19,7 +19,7 @@ class EnvironmentConfig {
   ///
   /// 它根据传入的 [AppEnvironment] 来设置对应的 [AppConfig]。
   static Future<void> initialize(AppEnvironment environment)  async {
-    final enable = await AppServices.cache.get(CacheConstant.enable);
+    final enable = await AppServices.cache.get(AppConstants.enable);
     _environment = environment;
     switch (environment) {
       case AppEnvironment.development:

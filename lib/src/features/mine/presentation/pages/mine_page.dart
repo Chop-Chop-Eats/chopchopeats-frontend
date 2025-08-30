@@ -16,8 +16,7 @@ class MinePage extends ConsumerStatefulWidget {
 class _MinePageState extends ConsumerState<MinePage> {
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authNotifierProvider);
-    final isLoading = authState.isLoading;
+  
 
     return Scaffold(
       appBar: AppBar(
@@ -30,13 +29,10 @@ class _MinePageState extends ConsumerState<MinePage> {
             const Text("Mine Page"),
             SizedBox(height: 20.h),
             ElevatedButton(
-              onPressed: isLoading ? null : () async {
-                await ref.read(authNotifierProvider.notifier).logout();
-                if (mounted) {
-                  Navigate.replace(context, Routes.login);
-                }
+              onPressed: () async {
+               
               },
-              child: isLoading ? SizedBox(
+              child: false ? SizedBox(
                 width: 20.w,
                 height: 20.h,
                 child: const CircularProgressIndicator(strokeWidth: 2, color: Colors.white),

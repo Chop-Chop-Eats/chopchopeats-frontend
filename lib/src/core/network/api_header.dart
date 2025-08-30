@@ -2,8 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'dart:io';
 
 /// 负责创建网络请求所需的 Headers
-class HeaderProvider {
-  const HeaderProvider();
+class ApiHeader {
+  const ApiHeader();
 
   Future<Map<String, dynamic>> createHeaders() async {
     // 1. 获取认证 Token (异步)

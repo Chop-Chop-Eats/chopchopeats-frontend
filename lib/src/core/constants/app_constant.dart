@@ -1,8 +1,16 @@
 // lib/config/app_constants.dart
 class AppConstants {
   AppConstants._(); // 私有构造
-  // 记录api请求时间
-  static const String apiStartTime = "apiStartTime";
+  // 记录api请求时间  
+  static const String apiStartTime = "API_START_TIME";  
   // 设备信息
-  static const String deviceUuid = "device_uuid";
+  static const String deviceUuid = "DEVICE_UUID";
+  // 主题模式
+  static const String themeMode = "THEME_MODE";
+  // 语言代码
+  static const String languageCode = "LANGUAGE_CODE";
+  // 是否启用
+  static const String enable = "ENABLE";
+  // 用户token
+  static const String token = "TOKEN";
 }

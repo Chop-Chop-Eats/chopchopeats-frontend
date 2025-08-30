@@ -6,11 +6,11 @@ import '../constants/app_constant.dart';
 import '../error/error_handler.dart';
 import 'api_exception.dart';
 import 'api_response.dart';
-import 'header_provider.dart';
+import 'api_header.dart';
 
 
 class ApiInterceptor extends InterceptorsWrapper {
-  final HeaderProvider _headerProvider = const HeaderProvider();
+  final ApiHeader _apiHeader = const ApiHeader();
   @override
   Future<void> onRequest(RequestOptions options, RequestInterceptorHandler handler) async {
     // 记录请求开始时间
@@ -23,7 +23,7 @@ class ApiInterceptor extends InterceptorsWrapper {
     // }
 
     // 异步创建并添加请求头
-    final customHeaders = await _headerProvider.createHeaders();
+    final customHeaders = await _apiHeader.createHeaders();
     options.headers.addAll(customHeaders);
 
     Logger.warn("API" , "--> ${options.method} ${options.uri}");

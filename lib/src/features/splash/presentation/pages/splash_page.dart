@@ -5,7 +5,6 @@ import '../../../../core/utils/logger/logger.dart';
 import '../../../../core/routing/navigate.dart';
 import '../../../../core/routing/routes.dart';
 import '../../../../core/widgets/logo.dart';
-import '../../../../core/providers/cache_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 
 class SplashPage extends ConsumerStatefulWidget {
@@ -40,13 +39,12 @@ class _SplashPageState extends ConsumerState<SplashPage> {
     try {
       // 等待缓存服务初始化
       Logger.debug('SplashPage', '等待缓存服务初始化');
-      await ref.read(cacheServiceProvider.future);
+  
       
-      // 等待认证仓库初始化
-      final authRepository = await ref.read(authRepositoryProvider.future);
+  
       
       // 检查认证状态
-      final isLoggedIn = await authRepository.isLoggedIn();
+      final isLoggedIn = await false;
       
       if (mounted) {
         if (isLoggedIn) {

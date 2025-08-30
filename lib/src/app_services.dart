@@ -1,11 +1,8 @@
-// lib/services/app_services.dart
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'core/network/api_client.dart';
 import 'data/datasources/local/cache_service.dart';
 import 'core/config/app_setting.dart';
-import 'data/datasources/remote/auth_api_service.dart';
-import 'data/datasources/remote/user_api_service.dart';
 
 /// 服务定位器，用于管理应用范围内的共享实例。
 class AppServices {
@@ -27,14 +24,11 @@ class AppServices {
   // 全局唯一的 AppSettings 实例
   static late final AppSettings appSettings;
 
-  static late final AuthApiService authApi;
-  static late final UserApiService userApi;
-
 
   /// 初始化基础服务，缓存和app设置
   static Future<void> initCacheService() async {
-    final prefs = await SharedPreferences.getInstance();
-    cache = CacheService(storage: SharedPreferencesAdapter(prefs));
+     final prefs = await SharedPreferences.getInstance();
+    cache = CacheService(prefs: prefs);
     appSettings = await AppSettings.init();
   }
 
@@ -43,8 +37,5 @@ class AppServices {
   static Future<void> initApiService() async {
     // ApiClient 依赖于 EnvironmentConfig 所以必须在这里初始化
     apiClient = ApiClient();
-
-    authApi = AuthApiService(apiClient);
-    userApi = UserApiService(apiClient);
   }
 }

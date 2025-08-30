@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'common_widgets/custom_bottom_nav_bar.dart';
 import 'home/presentation/pages/home_page.dart';
+import 'heart/presentation/pages/heart_page.dart';
+import 'message/presentation/pages/message_page.dart';
+import 'order/presentation/pages/order_page.dart';
 import 'mine/presentation/pages/mine_page.dart';
 
 class MainScreen extends StatefulWidget {
@@ -15,6 +18,9 @@ class _MainScreenState extends State<MainScreen> {
 
   final List<Widget> _pages = [
     const HomePage(),
+    const HeartPage(),
+    const OrderPage(),
+    const MessagePage(),
     const MinePage(),
   ];
 
