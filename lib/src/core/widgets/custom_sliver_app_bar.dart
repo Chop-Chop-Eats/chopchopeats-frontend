@@ -13,6 +13,9 @@ class CustomSliverAppBar extends StatelessWidget {
   final Widget? titleWidget;
   final EdgeInsetsGeometry? titlePadding;
   final EdgeInsetsGeometry? contentPadding;
+  final bool showBackButton;
+  final VoidCallback? onBackPressed;
+  final Color? backButtonColor;
 
   const CustomSliverAppBar({
     super.key,
@@ -25,6 +28,9 @@ class CustomSliverAppBar extends StatelessWidget {
     this.titleWidget,
     this.titlePadding,
     this.contentPadding,
+    this.showBackButton = false,
+    this.onBackPressed,
+    this.backButtonColor,
   });
 
   @override
@@ -34,6 +40,14 @@ class CustomSliverAppBar extends StatelessWidget {
       expandedHeight: expandedHeight,
       pinned: pinned,
       elevation: elevation,
+      leading: showBackButton ? IconButton(
+        onPressed: onBackPressed ?? () => Navigator.of(context).pop(),
+        icon: Icon(
+          Icons.arrow_back_ios_new,
+          size: 20.sp,
+          color: backButtonColor ?? Colors.black,
+        ),
+      ) : null,
       flexibleSpace: FlexibleSpaceBar(
         background: Stack(
           fit: StackFit.expand,

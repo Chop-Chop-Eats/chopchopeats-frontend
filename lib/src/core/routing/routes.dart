@@ -7,7 +7,7 @@ class Routes {
   static const String passwordLogin = '/passwordLogin'; // 密码登录页面
   static const String forgotPassword = '/forgotPassword'; // 忘记密码页面
   static const String setNewPasswordPage = '/setNewPasswordPage'; // 设置新密码页面
+  static const String categoryDetail = '/categoryDetail'; // 分类详情页面
 
-    static const String webview = '/webview'; // 网页视图页面
-
+  static const String webview = '/webview'; // 网页视图页面
 }

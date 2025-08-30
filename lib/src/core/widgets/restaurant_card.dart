@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../../../core/widgets/common_spacing.dart';
+import 'common_spacing.dart';
 
 /// 餐厅数据模型
 class RestaurantData {
@@ -45,6 +45,14 @@ class RestaurantCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(15.r),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withAlpha(10),
+              spreadRadius: 3,
+              blurRadius: 3,
+              offset: Offset(0, 1),
+            ),
+          ],
         ),
         child: Row(
           children: [

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../features/auth/presentation/pages/password_login_page.dart';
 import '../../features/auth/presentation/pages/set_new_password_page.dart';
 import '../../features/auth/presentation/pages/verification_code_page.dart';
+import '../../features/category/presentation/pages/category_detail_page.dart';
 import '../../features/error_page.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/main_screen.dart';
@@ -31,6 +32,17 @@ class AppRouter {
       }
       return const ErrorPage(message: "参数错误或缺失");
      },
+
+    Routes.categoryDetail: (settings) {
+      if (settings.arguments is Map<String, dynamic>) {
+        final args = settings.arguments as Map<String, dynamic>;
+        final categoryId = args["categoryId"];
+        if (categoryId is String) {
+          return CategoryDetailPage(categoryId: categoryId);
+        }
+      }
+      return const ErrorPage(message: "分类ID参数错误或缺失");
+    },
   };
 
   /// 创建路由方法

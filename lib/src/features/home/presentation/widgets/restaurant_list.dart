@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../core/widgets/common_spacing.dart';
-import 'restaurant_card.dart';
+import '../../../../core/widgets/restaurant_card.dart';
 
 /// 餐厅列表组件 - Home模块专用
 class RestaurantList extends StatelessWidget {
