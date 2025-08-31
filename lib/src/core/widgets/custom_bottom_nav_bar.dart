@@ -33,31 +33,31 @@ class CustomBottomNavBar extends StatelessWidget {
         children: [
           _buildNavItem(
             imagePath: currentIndex == 0 ? 'assets/images/home_s.png':'assets/images/home.png' ,
-            label: 'Home',
+            label: '首页',
             index: 0,
             context: context,
           ),
           _buildNavItem(
             imagePath: currentIndex == 1 ? 'assets/images/heart_s.png':'assets/images/heart.png',
-            label: 'Heart',
+            label: '收藏',
             index: 1,
             context: context,
           ),
           _buildNavItem(
             imagePath: currentIndex == 2 ? 'assets/images/order_s.png':'assets/images/order.png',
-            label: 'Order',
+            label: '订单',
             index: 2,
             context: context,
           ),
           _buildNavItem(
             imagePath: currentIndex == 3 ? 'assets/images/message_s.png':'assets/images/message.png',
-            label: 'Message',
+            label: '消息',
             index: 3,
             context: context,
           ),
           _buildNavItem(
             imagePath: currentIndex == 4 ? 'assets/images/mine_s.png':'assets/images/mine.png',
-            label: 'Me',
+            label: '我的',
             index: 4,
             context: context,
           ),
