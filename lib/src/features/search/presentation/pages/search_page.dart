@@ -26,17 +26,33 @@ class _SearchPageState extends State<SearchPage> {
   ];
 
   Future<void> _initializeApp() async {
-    final searchHistory = await AppServices.cache.get<List<String>>(AppConstants.searchHistory);
-    setState(() {
-      _searchHistory = searchHistory ?? [];
-    });
-    Logger.info('SearchPage', 'searchHistory: $searchHistory');
+    try {
+      final searchHistory = await AppServices.cache.get<List<String>>(AppConstants.searchHistory);
+      if (mounted) {
+        setState(() {
+          _searchHistory = searchHistory ?? [];
+        });
+      }
+      Logger.info('SearchPage', 'searchHistory: $searchHistory');
+    } catch (e) {
+      Logger.error('SearchPage', 'Failed to load search history: $e');
+      if (mounted) {
+        setState(() {
+          _searchHistory = [];
+        });
+      }
+    }
   }
 
   @override
   void initState() {
     super.initState();
-    _initializeApp();
+    // 延迟执行异步操作，避免在 initState 中直接调用
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _initializeApp();
+      }
+    });
   }
 
   @override
@@ -69,24 +85,36 @@ class _SearchPageState extends State<SearchPage> {
 
   // 添加到搜索历史
   Future<void> _addToSearchHistory(String query) async {
-    if (!_searchHistory.contains(query)) {
-      _searchHistory.insert(0, query);
-      // 限制历史记录数量
-      if (_searchHistory.length > 10) {
-        _searchHistory = _searchHistory.take(10).toList();
+    try {
+      if (!_searchHistory.contains(query)) {
+        _searchHistory.insert(0, query);
+        // 限制历史记录数量
+        if (_searchHistory.length > 10) {
+          _searchHistory = _searchHistory.take(10).toList();
+        }
+        await AppServices.cache.set(AppConstants.searchHistory, _searchHistory);
+        if (mounted) {
+          setState(() {});
+        }
       }
-      await AppServices.cache.set(AppConstants.searchHistory, _searchHistory);
-      setState(() {});
+    } catch (e) {
+      Logger.error('SearchPage', 'Failed to save search history: $e');
     }
   }
 
   // 清除搜索历史
   Future<void> _clearSearchHistory() async {
-    await AppServices.cache.remove(AppConstants.searchHistory);
-    setState(() {
-      _searchHistory.clear();
-    });
-    Logger.info('SearchPage', '清除搜索历史');
+    try {
+      await AppServices.cache.remove(AppConstants.searchHistory);
+      if (mounted) {
+        setState(() {
+          _searchHistory.clear();
+        });
+      }
+      Logger.info('SearchPage', '清除搜索历史');
+    } catch (e) {
+      Logger.error('SearchPage', 'Failed to clear search history: $e');
+    }
   }
 
   @override
@@ -119,13 +147,12 @@ class _SearchPageState extends State<SearchPage> {
 
   Widget _buildSearchBar() {
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         // 返回按钮
         GestureDetector(
           onTap: () => Navigate.pop(context),
-          child: Container(
-            width: 24.w,
-            height: 24.h,
+          child:Center(
             child: Icon(
               Icons.arrow_back_ios,
               size: 20.sp,
@@ -137,12 +164,12 @@ class _SearchPageState extends State<SearchPage> {
         // 搜索输入框
         Expanded(
           child: Container(
-            height: 40.h,
             decoration: BoxDecoration(
               color: Color(0xFFF2F3F5),
               borderRadius: BorderRadius.circular(20.r),
             ),
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 CommonSpacing.width(16.w),
                 Image.asset(
@@ -178,20 +205,17 @@ class _SearchPageState extends State<SearchPage> {
         GestureDetector(
           onTap: _performSearch,
           child: Container(
-            width: 60.w,
-            height: 40.h,
+            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
             decoration: BoxDecoration(
               color: Color(0xFFFF6B35),
               borderRadius: BorderRadius.circular(20.r),
             ),
-            child: Center(
-              child: Text(
-                '搜索',
-                style: TextStyle(
-                  fontSize: 14.sp,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.white,
-                ),
+            child: Text(
+              '搜索',
+              style: TextStyle(
+                fontSize: 14.sp,
+                fontWeight: FontWeight.w500,
+                color: Colors.white,
               ),
             ),
           ),
