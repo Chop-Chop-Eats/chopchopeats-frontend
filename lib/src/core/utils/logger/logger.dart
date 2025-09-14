@@ -2,26 +2,17 @@
 import 'package:flutter/foundation.dart';
 import 'package:logger/logger.dart' as external_logger;
 import 'log_types.dart';
+import 'simple_log_printer.dart';
 
-/// 核心 Logger 类
-/// 使用第三方 logger 库输出日志，确保在 iOS 和 Android 上都能正常显示
+
 class Logger {
   Logger._();
   
   // 创建全局日志实例
   static final external_logger.Logger _logger = external_logger.Logger(
-    printer: external_logger.PrettyPrinter(
-      methodCount: 0, // 不显示方法调用栈
-      errorMethodCount: 8, // 错误时显示调用栈
-      lineLength: 120, // 行长度
-      colors: true, // 启用颜色
-      printEmojis: true, // 启用表情符号
-      dateTimeFormat: external_logger.DateTimeFormat.onlyTimeAndSinceStart,
-    ),
-    output: kDebugMode ? external_logger.ConsoleOutput() : external_logger.MultiOutput([
-      external_logger.ConsoleOutput(),
-      // 生产环境可以添加文件输出或其他输出方式
-    ]),
+    printer: SimpleLogPrinter(), 
+    level: kDebugMode ? external_logger.Level.debug : external_logger.Level.warning,
+    output: external_logger.ConsoleOutput(), // 输出到控制台
   );
 
   /// 初始化全局错误监听器，将 Flutter 和平台错误重定向到本 Logger。
@@ -92,38 +83,24 @@ class Logger {
 
   /// 内部日志方法
   static void _log(LogLevel level, String? tag, dynamic message, {dynamic error, StackTrace? stackTrace}) {
+    // 保持原有的 Tag 拼接逻辑，这样最灵活
     final tagStr = tag != null ? "[$tag]" : "";
     final logMessage = "$tagStr $message";
     
     // 根据日志级别调用对应的logger方法
+    // 注意：我们将 LogLevel 映射到 external_logger.Level
     switch (level) {
       case LogLevel.debug:
-        if (error != null || stackTrace != null) {
-          _logger.d(logMessage, error: error, stackTrace: stackTrace);
-        } else {
-          _logger.d(logMessage);
-        }
+        _logger.d(logMessage, error: error, stackTrace: stackTrace);
         break;
       case LogLevel.info:
-        if (error != null || stackTrace != null) {
-          _logger.i(logMessage, error: error, stackTrace: stackTrace);
-        } else {
-          _logger.i(logMessage);
-        }
+        _logger.i(logMessage, error: error, stackTrace: stackTrace);
         break;
       case LogLevel.warn:
-        if (error != null || stackTrace != null) {
-          _logger.w(logMessage, error: error, stackTrace: stackTrace);
-        } else {
-          _logger.w(logMessage);
-        }
+        _logger.w(logMessage, error: error, stackTrace: stackTrace);
         break;
       case LogLevel.error:
-        if (error != null || stackTrace != null) {
-          _logger.e(logMessage, error: error, stackTrace: stackTrace);
-        } else {
-          _logger.e(logMessage);
-        }
+        _logger.e(logMessage, error: error, stackTrace: stackTrace);
         break;
     }
   }

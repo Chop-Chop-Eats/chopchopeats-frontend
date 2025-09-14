@@ -7,6 +7,7 @@ import '../../features/category/presentation/pages/category_detail_page.dart';
 import '../../features/error_page.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/main_screen.dart';
+import '../../features/search/presentation/pages/search_page.dart';
 import '../../features/splash/presentation/pages/splash_page.dart';
 import 'routes.dart';
 
@@ -22,6 +23,7 @@ class AppRouter {
     Routes.passwordLogin: (settings) => const PasswordLoginPage(),
     Routes.forgotPassword: (settings) => const ForgotPasswordPage(),
     Routes.setNewPasswordPage: (settings) => const SetNewPasswordPage(),
+    Routes.search: (settings) => const SearchPage(),
 
     Routes.verificationCode: (settings) {
       if (settings.arguments is Map<String, dynamic>) {

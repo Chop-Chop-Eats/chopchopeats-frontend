@@ -13,4 +13,6 @@ class AppConstants {
   static const String enable = "ENABLE";
   // 用户token
   static const String token = "TOKEN";
+  // 搜索历史
+  static const String searchHistory = "SEARCH_HISTORY";
 }

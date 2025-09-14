@@ -27,7 +27,7 @@ class AppServices {
 
   /// 初始化基础服务，缓存和app设置
   static Future<void> initCacheService() async {
-     final prefs = await SharedPreferences.getInstance();
+    final prefs = await SharedPreferences.getInstance();
     cache = CacheService(prefs: prefs);
     appSettings = await AppSettings.init();
   }

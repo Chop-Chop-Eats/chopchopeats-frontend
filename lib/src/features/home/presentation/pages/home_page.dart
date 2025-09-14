@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import '../../../../core/utils/logger/logger.dart';
 import '../../../../core/widgets/custom_sliver_app_bar.dart';
 import '../../../../core/routing/navigate.dart';
 import '../../../../core/routing/routes.dart';
@@ -80,13 +81,19 @@ class _HomePageState extends State<HomePage> {
       locationWidget: LocationBar(
         location: 'Northwalk Rd, Toronto',
         onLocationTap: () {
-          // TODO: 处理位置选择事件
+          Logger.info('HomePage', '点击位置');
         },
       ),
       contentPadding: EdgeInsets.only(left: 16.w, right: 16.w, top: 32.h),
       backgroundWidget: Image.asset("assets/images/appbar_bg.png"),
-      titleWidget: const HomeSearchBar(
-        hintText: '想吃点什么?',
+      titleWidget: GestureDetector(
+        onTap: () { 
+
+          Navigate.push(context, Routes.search);
+        },
+        child: const HomeSearchBar(
+          hintText: '想吃点什么?',
+        ),
       ),
     );
   }
@@ -198,7 +205,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   void _onRestaurantTap(RestaurantModel restaurant) {
-    debugPrint('点击餐厅: ${restaurant.name} (ID: ${restaurant.id})');
+    Logger.info('HomePage', '点击餐厅: ${restaurant.name} (ID: ${restaurant.id})');
     // TODO: 跳转到餐厅详情页面
     
     // 暂时显示餐厅信息

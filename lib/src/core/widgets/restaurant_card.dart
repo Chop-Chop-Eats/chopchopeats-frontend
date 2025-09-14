@@ -48,8 +48,8 @@ class RestaurantCard extends StatelessWidget {
           boxShadow: [
             BoxShadow(
               color: Colors.black.withAlpha(10),
-              spreadRadius: 3,
-              blurRadius: 3,
+              spreadRadius: 2,
+              blurRadius: 2,
               offset: Offset(0, 1),
             ),
           ],

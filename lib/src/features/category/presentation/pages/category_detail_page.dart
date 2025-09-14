@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-
+import '../../../../core/utils/logger/logger.dart';
 import '../../../../core/widgets/common_app_bar.dart';
 import '../../../../core/widgets/custom_sliver_app_bar.dart';
 import '../../../../core/widgets/common_spacing.dart';
@@ -64,7 +64,7 @@ class _CategoryDetailPageState extends State<CategoryDetailPage> {
       
       final category = _mockDataService.getCategoryById(widget.categoryId);
       final restaurants = _mockDataService.getRestaurantsByCategory(widget.categoryId);
-      
+      Logger.info('CategoryDetailPage', '加载数据成功');
       setState(() {
         _category = category;
         _restaurants = restaurants;
@@ -202,9 +202,7 @@ class _CategoryDetailPageState extends State<CategoryDetailPage> {
   }
 
   void _onRestaurantTap(RestaurantModel restaurant) {
-    // TODO: 跳转到餐厅详情页面
-    debugPrint('点击餐厅: ${restaurant.name}');
-    
+    Logger.info('CategoryDetailPage', '点击餐厅: ${restaurant.name}');
     // 可以显示一个简单的对话框
     showDialog(
       context: context,
