@@ -12,7 +12,9 @@ class AppConstants {
   // 是否启用
   static const String enable = "ENABLE";
   // 用户token
-  static const String token = "TOKEN";
+  static const String accessToken = "ACCESS_TOKEN";
+  // 用户刷新token
+  static const String refreshToken = "REFRESH_TOKEN";
   // 搜索历史
   static const String searchHistory = "SEARCH_HISTORY";
 }

@@ -11,13 +11,13 @@ class AppConfig {
   });
 
   /// 测试环境基地址
-  static const String devApi = 'http://13.212.238.193:8080/';
+  static const String devApi = 'https://dev-api.chopchopeats.org';
   /// 正式环境基地址
-  static const String proApi = 'https://api.ops-track.com/';
+  static const String proApi = 'https://dev-api.chopchopeats.org';
 
 
   /// API 响应中代表业务『成功』的 code 码集合
-  static const List<int> successCodes = [200];
+  static const List<int> successCodes = [0 ,200];
 
   /// API 响应中代表业务『用户认证无效』的 code 码集合
   /// 用于触发特殊的业务逻辑，例如：跳转到登录页

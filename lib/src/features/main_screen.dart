@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import '../core/widgets/custom_bottom_nav_bar.dart';
-import 'home/presentation/pages/home_page.dart';
-import 'heart/presentation/pages/heart_page.dart';
-import 'message/presentation/pages/message_page.dart';
-import 'order/presentation/pages/order_page.dart';
-import 'mine/presentation/pages/mine_page.dart';
+import 'home/pages/home_page.dart';
+import 'heart/pages/heart_page.dart';
+import 'message/pages/message_page.dart';
+import 'order/pages/order_page.dart';
+import 'mine/pages/mine_page.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});

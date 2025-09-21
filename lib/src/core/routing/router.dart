@@ -1,14 +1,14 @@
-import 'package:chop_user/src/features/auth/presentation/pages/forgot_password_page.dart';
+import 'package:chop_user/src/features/auth/pages/forgot_password_page.dart';
 import 'package:flutter/material.dart';
-import '../../features/auth/presentation/pages/password_login_page.dart';
-import '../../features/auth/presentation/pages/set_new_password_page.dart';
-import '../../features/auth/presentation/pages/verification_code_page.dart';
-import '../../features/category/presentation/pages/category_detail_page.dart';
+import '../../features/auth/pages/password_login_page.dart';
+import '../../features/auth/pages/set_new_password_page.dart';
+import '../../features/auth/pages/verification_code_page.dart';
+import '../../features/category/pages/category_detail_page.dart';
 import '../../features/error_page.dart';
-import '../../features/auth/presentation/pages/login_page.dart';
+import '../../features/auth/pages/login_page.dart';
 import '../../features/main_screen.dart';
-import '../../features/search/presentation/pages/search_page.dart';
-import '../../features/splash/presentation/pages/splash_page.dart';
+import '../../features/search/pages/search_page.dart';
+import '../../features/splash/pages/splash_page.dart';
 import 'routes.dart';
 
 class AppRouter {
@@ -20,8 +20,8 @@ class AppRouter {
     Routes.home: (settings) => const MainScreen(),
     Routes.login: (settings) => const LoginPage(),
    
-    Routes.passwordLogin: (settings) => const PasswordLoginPage(),
-    Routes.forgotPassword: (settings) => const ForgotPasswordPage(),
+    Routes.passwordLogin: (settings) => PasswordLoginPage(phoneNumber: settings.arguments as String),
+    Routes.forgotPassword: (settings) => ForgotPasswordPage(phoneNumber: settings.arguments as String),
     Routes.setNewPasswordPage: (settings) => const SetNewPasswordPage(),
     Routes.search: (settings) => const SearchPage(),
 
@@ -30,7 +30,8 @@ class AppRouter {
         final args = settings.arguments as Map<String, dynamic>;
         final phoneNumber = args["phoneNumber"];
         final type = args["type"];
-        return VerificationCodePage(phoneNumber: phoneNumber, type: type);
+        final email = args["email"];
+        return VerificationCodePage(phoneNumber: phoneNumber, type: type, email: email);
       }
       return const ErrorPage(message: "参数错误或缺失");
      },

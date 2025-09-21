@@ -34,7 +34,8 @@ class ErrorHandler {
   }
 
   static Future<void> _clearUserSession() async {
-    await AppServices.cache.remove(AppConstants.token);
+    await AppServices.cache.remove(AppConstants.accessToken);
+    await AppServices.cache.remove(AppConstants.refreshToken);
   }
 
   static void _showErrorSnackBar(BuildContext context, String message) {
