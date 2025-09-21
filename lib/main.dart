@@ -6,7 +6,7 @@ void main() {
   final Stopwatch stopwatch = Stopwatch()..start();
   // 委托所有启动任务给引导程序 默认开启全局错误监听 日志系统自带
   AppBootstrap.run(
-    environment: AppEnvironment.production,
+    environment: AppEnvironment.development,
     stopwatch:stopwatch
   );
 }

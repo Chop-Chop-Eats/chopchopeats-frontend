@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app_services.dart';
+import '../../../core/config/environment_config.dart';
 import '../../../core/constants/app_constant.dart';
 import '../../../core/enums/auth_enums.dart';
 import '../../../core/utils/logger/logger.dart';
@@ -140,7 +141,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     try {
       final params = AppAuthLoginParams(
         mobile: mobile,
-        code: code,
+        code: EnvironmentConfig.isDevelopment? "123456" : code,
         email: email,
         userPlatformType: UserPlatformTypeEnum.normal, // 默认普通用户
       );

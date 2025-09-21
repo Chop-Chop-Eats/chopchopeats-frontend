@@ -35,21 +35,18 @@ class VerificationCodePage extends ConsumerStatefulWidget {
 class _VerificationCodePageState extends ConsumerState<VerificationCodePage> {
   // 验证码位数：当前为4位，原为6位
   final List<TextEditingController> _codeControllers = List.generate(
-    4, // 原为: 6
+    6, // 原为: 6
     (index) => TextEditingController(),
   );
   final List<FocusNode> _focusNodes = List.generate(
-    4, // 原为: 6
+    6, 
     (index) => FocusNode(),
   );
 
   @override
   void initState() {
     super.initState();
-    // 初始化输入框为9999（当前4位），原为999999（6位）
-    for (var controller in _codeControllers) {
-      controller.text = '9';
-    }
+
   }
 
   @override
@@ -128,7 +125,7 @@ class _VerificationCodePageState extends ConsumerState<VerificationCodePage> {
   Widget _buildCodeInputs() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: List.generate(4, (index) {
+      children: List.generate(6, (index) {
         return Container(
           width: 50.w,
           height: 50.h,
@@ -157,7 +154,7 @@ class _VerificationCodePageState extends ConsumerState<VerificationCodePage> {
             maxLength: 1,
             onChanged: (value) {
               // 验证码位数：当前为4位，原为6位
-              if (value.isNotEmpty && index < 3) { // 原为: index < 5
+              if (value.isNotEmpty && index < 5) { 
                 _focusNodes[index + 1].requestFocus();
               }
             },
@@ -243,10 +240,10 @@ class _VerificationCodePageState extends ConsumerState<VerificationCodePage> {
             final code = _codeControllers.map((controller) => controller.text).join('');
             
             // 验证码位数检查：当前为4位，原为6位
-            if (code.length != 4) { // 原为: code.length != 6
+            if (code.length != 6) { 
               if (mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('请输入完整的4位验证码')), // 原为: '请输入完整的6位验证码'
+                  const SnackBar(content: Text('请输入完整的6位验证码')), 
                 );
               }
               return;
