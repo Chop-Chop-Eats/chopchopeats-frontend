@@ -4,6 +4,7 @@ import '../../../app_services.dart';
 import '../../../core/config/environment_config.dart';
 import '../../../core/constants/app_constant.dart';
 import '../../../core/enums/auth_enums.dart';
+import '../../../core/network/api_exception.dart';
 import '../../../core/utils/logger/logger.dart';
 import '../models/auth_models.dart';
 import '../services/auth_services.dart';
@@ -75,14 +76,18 @@ class AuthNotifier extends StateNotifier<AuthState> {
         // 从缓存中获取用户信息
         final accessToken = await AppServices.cache.get<String>(AppConstants.accessToken);
         final refreshToken = await AppServices.cache.get<String>(AppConstants.refreshToken);
-        
-        if (accessToken != null && refreshToken != null) {
-          // 构造用户信息（这里可以根据需要从缓存或API获取更多用户信息）
+        final userId = await AppServices.cache.get<String>(AppConstants.userId);
+        final shopId = await AppServices.cache.get<String>(AppConstants.shopId);
+        final openid = await AppServices.cache.get<String>(AppConstants.openid);
+        Logger.info('AuthNotifier', '从缓存中获取状态信息： accessToken: $accessToken; refreshToken: $refreshToken; userId: $userId; shopId: $shopId; openid: $openid');
+        if (accessToken != null && refreshToken != null && userId != null) {
           final user = AppAuthLoginResponse(
             accessToken: accessToken,
             refreshToken: refreshToken,
             expiresTime: DateTime.now().add(const Duration(days: 7)), // 临时设置过期时间
-            userId: "", // 可以从缓存中获取实际用户ID
+            userId: userId , // 可以从缓存中获取实际用户ID
+            shopId: shopId,
+            openid: openid
           );
           
           state = state.copyWith(
@@ -151,7 +156,14 @@ class AuthNotifier extends StateNotifier<AuthState> {
       // 保存登录信息到缓存
       await AppServices.cache.set(AppConstants.accessToken, loginResponse.accessToken);
       await AppServices.cache.set(AppConstants.refreshToken, loginResponse.refreshToken);
-      
+      await AppServices.cache.set(AppConstants.userId, loginResponse.userId);
+      if (loginResponse.shopId != null) {
+        await AppServices.cache.set(AppConstants.shopId, loginResponse.shopId!);
+      }
+      if(loginResponse.openid != null) {
+        await AppServices.cache.set(AppConstants.openid, loginResponse.openid!);
+      }
+
       state = state.copyWith(
         isLoading: false,
         isAuthenticated: true,
@@ -159,7 +171,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
         error: null,
       );
       
-      Logger.info('AuthNotifier', '手机验证码登录成功: userId=${loginResponse.userId}');
+      Logger.info('AuthNotifier', '手机验证码登录成功: userId=${loginResponse.userId}；token=${loginResponse.accessToken};过期时间=${loginResponse.expiresTime}');
+
       return true;
     } catch (e) {
       Logger.error('AuthNotifier', '手机验证码登录异常', error: e);
@@ -173,28 +186,109 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
-  /// 用户登录（兼容旧接口，现在调用手机验证码登录）
-  Future<bool> login(String username, String password) async {
-    // 这个方法保留以兼容现有代码，但现在推荐使用 loginWithSmsCode
-    Logger.warn('AuthNotifier', 'login(username, password) 方法已废弃，请使用 loginWithSmsCode');
-    return false;
+  /// 设置新密码
+  Future<bool> setNewPassword(String code, String password , String mobile) async {
+    if (state.isLoading) return false; // 防止重复设置新密码
+    Logger.info('AuthNotifier', '开始设置新密码: code=$code');
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final params = AppAuthResetPasswordParams(
+        code: code,
+        password: password, 
+        mobile: mobile,
+        userPlatformType: UserPlatformTypeEnum.normal,
+      );
+      await _authServices.resetPassword(params);
+      state = state.copyWith(isLoading: false, error: null);
+      return true;
+    } catch (e) {
+      Logger.error('AuthNotifier', '设置新密码异常', error: e);
+      if(e is ApiException) {
+        state = state.copyWith(isLoading: false, error: e.message);
+        return false;
+      } else {
+        state = state.copyWith(isLoading: false, error: '设置新密码失败: ${e.toString()}');
+        return false;
+      }
+    }
+  }
+
+
+  /// 手机号密码登录
+  Future<bool> loginWithPhoneAndPassword(String mobile, String password) async {
+    if (state.isLoading) return false; // 防止重复登录
+    
+    Logger.info('AuthNotifier', '开始手机号密码登录: mobile=$mobile');
+    
+    state = state.copyWith(isLoading: true, error: null);
+    
+    try {
+      final params = AppAuthPlatformLoginParams(
+        mobile: mobile,
+        password: password,
+        userPlatformType: UserPlatformTypeEnum.normal, // 默认普通用户
+      );
+      
+      final loginResponse = await _authServices.loginByPhoneAndPassword(params);
+      
+      // 保存登录信息到缓存
+      await AppServices.cache.set(AppConstants.accessToken, loginResponse.accessToken);
+      await AppServices.cache.set(AppConstants.refreshToken, loginResponse.refreshToken);
+      await AppServices.cache.set(AppConstants.userId, loginResponse.userId);
+      if (loginResponse.shopId != null) {
+        await AppServices.cache.set(AppConstants.shopId, loginResponse.shopId!);
+      }
+      if (loginResponse.openid != null) {
+        await AppServices.cache.set(AppConstants.openid, loginResponse.openid!);
+      }
+
+      state = state.copyWith(
+        isLoading: false,
+        isAuthenticated: true,
+        user: loginResponse,
+        error: null,
+      );
+      
+      Logger.info('AuthNotifier', '手机号密码登录成功: userId=${loginResponse.userId}；token=${loginResponse.accessToken};过期时间=${loginResponse.expiresTime}');
+
+      return true;
+    } catch (e) {
+      Logger.error('AuthNotifier', '手机号密码登录异常', error: e);
+      if(e is ApiException) {
+        state = state.copyWith(
+          isLoading: false,
+          isAuthenticated: false,
+          user: null,
+          error: e.message,
+        );
+        return false;
+      } else {  
+        state = state.copyWith(
+          isLoading: false,
+          isAuthenticated: false,
+          user: null,
+          error: '登录失败: ${e.toString()}',
+        );
+        return false;
+      }
+    }
   }
 
   /// 用户登出
   Future<void> logout() async {
     if (state.isLoading) return; // 防止重复登出
-    
     Logger.info('AuthNotifier', '开始登出流程');
-    
     state = state.copyWith(isLoading: true);
-    
     try {
       await _authServices.logout();
       
       // 清除本地缓存
       await AppServices.cache.remove(AppConstants.accessToken);
       await AppServices.cache.remove(AppConstants.refreshToken);
-      
+      await AppServices.cache.remove(AppConstants.userId);
+      await AppServices.cache.remove(AppConstants.shopId);
+      await AppServices.cache.remove(AppConstants.openid);
+
       state = state.copyWith(
         isLoading: false,
         isAuthenticated: false,
@@ -208,7 +302,10 @@ class AuthNotifier extends StateNotifier<AuthState> {
       // 即使登出失败，也要清除本地状态
       await AppServices.cache.remove(AppConstants.accessToken);
       await AppServices.cache.remove(AppConstants.refreshToken);
-      
+      await AppServices.cache.remove(AppConstants.userId);
+      await AppServices.cache.remove(AppConstants.shopId);
+      await AppServices.cache.remove(AppConstants.openid);
+
       state = state.copyWith(
         isLoading: false,
         isAuthenticated: false,
@@ -217,6 +314,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       );
     }
   }
+  
 
   /// 刷新 Token（暂时不实现，后续可以添加）
   Future<bool> refreshToken() async {

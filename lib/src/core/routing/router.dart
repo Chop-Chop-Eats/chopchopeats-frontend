@@ -12,25 +12,27 @@ import '../../features/splash/pages/splash_page.dart';
 import 'routes.dart';
 
 class AppRouter {
-  // 定义一个私有的、静态的路由处理程序 Map
-  // Key: String (路由名)
-  // Value: Widget Function(RouteSettings) (一个根据设置为我们构建 Widget 的函数)
   static final Map<String, Widget Function(RouteSettings)> _routeHandlers = {
-    // === 无需参数的页面 ===
     Routes.home: (settings) => const MainScreen(),
     Routes.login: (settings) => const LoginPage(),
-   
     Routes.passwordLogin: (settings) => PasswordLoginPage(phoneNumber: settings.arguments as String),
     Routes.forgotPassword: (settings) => ForgotPasswordPage(phoneNumber: settings.arguments as String),
-    Routes.setNewPasswordPage: (settings) => const SetNewPasswordPage(),
+    Routes.setNewPasswordPage: (settings) {
+      if (settings.arguments is Map<String, dynamic>) {
+        final args = settings.arguments as Map<String, dynamic>;
+        final code = args["code"] as String;
+        final phoneNumber = args["phoneNumber"] as String;
+        return SetNewPasswordPage(code: code, phoneNumber: phoneNumber);
+      }
+      return const ErrorPage(message: "参数错误或缺失");
+    },
     Routes.search: (settings) => const SearchPage(),
-
     Routes.verificationCode: (settings) {
       if (settings.arguments is Map<String, dynamic>) {
         final args = settings.arguments as Map<String, dynamic>;
-        final phoneNumber = args["phoneNumber"];
-        final type = args["type"];
-        final email = args["email"];
+        final phoneNumber = args["phoneNumber"] as String;
+        final type = args["type"] as VerificationCodeType;
+        final email = args["email"] as String?; // 可选参数
         return VerificationCodePage(phoneNumber: phoneNumber, type: type, email: email);
       }
       return const ErrorPage(message: "参数错误或缺失");

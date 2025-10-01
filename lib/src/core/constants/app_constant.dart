@@ -15,6 +15,13 @@ class AppConstants {
   static const String accessToken = "ACCESS_TOKEN";
   // 用户刷新token
   static const String refreshToken = "REFRESH_TOKEN";
+  // 用户openid
+  static const String openid = "OPENID";
+  // 用户shopId
+  static const String shopId = "SHOP_ID";
+  // 用户userId
+  static const String userId = "USER_ID";
   // 搜索历史
   static const String searchHistory = "SEARCH_HISTORY";
+
 }

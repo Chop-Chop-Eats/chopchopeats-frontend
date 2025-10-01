@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../core/routing/navigate.dart';
 import '../../../core/routing/routes.dart';
 import '../../../core/utils/logger/logger.dart';
+import '../../../core/utils/pop/toast.dart';
 import '../../../core/widgets/keyboard_aware_page.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/enums/auth_enums.dart';
@@ -25,7 +26,6 @@ class ForgotPasswordPage extends ConsumerStatefulWidget {
 
 class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
   late final TextEditingController _phoneController;
-  final TextEditingController _passwordController = TextEditingController(text: '');
 
   @override
   void initState() {
@@ -116,9 +116,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
             
             // 验证手机号
             if (_phoneController.text.isEmpty) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('请输入手机号')),
-              );
+              toast.warn("请输入手机号");
               return;
             }
             
@@ -127,10 +125,12 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                 .sendVerificationCode(_phoneController.text, SmsSceneEnum.forgetPassword);
             
             if (!mounted) return;
-            
+            Logger.info("ForgotPasswordPage", "发送验证码结果: $success");
+            Logger.info("ForgotPasswordPage", "手机号: $_phoneController.text");
+            Logger.info("ForgotPasswordPage", "场景: SmsSceneEnum.forgetPassword");
             if (success) {
               // 发送成功，跳转到验证码页面
-              Navigate.push(context, Routes.verificationCode, arguments: {
+              Navigate.replace(context, Routes.verificationCode, arguments: {
                 'phoneNumber': _phoneController.text,
                 'type': VerificationCodeType.setNewPassword,
               });
@@ -138,9 +138,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
               // 发送失败，显示错误信息
               final error = authState.error;
               if (error != null) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(error)),
-                );
+                toast.warn(error);
               }
             }
           },

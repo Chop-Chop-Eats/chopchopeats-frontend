@@ -22,11 +22,11 @@ enum VerificationCodeType {
 class VerificationCodePage extends ConsumerStatefulWidget {
   final String phoneNumber;
   final VerificationCodeType type;
-  final String email;
+  final String? email;
   const VerificationCodePage({
     super.key,
     required this.phoneNumber,
-    required this.email,
+    this.email,
     this.type = VerificationCodeType.login,
   });
 
@@ -299,8 +299,10 @@ class _VerificationCodePageState extends ConsumerState<VerificationCodePage> {
               }
             } else {
               // 设置新密码流程：进入设置新密码页面
-              Logger.info("VerificationCodePage", "身份验证成功，跳转到设置新密码页面");
-              Navigate.replace(context, Routes.setNewPasswordPage);
+              Navigate.replace(context, Routes.setNewPasswordPage, arguments: {
+                "code": code,
+                "phoneNumber": widget.phoneNumber,
+              });
             }
           },
         );

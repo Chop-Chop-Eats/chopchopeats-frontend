@@ -5,8 +5,10 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../core/routing/navigate.dart';
 import '../../../core/routing/routes.dart';
 import '../../../core/utils/logger/logger.dart';
+import '../../../core/utils/pop/toast.dart';
 import '../../../core/widgets/keyboard_aware_page.dart';
 import '../../../core/theme/app_theme.dart';
+import '../providers/auth_provider.dart';
 import '../widgets/auth_footer.dart';
 import '../widgets/auth_header.dart';
 import '../widgets/auth_title.dart';
@@ -166,16 +168,54 @@ class _PasswordLoginPageState extends ConsumerState<PasswordLoginPage> {
     );
   }
 
+  Future<void> _login() async {
+    Logger.info("PasswordLoginPage", "密码登录按钮点击事件");
+    
+    // 输入验证
+    final phone = _phoneController.text.trim();
+    final password = _passwordController.text.trim();
+    
+    if (phone.isEmpty) {
+      toast.warn("请输入手机号");
+      return;
+    }
+    
+    if (password.isEmpty) {
+      toast.warn("请输入密码");
+      return;
+    }
+    
+    // 调用登录接口
+    final success = await ref.read(authNotifierProvider.notifier)
+        .loginWithPhoneAndPassword(phone, password);
+    
+    if (!mounted) return;
+    
+    if (success) {
+      Logger.info("PasswordLoginPage", "密码登录成功，跳转到主页");
+      toast.success("登录成功");
+      Navigate.replace(context, Routes.home);
+    } else {
+      // 登录失败，显示错误信息
+      final authState = ref.read(authNotifierProvider);
+      if (authState.error != null) {
+        toast.warn(authState.error!);
+      } else {
+        toast.warn("登录失败，请重试");
+      }
+    }
+  }
+
   Widget _buildLoginButton() {
-    return AuthButton(
-      text: '登录',
-      onPressed: () {
-        Logger.info("PasswordLoginPage", "密码登录按钮点击事件");
-        // TODO: Implement password login logic
+    return Consumer(
+      builder: (context, ref, child) {
+        final authState = ref.watch(authNotifierProvider);
         
-        // 模拟登录成功后直接进入主页
-        Logger.info("PasswordLoginPage", "密码登录成功，跳转到主页");
-        Navigate.replace(context, Routes.home);
+        return AuthButton(
+          text: authState.isLoading ? '登录中...' : '登录',
+          isLoading: authState.isLoading,
+          onPressed: authState.isLoading ? null : _login,
+        );
       },
     );
   }

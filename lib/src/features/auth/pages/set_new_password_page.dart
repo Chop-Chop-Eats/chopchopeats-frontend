@@ -4,7 +4,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../core/routing/navigate.dart';
 import '../../../core/routing/routes.dart';
 import '../../../core/utils/logger/logger.dart';
+import '../../../core/utils/pop/toast.dart';
 import '../../../core/widgets/keyboard_aware_page.dart';
+import '../providers/auth_provider.dart';
 import '../widgets/auth_header.dart';
 import '../widgets/auth_title.dart';
 import '../widgets/auth_password_field.dart';
@@ -12,7 +14,9 @@ import '../widgets/auth_button.dart';
 import '../widgets/auth_hint_text.dart';
 
 class SetNewPasswordPage extends ConsumerStatefulWidget {
-  const SetNewPasswordPage({super.key});
+  final String code;
+  final String phoneNumber;
+  const SetNewPasswordPage({super.key, required this.code, required this.phoneNumber});
 
   @override
   ConsumerState<SetNewPasswordPage> createState() => _SetNewPasswordPageState();
@@ -78,16 +82,38 @@ class _SetNewPasswordPageState extends ConsumerState<SetNewPasswordPage> {
     );
   }
 
+  Future<void> _savePassword() async {
+    
+    final success = await ref.read(authNotifierProvider.notifier).setNewPassword(widget.code, _passwordController.text, widget.phoneNumber);
+    if (success) {
+      // toast.success("设置新密码成功");
+      // // 立刻调用密码登录
+      // final success = await ref.read(authNotifierProvider.notifier).loginWithPhoneAndPassword(widget.phoneNumber, _passwordController.text);
+      // if (success) {
+      //   toast.success("设置新密码成功");
+      //   Navigate.replace(context, Routes.home);
+      // } else {
+      //   toast.warn("设置新密码失败");
+      // }
+    } else {
+      final authState = ref.read(authNotifierProvider);
+      if (authState.error != null) {
+        toast.warn(authState.error!);
+      } else {
+        toast.warn("设置新密码失败");
+      }
+
+    }
+  }
+
   Widget _buildSaveButton() {
-    return AuthButton(
-      text: '保存并登录',
-      onPressed: () {
-        Logger.info("SetNewPasswordPage", "保存新密码按钮点击事件");
-        // TODO: Implement save password logic
-        
-        // 模拟保存成功后直接进入主页
-        Logger.info("SetNewPasswordPage", "新密码保存成功，跳转到主页");
-        Navigate.replace(context, Routes.home);
+    return Consumer(
+      builder: (context, ref, child) {
+        final authState = ref.watch(authNotifierProvider);
+        return AuthButton(
+          text: authState.isLoading ? '保存中...' : '保存并登录',
+          onPressed: authState.isLoading ? null : _savePassword,
+        );
       },
     );
   }
