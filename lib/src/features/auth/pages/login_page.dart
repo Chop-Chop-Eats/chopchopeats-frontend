@@ -272,8 +272,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             }
             
             // 发送验证码
-            final success = await ref.read(authNotifierProvider.notifier)
-                .sendVerificationCode(_phoneController.text, SmsSceneEnum.login);
+            final success = await ref.read(authNotifierProvider.notifier).sendVerificationCode(_phoneController.text, SmsSceneEnum.login);
             
             if (!mounted) return;
             

@@ -39,7 +39,7 @@ class ErrorHandler {
   }
 
   static void _showErrorSnackBar(BuildContext context, String message) {
-    UnifiedPopups.showToast(
+    Pop.toast(
       message,
       position: PopupPosition.bottom,
       duration: const Duration(milliseconds: 1200)

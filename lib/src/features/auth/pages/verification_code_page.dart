@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../core/routing/navigate.dart';
 import '../../../core/routing/routes.dart';
 import '../../../core/utils/logger/logger.dart';
+import '../../../core/utils/pop/toast.dart';
 import '../../../core/widgets/keyboard_aware_page.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/enums/auth_enums.dart';
@@ -33,20 +35,29 @@ class VerificationCodePage extends ConsumerStatefulWidget {
 }
 
 class _VerificationCodePageState extends ConsumerState<VerificationCodePage> {
-  // 验证码位数：当前为4位，原为6位
   final List<TextEditingController> _codeControllers = List.generate(
-    6, // 原为: 6
+    6,
     (index) => TextEditingController(),
   );
   final List<FocusNode> _focusNodes = List.generate(
     6, 
     (index) => FocusNode(),
   );
+  // 使用 ValueNotifier 来管理每个输入框的状态，避免整个页面重建
+  final List<ValueNotifier<bool>> _hasContentNotifiers = List.generate(
+    6,
+    (index) => ValueNotifier<bool>(false),
+  );
 
   @override
   void initState() {
     super.initState();
-
+    // 监听每个输入框的内容变化
+    for (int i = 0; i < _codeControllers.length; i++) {
+      _codeControllers[i].addListener(() {
+        _hasContentNotifiers[i].value = _codeControllers[i].text.isNotEmpty;
+      });
+    }
   }
 
   @override
@@ -56,6 +67,9 @@ class _VerificationCodePageState extends ConsumerState<VerificationCodePage> {
     }
     for (var node in _focusNodes) {
       node.dispose();
+    }
+    for (var notifier in _hasContentNotifiers) {
+      notifier.dispose();
     }
     super.dispose();
   }
@@ -68,7 +82,6 @@ class _VerificationCodePageState extends ConsumerState<VerificationCodePage> {
         children: [
           // 导航头部
           const AuthHeader(),
-          
           // 主要内容
           Expanded(
             child: Padding(
@@ -77,13 +90,11 @@ class _VerificationCodePageState extends ConsumerState<VerificationCodePage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   SizedBox(height: 60.h),
-                  
                   // 标题
                   AuthTitle(
                     title: widget.type == VerificationCodeType.login ? '输入验证码' : '验证身份',
                   ),
                   SizedBox(height: 16.h),
-                  
                   // 提示信息
                   RichText(
                     text: TextSpan(
@@ -126,39 +137,65 @@ class _VerificationCodePageState extends ConsumerState<VerificationCodePage> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: List.generate(6, (index) {
-        return Container(
-          width: 50.w,
-          height: 50.h,
-          decoration: BoxDecoration(
-            color: Colors.grey.shade100,
-            borderRadius: BorderRadius.circular(8.r),
-            border: Border.all(
-              color: index == 0 ? AppTheme.primaryOrange : Colors.grey.shade300,
-              width: index == 0 ? 2.w : 1.w,
-            ),
-          ),
-          child: TextFormField(
-            controller: _codeControllers[index],
-            focusNode: _focusNodes[index],
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 20.sp,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),
-            decoration: const InputDecoration(
-              border: InputBorder.none,
-              counterText: '',
-            ),
-            keyboardType: TextInputType.number,
-            maxLength: 1,
-            onChanged: (value) {
-              // 验证码位数：当前为4位，原为6位
-              if (value.isNotEmpty && index < 5) { 
-                _focusNodes[index + 1].requestFocus();
-              }
-            },
-          ),
+        return ValueListenableBuilder<bool>(
+          valueListenable: _hasContentNotifiers[index],
+          builder: (context, hasContent, child) {
+            return Container(
+              width: 50.w,
+              height: 50.h,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(8.r),
+                border: Border.all(
+                  color: hasContent ? AppTheme.primaryOrange : Colors.grey.shade300,
+                  width: hasContent ? 2.w : 1.w,
+                ),
+              ),
+              child: Focus(
+                onKeyEvent: (node, event) {
+                  // 监听退格键（删除键）
+                  if (event is KeyDownEvent && 
+                      event.logicalKey == LogicalKeyboardKey.backspace) {
+                    Logger.info("VerificationCodePage", "检测到退格键按下，当前输入框索引: $index");
+                    
+                    // 如果当前输入框为空，删除上一个输入框的内容
+                    if (_codeControllers[index].text.isEmpty && index > 0) {
+                      Logger.info("VerificationCodePage", "当前输入框为空，删除上一个输入框内容并跳转");
+                      _codeControllers[index - 1].clear();
+                      _focusNodes[index - 1].requestFocus();
+                      return KeyEventResult.handled; // 阻止默认行为
+                    }
+                  }
+                  return KeyEventResult.ignored; // 允许其他键正常处理
+                },
+                child: TextFormField(
+                  controller: _codeControllers[index],
+                  focusNode: _focusNodes[index],
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 20.sp,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                  decoration: const InputDecoration(
+                    border: InputBorder.none,
+                    counterText: '',
+                  ),
+                  keyboardType: TextInputType.number,
+                  maxLength: 1,
+                  onChanged: (value) {
+                    if (value.isNotEmpty) {
+                      Logger.info("VerificationCodePage", "输入框内容不为空，自动跳转到下一个输入框");
+                      // 输入内容后，自动跳转到下一个输入框
+                      if (index < 5) {
+                        _focusNodes[index + 1].requestFocus();
+                      }
+                    }
+                  },
+                ),
+              ),
+            );
+          },
         );
       }),
     );
@@ -196,15 +233,11 @@ class _VerificationCodePageState extends ConsumerState<VerificationCodePage> {
                 if (!mounted) return;
                 
                 if (success) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('验证码已重新发送')),
-                  );
+                  toast.success("验证码已重新发送");
                 } else {
                   final error = authState.error;
                   if (error != null) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(error)),
-                    );
+                    toast.warn(error);
                   }
                 }
               },
@@ -242,9 +275,7 @@ class _VerificationCodePageState extends ConsumerState<VerificationCodePage> {
             // 验证码位数检查：当前为4位，原为6位
             if (code.length != 6) { 
               if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('请输入完整的6位验证码')), 
-                );
+                toast.warn("请输入完整的6位验证码");
               }
               return;
             }
@@ -263,9 +294,7 @@ class _VerificationCodePageState extends ConsumerState<VerificationCodePage> {
                 // 登录失败，显示错误信息
                 final error = authState.error;
                 if (error != null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(error)),
-                  );
+                  toast.warn(error);
                 }
               }
             } else {
