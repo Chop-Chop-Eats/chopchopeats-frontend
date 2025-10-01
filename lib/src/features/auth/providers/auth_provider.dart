@@ -218,7 +218,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
   Future<bool> loginWithPhoneAndPassword(String mobile, String password) async {
     if (state.isLoading) return false; // 防止重复登录
     
-    Logger.info('AuthNotifier', '开始手机号密码登录: mobile=$mobile');
+    Logger.info('AuthNotifier', '开始手机号密码登录: mobile=$mobile password=$password');
     
     state = state.copyWith(isLoading: true, error: null);
     

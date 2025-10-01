@@ -9,8 +9,9 @@ class ApiClient {
     final options = BaseOptions(
       // 基地址来自环境变量
       baseUrl: EnvironmentConfig.config.baseApi,
-      connectTimeout: const Duration(seconds: 30),
-      receiveTimeout: const Duration(seconds: 30),
+      connectTimeout: const Duration(seconds: 60),  // 连接超时延长到60秒
+      receiveTimeout: const Duration(seconds: 60),  // 接收超时延长到60秒
+      sendTimeout: const Duration(seconds: 60),     // 发送超时延长到60秒
     );
     _dio = Dio(options);
     // 添加统一拦截器
@@ -22,7 +23,26 @@ class ApiClient {
     if (e is DioException && e.error is ApiException) {
       throw e.error as ApiException;
     }
-    throw ApiException("未知网络错误");
+    
+    if (e is DioException) {
+      switch (e.type) {
+        case DioExceptionType.connectionTimeout:
+        case DioExceptionType.sendTimeout:
+        case DioExceptionType.receiveTimeout:
+          throw ApiException("网络超时，请检查网络连接后重试");
+        case DioExceptionType.connectionError:
+          throw ApiException("网络连接失败，请检查网络设置");
+        case DioExceptionType.badResponse:
+          throw ApiException("服务器响应错误: ${e.response?.statusCode}");
+        case DioExceptionType.cancel:
+          throw ApiException("请求已取消");
+        case DioExceptionType.unknown:
+        default:
+          throw ApiException("网络错误: ${e.message}");
+      }
+    }
+    
+    throw ApiException("未知网络错误: ${e.toString()}");
   }
 
   /// GET 请求

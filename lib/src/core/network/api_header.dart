@@ -1,34 +1,38 @@
 import 'package:flutter/foundation.dart';
 import 'dart:io';
 
+import '../../app_services.dart';
+import '../constants/app_constant.dart';
+
 /// 负责创建网络请求所需的 Headers
 class ApiHeader {
   const ApiHeader();
 
   Future<Map<String, dynamic>> createHeaders() async {
-    // 1. 获取认证 Token (异步)
-    // final token = await _getToken();
+    // 获取认证 Token (异步)
+    final token = await _getToken();
 
-    // 2. 获取语言代码
-    final language = _getLanguageCode();
+    // 获取语言代码
+    // final language = _getLanguageCode();
 
-    // 3. 加密设备 ID
-    // final encryptedUuid = AppServices.cryptoService.encryptData(AppServices.uuid);
 
-    // 4. 组装 Headers
+    // 组装 Headers
     final headers = <String, dynamic>{
       'Content-Type': 'application/json',
-      'debt-c-lang': language,
-      'debt-c-os': kIsWeb ? 1 : Platform.isAndroid ? '1' : '2',
-      // 'debt-c-ek': encryptedUuid,
+      // 'lang': language,
     };
 
-    // if (token != null && token.isNotEmpty) {
-    //   headers['debt-c-token'] = 'Bearer $token';
-    // }
+    if (token != null && token.isNotEmpty) {
+      headers['Authorization'] = 'Bearer $token';
+    }
 
     return headers;
   }
+
+  Future<String?> _getToken() async {
+    return await AppServices.cache.get(AppConstants.accessToken);
+  }
+  
 
 
 

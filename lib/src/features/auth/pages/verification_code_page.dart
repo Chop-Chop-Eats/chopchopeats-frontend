@@ -185,8 +185,6 @@ class _VerificationCodePageState extends ConsumerState<VerificationCodePage> {
                   maxLength: 1,
                   onChanged: (value) {
                     if (value.isNotEmpty) {
-                      Logger.info("VerificationCodePage", "输入框内容不为空，自动跳转到下一个输入框");
-                      // 输入内容后，自动跳转到下一个输入框
                       if (index < 5) {
                         _focusNodes[index + 1].requestFocus();
                       }

@@ -17,4 +17,19 @@ class ApiPaths {
   // 登出系统
   static const String logoutApi = "/app-api/member/auth/logout";
 
+  // 获取甄选私厨店铺
+  static const String getSelectedChefApi = "/app-api/merchant/shop/selected-chef"; 
+
+  // 获取分类浏览私厨店铺
+  static const String getDiamondAreaApi = "/app-api/merchant/shop/diamond-area";
+
+  // 店铺分类列表
+  static const String getCategoryListApi = "/app-api/merchant/shop/catsegory/list";
+
+  // 搜索私厨店铺
+  static const String searchShopApi = "/app-api/merchant/shop/page";
+
+  // 获取商户店铺 (详情)
+  static const String getShopApi = "/app-api/merchant/shop/get";
+
 }

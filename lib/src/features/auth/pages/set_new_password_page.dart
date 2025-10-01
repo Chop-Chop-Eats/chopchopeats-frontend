@@ -86,15 +86,15 @@ class _SetNewPasswordPageState extends ConsumerState<SetNewPasswordPage> {
     
     final success = await ref.read(authNotifierProvider.notifier).setNewPassword(widget.code, _passwordController.text, widget.phoneNumber);
     if (success) {
-      // toast.success("设置新密码成功");
-      // // 立刻调用密码登录
-      // final success = await ref.read(authNotifierProvider.notifier).loginWithPhoneAndPassword(widget.phoneNumber, _passwordController.text);
-      // if (success) {
-      //   toast.success("设置新密码成功");
-      //   Navigate.replace(context, Routes.home);
-      // } else {
-      //   toast.warn("设置新密码失败");
-      // }
+      toast.success("设置新密码成功");
+      // 立刻调用密码登录
+      final success = await ref.read(authNotifierProvider.notifier).loginWithPhoneAndPassword(widget.phoneNumber, _passwordController.text);
+      if (success) {
+        toast.success("设置新密码成功");
+        Navigate.replace(context, Routes.home);
+      } else {
+        toast.warn("设置新密码失败");
+      }
     } else {
       final authState = ref.read(authNotifierProvider);
       if (authState.error != null) {

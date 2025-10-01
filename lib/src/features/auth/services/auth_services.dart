@@ -36,7 +36,7 @@ class AuthServices {
 
   // 重置密码
   Future<void> resetPassword(AppAuthResetPasswordParams params) async {
-    final response = await ApiClient().post(ApiPaths.resetPasswordApi, data: params.toJson());
+    final response = await ApiClient().put(ApiPaths.resetPasswordApi, data: params.toJson());
     Logger.info('AuthServices', '重置密码: ${response.data}');
     return response.data;
   }
