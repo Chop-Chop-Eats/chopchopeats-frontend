@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../core/theme/app_theme.dart';
+import 'common_image.dart';
 
 class CustomBottomNavBar extends StatelessWidget {
   final int currentIndex;
@@ -81,8 +82,8 @@ class CustomBottomNavBar extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Image.asset(
-              imagePath,
+            CommonImage(
+              imagePath: imagePath,
               width: 24.w,
               height: 24.h,
             ),

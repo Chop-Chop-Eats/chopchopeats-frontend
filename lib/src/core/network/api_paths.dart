@@ -24,7 +24,7 @@ class ApiPaths {
   static const String getDiamondAreaApi = "/app-api/merchant/shop/diamond-area";
 
   // 店铺分类列表
-  static const String getCategoryListApi = "/app-api/merchant/shop/catsegory/list";
+  static const String getCategoryListApi = "/app-api/merchant/shop/category/list";
 
   // 搜索私厨店铺
   static const String searchShopApi = "/app-api/merchant/shop/page";

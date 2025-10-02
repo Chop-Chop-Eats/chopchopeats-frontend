@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'common_image.dart';
 
 class Logo extends StatelessWidget {
 
@@ -19,7 +20,7 @@ class Logo extends StatelessWidget {
           ),
         ],
       ),
-      child: Image.asset("assets/images/logo.png" , height: 80.h,),
+      child: CommonImage(imagePath: "assets/images/logo.png", height: 80.h),
     );
   }
 }

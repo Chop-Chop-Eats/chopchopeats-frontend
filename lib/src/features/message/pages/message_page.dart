@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../core/widgets/base_page.dart';
+import '../../../core/widgets/common_image.dart';
 import '../widgets/message_tab_bar.dart';
 import '../widgets/message_item.dart';
 
@@ -49,7 +50,7 @@ class _MessagePageState extends ConsumerState<MessagePage> {
           color: Colors.transparent,
           borderRadius: BorderRadius.circular(10.r),
         ),
-        child: Image.asset("assets/images/clear.png" , width: 16.w, height: 16.h,),
+        child: CommonImage(imagePath: "assets/images/clear.png", width: 16.w, height: 16.h),
       ),
     );
   }

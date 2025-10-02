@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../core/widgets/common_spacing.dart';
+import '../../../core/widgets/common_image.dart';
 
 /// 区域标题组件 - Home模块专用
 class SectionHeader extends StatelessWidget {
@@ -42,7 +43,7 @@ class SectionHeader extends StatelessWidget {
             if (customIcon != null)
               customIcon!
             else if (iconPath != null)
-              Image.asset(iconPath!, height: 20.h),
+              CommonImage(imagePath: iconPath!, height: 20.h),
           ],
         ),
       ),

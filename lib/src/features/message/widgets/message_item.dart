@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../core/widgets/common_spacing.dart';
+import '../../../core/widgets/common_image.dart';
 
 class MessageItem extends StatelessWidget {
   final String title;
@@ -69,6 +70,6 @@ class MessageItem extends StatelessWidget {
   }
 
   Widget _buildIcon(String imagePath){
-    return Image.asset(imagePath , width: 48.w, height: 48.h,);
+    return CommonImage(imagePath: imagePath, width: 48.w, height: 48.h);
   }
 }

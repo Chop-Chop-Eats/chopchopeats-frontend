@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../core/widgets/common_spacing.dart';
+import '../../../core/widgets/common_image.dart';
 
 class SearchItem extends StatelessWidget {
   final String title;
@@ -20,7 +21,7 @@ class SearchItem extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           if(isHot == true)...[
-            Image.asset('assets/images/search_fire.png' , width: 16.w, height: 16.h),
+            CommonImage(imagePath: 'assets/images/search_fire.png', width: 16.w, height: 16.h),
             CommonSpacing.width(8.w),
           ],
           Text(title , style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w500, color: Colors.black),),

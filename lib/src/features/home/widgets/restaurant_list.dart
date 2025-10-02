@@ -3,12 +3,13 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../core/widgets/common_spacing.dart';
 import '../../../core/widgets/restaurant_card.dart';
+import '../models/home_models.dart';
 
 /// 餐厅列表组件 - Home模块专用
 class RestaurantList extends StatelessWidget {
-  final List<RestaurantData> restaurants;
-  final Function(RestaurantData)? onRestaurantTap;
-  final Function(RestaurantData)? onFavoriteTap;
+  final List<SelectedChefResponse> restaurants;
+  final Function(SelectedChefResponse)? onRestaurantTap;
+  final Function(SelectedChefResponse)? onFavoriteTap;
 
   const RestaurantList({
     super.key,

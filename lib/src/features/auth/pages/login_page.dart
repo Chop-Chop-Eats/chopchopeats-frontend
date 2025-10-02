@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../core/utils/logger/logger.dart';
 import '../../../core/routing/routes.dart';
 import '../../../core/widgets/system_ui_wrapper.dart';
+import '../../../core/widgets/common_image.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/enums/auth_enums.dart';
 import 'verification_code_page.dart';
@@ -159,8 +160,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           Positioned(
             top: -50.h,
             right: 0,
-            child: Image.asset(
-              'assets/images/chef.png',
+            child: CommonImage(
+              imagePath: 'assets/images/chef.png',
               height: 180.h,
             ),
           ),

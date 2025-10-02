@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import '../../../core/widgets/common_image.dart';
+
 /// 横幅轮播组件 - Home模块专用
 class BannerCarousel extends StatelessWidget {
   final List<String> bannerImages;
@@ -26,9 +28,10 @@ class BannerCarousel extends StatelessWidget {
               onTap: () => onBannerTap?.call(index),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(15.r),
-                child: Image.asset(
-                  imagePath,
+                child: CommonImage(
+                  imagePath: imagePath,
                   height: 120.h,
+                  fit: BoxFit.cover,
                 ),
               ),
             ),

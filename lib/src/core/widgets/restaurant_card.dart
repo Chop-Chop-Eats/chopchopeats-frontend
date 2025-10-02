@@ -1,30 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import '../utils/logger/logger.dart';
 import 'common_spacing.dart';
+import 'common_image.dart';
 
-/// 餐厅数据模型
-class RestaurantData {
-  final String imagePath;
-  final String name;
-  final String tags;
-  final String rating;
-  final String deliveryTime;
-  final String distance;
+import '../../features/home/models/home_models.dart';
 
-  const RestaurantData({
-    required this.imagePath,
-    required this.name,
-    required this.tags,
-    required this.rating,
-    required this.deliveryTime,
-    required this.distance,
-  });
-}
-
-/// 餐厅卡片组件 - Home模块专用
+/// 餐厅卡片组件
 class RestaurantCard extends StatelessWidget {
-  final RestaurantData restaurant;
+  final SelectedChefResponse restaurant;
   final VoidCallback? onTap;
   final VoidCallback? onFavoriteTap;
 
@@ -35,6 +20,25 @@ class RestaurantCard extends StatelessWidget {
     this.onFavoriteTap,
   });
 
+  /// 格式化营业时间
+  String _formatOperatingHours(List<OperatingHour>? operatingHours) {
+    if (operatingHours == null || operatingHours.isEmpty) {
+      return '营业时间未知';
+    }
+    
+    // 取第一个营业时间作为显示
+    final firstHour = operatingHours.first;
+    if (firstHour.time != null && firstHour.remark != null) {
+      return '${firstHour.time} ${firstHour.remark}';
+    } else if (firstHour.time != null) {
+      return firstHour.time!;
+    } else if (firstHour.remark != null) {
+      return firstHour.remark!;
+    }
+    
+    return '营业时间未知';
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -44,7 +48,7 @@ class RestaurantCard extends StatelessWidget {
         padding: EdgeInsets.all(12.w),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(15.r),
+          borderRadius: BorderRadius.circular(24.r),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withAlpha(10),
@@ -56,13 +60,30 @@ class RestaurantCard extends StatelessWidget {
         ),
         child: Row(
           children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(10.r),
-              child: Image.asset(
-                restaurant.imagePath,
+            CommonRoundedImage(
+              imagePath: restaurant.shopLogo ?? 'assets/images/restaurant1.png',
+              width: 100.w,
+              height: 100.h,
+              borderRadius: 16.r,
+              placeholder: Container(
                 width: 100.w,
                 height: 100.h,
-                fit: BoxFit.cover,
+                color: Colors.grey[200],
+                child: Icon(
+                  Icons.restaurant,
+                  color: Colors.grey[400],
+                  size: 30.w,
+                ),
+              ),
+              errorWidget: Container(
+                width: 100.w,
+                height: 100.h,
+                color: Colors.grey[100],
+                child: Icon(
+                  Icons.restaurant,
+                  color: Colors.grey[400],
+                  size: 30.w,
+                ),
               ),
             ),
             CommonSpacing.width(12),
@@ -74,14 +95,14 @@ class RestaurantCard extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     Text(
-                      restaurant.name,
+                      restaurant.chineseShopName,
                       style: TextStyle(
                         fontSize: 16.sp,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     Text(
-                      restaurant.tags,
+                      restaurant.categoryChineseName ?? '',
                       style: TextStyle(
                         fontSize: 12.sp,
                         color: Colors.grey[600],
@@ -89,21 +110,21 @@ class RestaurantCard extends StatelessWidget {
                     ),
                     Row(
                       children: [
-                        Image.asset("assets/images/star.png", height: 16.h),
+                        CommonImage(imagePath: "assets/images/star.png", height: 16.h),
                         CommonSpacing.width(4),
                         Text(
-                          restaurant.rating,
+                          restaurant.rating?.toString() ?? '0.0',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 12.sp,
                           ),
                         ),
                         CommonSpacing.width(8),
-                        Image.asset("assets/images/clock.png", height: 16.h),
+                        CommonImage(imagePath: "assets/images/clock.png", height: 16.h),
                         CommonSpacing.width(4),
                         Expanded(
                           child: Text(
-                            restaurant.deliveryTime,
+                            _formatOperatingHours(restaurant.operatingHours),
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(
                               fontSize: 12.sp,
@@ -117,7 +138,7 @@ class RestaurantCard extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          restaurant.distance,
+                          restaurant.distance != null ? '${restaurant.distance!.toStringAsFixed(1)}km' : '距离未知',
                           style: TextStyle(
                             fontSize: 12.sp,
                             color: Colors.grey[600],
@@ -125,7 +146,7 @@ class RestaurantCard extends StatelessWidget {
                         ),
                         GestureDetector(
                           onTap: onFavoriteTap,
-                          child: Image.asset("assets/images/heart_s.png", width: 20.w, height: 20.h),
+                          child: CommonImage(imagePath: "assets/images/heart_s.png", width: 20.w, height: 20.h),
                         ),
                       ],
                     ),

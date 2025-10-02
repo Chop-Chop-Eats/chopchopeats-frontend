@@ -4,9 +4,11 @@ import '../../../core/utils/logger/logger.dart';
 import '../../../core/widgets/common_app_bar.dart';
 import '../../../core/widgets/custom_sliver_app_bar.dart';
 import '../../../core/widgets/common_spacing.dart';
+import '../../../core/widgets/common_image.dart';
 import '../../../core/widgets/restaurant_card.dart';
 import '../../../data/models/category_model.dart';
 import '../../../data/models/restaurant_model.dart';
+import '../../home/models/home_models.dart';
 
 /// 分类详情页面 - 二级页面
 class CategoryDetailPage extends StatefulWidget {
@@ -121,14 +123,7 @@ class _CategoryDetailPageState extends State<CategoryDetailPage> {
                   return Padding(
                     padding: EdgeInsets.symmetric(horizontal: 16.w),
                     child: RestaurantCard(
-                      restaurant: RestaurantData(
-                        imagePath: restaurant.imagePath,
-                        name: restaurant.name,
-                        tags: restaurant.tags,
-                        rating: restaurant.formattedRating,
-                        deliveryTime: restaurant.deliveryTime,
-                        distance: restaurant.distance,
-                      ),
+                      restaurant: SelectedChefResponse.fromJson(restaurant.toSelectedChefResponse()),
                       onTap: () => _onRestaurantTap(restaurant),
                       onFavoriteTap: () => _onFavoriteTap(restaurant),
                     ),
@@ -151,8 +146,8 @@ class _CategoryDetailPageState extends State<CategoryDetailPage> {
     return CustomSliverAppBar(
       backgroundColor: Colors.white,
       expandedHeight: 64.h,
-      backgroundWidget: Image.asset(
-        "assets/images/appbar_bg.png",
+      backgroundWidget: CommonImage(
+        imagePath: "assets/images/appbar_bg.png",
       ),
       titleWidget: AnimatedOpacity(
         opacity: _showTitle ? 1.0 : 0.0,

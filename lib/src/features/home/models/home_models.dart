@@ -74,20 +74,36 @@ class SelectedChefResponse {
   });
 
   factory SelectedChefResponse.fromJson(Map<String, dynamic> json) {
+    List<OperatingHour>? operatingHours;
+    try {
+      final operatingHoursData = json['operatingHours'];
+      if (operatingHoursData != null) {
+        if (operatingHoursData is List) {          
+          operatingHours = operatingHoursData
+              .map((e) {
+                return OperatingHour.fromJson(e as Map<String, dynamic>);
+              })
+              .toList();
+        }
+      }
+    } catch (e) {
+      operatingHours = null;
+    }
+
     return SelectedChefResponse(
-      approveTime: json['approve_time'],
-      categoryChineseName: json['category_chinese_name'],
-      categoryEnglishName: json['category_english_name'],
-      categoryId: json['category_id'],
-      chineseShopName: json['chinese_shop_name'],
+      approveTime: json['approveTime'] != null 
+          ? DateTime.fromMillisecondsSinceEpoch(json['approveTime'] as int)
+          : null,
+      categoryChineseName: json['categoryChineseName'],
+      categoryEnglishName: json['categoryEnglishName'],
+      categoryId: json['categoryId'],
+      chineseShopName: json['chineseShopName'],
       id: json['id'],
-      newShopMark: json['new_shop_mark'],
-      operatingHours:
-          json['operating_hours']
-              ?.map((e) => OperatingHour.fromJson(e))
-              .toList(),
-      rating: json['rating'],
-      shopLogo: json['shop_logo'],
+      newShopMark: json['newShopMark'],
+      distance: json['distance']?.toDouble(),
+      operatingHours: operatingHours,
+      rating: json['rating']?.toDouble(),
+      shopLogo: json['shopLogo'],
     );
   }
 }
@@ -217,20 +233,33 @@ class ShopListItem {
   });
 
   factory ShopListItem.fromJson(Map<String, dynamic> json) {
+    List<OperatingHour>? operatingHours;
+    try {
+      final operatingHoursData = json['operatingHours'];  
+      if (operatingHoursData != null) {
+        if (operatingHoursData is List) {
+          operatingHours = operatingHoursData
+              .map((e) {
+                return OperatingHour.fromJson(e as Map<String, dynamic>);
+              })
+              .toList();
+        } 
+      }
+    } catch (e) {
+      operatingHours = null;
+    }
+
     return ShopListItem(
-      approveTime: json['approve_time'],
-      categoryChineseName: json['category_chinese_name'],
-      categoryEnglishName: json['category_english_name'],
-      categoryId: json['category_id'],
-      chineseShopName: json['chinese_shop_name'],
+      approveTime: json['approveTime'],
+      categoryChineseName: json['categoryChineseName'],
+      categoryEnglishName: json['categoryEnglishName'],
+      categoryId: json['categoryId'],
+      chineseShopName: json['chineseShopName'],
       id: json['id'],
-      newShopMark: json['new_shop_mark'],
-      operatingHours:
-          json['operating_hours']
-              ?.map((e) => OperatingHour.fromJson(e))
-              .toList(),
-      rating: json['rating'],
-      shopLogo: json['shop_logo'],
+      newShopMark: json['newShopMark'],
+      operatingHours: operatingHours,
+      rating: json['rating']?.toDouble(),
+      shopLogo: json['shopLogo'],
     );
   }
 }
@@ -270,13 +299,13 @@ class CategoryListItem {
 
   factory CategoryListItem.fromJson(Map<String, dynamic> json) {
     return CategoryListItem(
-      categoryName: json['category_name'],
+      categoryName: json['categoryName'],
       description: json['description'],
-      englishCategoryName: json['english_category_name'],
+      englishCategoryName: json['englishCategoryName'],
       icon: json['icon'],
       id: json['id'],
-      selectedIcon: json['selected_icon'],
-      sortOrder: json['sort_order'],
+      selectedIcon: json['selectedIcon'],
+      sortOrder: json['sortOrder'],
     );
   }
 }

@@ -1,13 +1,10 @@
-import 'package:chop_user/src/core/routing/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../core/utils/logger/logger.dart';
 import '../../../core/widgets/base_page.dart';
-import '../../../core/widgets/common_spacing.dart';
 import '../../../core/widgets/restaurant_card.dart';
-import '../../../core/widgets/tabbar_app_bar.dart';
 import '../../../data/models/restaurant_model.dart';
+import '../../home/models/home_models.dart';
 
 class HeartPage extends ConsumerStatefulWidget {
   const HeartPage({super.key});
@@ -42,14 +39,7 @@ class _HeartPageState extends ConsumerState<HeartPage> {
       itemBuilder: (context, index) {
         final restaurant = _restaurants[index];
         return RestaurantCard(
-          restaurant: RestaurantData(
-            imagePath: restaurant.imagePath,
-            name: restaurant.name,
-            tags: restaurant.tags,
-            rating: restaurant.formattedRating,
-            deliveryTime: restaurant.deliveryTime,
-            distance: restaurant.distance,
-          ),
+          restaurant: SelectedChefResponse.fromJson(restaurant.toSelectedChefResponse()),
           onTap: () => _onRestaurantTap(restaurant),
           onFavoriteTap: () => _onFavoriteTap(restaurant),
         );

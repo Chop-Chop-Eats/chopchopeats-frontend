@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../core/utils/logger/logger.dart';
 import '../../../core/widgets/custom_sliver_app_bar.dart';
+import '../../../core/widgets/common_image.dart';
 import '../../../core/routing/navigate.dart';
 import '../../../core/routing/routes.dart';
-import '../../../data/models/category_model.dart';
-import '../../../data/models/restaurant_model.dart';
+import '../providers/home_provider.dart';
+import '../models/home_models.dart';
 import '../widgets/location_bar.dart';
 import '../widgets/search_bar.dart';
 import '../widgets/category_grid.dart';
@@ -13,21 +15,15 @@ import '../widgets/banner_carousel.dart';
 import '../widgets/tip_text_section.dart';
 import '../widgets/section_header.dart';
 import '../widgets/restaurant_list.dart';
-import '../../../core/widgets/restaurant_card.dart';
 
-class HomePage extends StatefulWidget {
+class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  ConsumerState<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
-  // final MockDataService _mockDataService = MockDataService();
-  
-  List<CategoryModel> _topRowCategories = [];
-  List<CategoryModel> _bottomRowCategories = [];
-  List<RestaurantModel> _restaurants = [];
+class _HomePageState extends ConsumerState<HomePage> {
   final List<String> _bannerImages = const [
     'assets/images/banner.png',
     'assets/images/banner.png',
@@ -37,15 +33,14 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    _loadData();
-  }
-
-  void _loadData() {
-    // 使用MockDataService获取数据
-    // _topRowCategories = _mockDataService.getTopCategories();
-    // _bottomRowCategories = _mockDataService.getBottomCategories();
-    // _restaurants = _mockDataService.getRestaurants().take(3).toList(); // 只取前3个
-    setState(() {});
+    // 加载分类数据和甄选私厨数据
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(categoryProvider.notifier).loadCategories();
+      ref.read(selectedChefProvider.notifier).loadSelectedChef(
+        latitude: 43.6532,
+        longitude: -79.3832,
+      );
+    });
   }
 
   @override
@@ -83,7 +78,7 @@ class _HomePageState extends State<HomePage> {
         },
       ),
       contentPadding: EdgeInsets.only(left: 16.w, right: 16.w, top: 32.h),
-      backgroundWidget: Image.asset("assets/images/appbar_bg.png"),
+      backgroundWidget: CommonImage(imagePath: "assets/images/appbar_bg.png"),
       titleWidget: GestureDetector(
         onTap: () { 
 
@@ -97,33 +92,85 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildCategories() {
+    // 监听分类数据状态
+    final categories = ref.watch(categoriesProvider);
+    final isLoading = ref.watch(categoryLoadingProvider);
+    final error = ref.watch(categoryErrorProvider);
+
+    // 显示加载状态
+    if (isLoading && categories.isEmpty) {
+      Logger.info('HomePage', '显示加载状态');
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(32.0),
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    // 显示错误状态
+    if (error != null && categories.isEmpty) {
+      Logger.error('HomePage', '显示错误状态: $error');
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text('加载失败: $error'),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () {
+                Logger.info('HomePage', '用户点击重试按钮');
+                ref.read(categoryProvider.notifier).refresh();
+              },
+              child: const Text('重试'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // 如果没有数据，显示空状态
+    if (categories.isEmpty) {
+      Logger.warn('HomePage', '显示空状态 - 没有分类数据');
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(32.0),
+          child: Text('暂无分类数据'),
+        ),
+      );
+    }
+
+    final topRowCategories = categories.take(2).toList();
+    final bottomRowCategories = categories.skip(2).take(4).toList();
+
     // 转换数据模型
-    final topRowCategoryData = _topRowCategories.map((category) => CategoryData(
-      imagePath: category.imagePath,
-      title: category.title,
-      subtitle: category.subtitle,
-      imgToRight: category.imgToRight,
-    )).toList();
+    final topRowCategoryData = topRowCategories.map((category) {
+      return CategoryData(
+        imagePath: category.selectedIcon ?? category.icon ?? '',
+        title: category.categoryName ?? '', 
+        subtitle: category.description ?? '', 
+        imgToRight: true, 
+      );
+    }).toList();
     
-    final bottomRowCategoryData = _bottomRowCategories.map((category) => CategoryData(
-      imagePath: category.imagePath,
-      title: category.title,
-      subtitle: category.subtitle,
-      imgToRight: category.imgToRight,
-    )).toList();
+    final bottomRowCategoryData = bottomRowCategories.map((category) {
+    
+      return CategoryData(
+        imagePath: category.selectedIcon ?? category.icon ?? '',
+        title: category.categoryName ?? '',
+        subtitle: category.description ?? '',
+        imgToRight: false,
+      );
+    }).toList();
 
     return CategoryGrid(
       topRowCategories: topRowCategoryData,
       bottomRowCategories: bottomRowCategoryData,
       onCategoryTap: (categoryData) {
-        // 找到对应的CategoryModel
-        final categoryModel = _topRowCategories.firstWhere(
-          (model) => model.title == categoryData.title,
-          orElse: () => _bottomRowCategories.firstWhere(
-            (model) => model.title == categoryData.title,
-          ),
+        final categoryItem = categories.firstWhere(
+          (item) => item.categoryName == categoryData.title,
         );
-        _onCategoryTap(categoryModel);
+        _onCategoryTap(categoryItem);
       },
     );
   }
@@ -154,94 +201,98 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildRestaurantList() {
-    // 转换数据模型
-    final restaurantData = _restaurants.map((restaurant) => RestaurantData(
-      imagePath: restaurant.imagePath,
-      name: restaurant.name,
-      tags: restaurant.tags,
-      rating: restaurant.formattedRating,
-      deliveryTime: restaurant.deliveryTime,
-      distance: restaurant.distance,
-    )).toList();
+    // 监听甄选私厨数据状态
+    final restaurants = ref.watch(selectedChefRestaurantsProvider);
+    final isLoading = ref.watch(selectedChefLoadingProvider);
+    final error = ref.watch(selectedChefErrorProvider);
+
+    // 显示加载状态
+    if (isLoading && restaurants.isEmpty) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(32.0),
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    // 显示错误状态
+    if (error != null && restaurants.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text('加载失败: $error'),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () {
+                Logger.info('HomePage', '用户点击甄选私厨重试按钮');
+                ref.read(selectedChefProvider.notifier).refresh(
+                  latitude: 43.6532,
+                  longitude: -79.3832,
+                );
+              },
+              child: const Text('重试'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // 如果没有数据，显示空状态
+    if (restaurants.isEmpty) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(32.0),
+          child: Text('暂无甄选私厨数据'),
+        ),
+      );
+    }
 
     return RestaurantList(
-      restaurants: restaurantData,
-      onRestaurantTap: (data) {
-        // 找到对应的RestaurantModel
-        final restaurantModel = _restaurants.firstWhere(
-          (model) => model.name == data.name,
-        );
-        _onRestaurantTap(restaurantModel);
-      },
-      onFavoriteTap: (data) {
-        // 找到对应的RestaurantModel
-        final restaurantModel = _restaurants.firstWhere(
-          (model) => model.name == data.name,
-        );
-        _onFavoriteTap(restaurantModel);
-      },
+      restaurants: restaurants,
+      onRestaurantTap: _onRestaurantTap,
+      onFavoriteTap: _onFavoriteTap,
     );
   }
 
   // 事件处理方法
-  void _onCategoryTap(CategoryModel category) {
-    debugPrint('点击分类: ${category.title} (ID: ${category.id})');
+  void _onCategoryTap(CategoryListItem category) {
+    Logger.info('HomePage', '点击分类: ${category.categoryName} (ID: ${category.id})');
+
     
     // 跳转到分类详情页面
     Navigate.push(
       context,
       Routes.categoryDetail,
       arguments: {
-        'categoryId': category.id,
+        'categoryId': category.id.toString(),
       },
     );
   }
 
   void _onBannerTap(int index) {
-    debugPrint('点击Banner: $index');
-    // TODO: 处理Banner点击事件，可以跳转到活动页面
+    Logger.info('HomePage', '点击Banner: $index');
   }
 
-  void _onRestaurantTap(RestaurantModel restaurant) {
-    Logger.info('HomePage', '点击餐厅: ${restaurant.name} (ID: ${restaurant.id})');
-    // TODO: 跳转到餐厅详情页面
+  void _onRestaurantTap(SelectedChefResponse restaurant) {
+    Logger.info('HomePage', '点击餐厅: ${restaurant.chineseShopName} (ID: ${restaurant.id})');
     
-    // 暂时显示餐厅信息
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(restaurant.name),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('评分: ${restaurant.formattedRating}'),
-            Text('配送时间: ${restaurant.deliveryTime}'),
-            Text('距离: ${restaurant.distance}'),
-            Text('地址: ${restaurant.address}'),
-            Text(restaurant.formattedDeliveryFee),
-            Text(restaurant.formattedMinOrder),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('关闭'),
-          ),
-        ],
-      ),
+    // 跳转到餐厅详情页面
+    Navigate.push(
+      context,
+      Routes.detail, // 使用现有的详情页面路由
+      arguments: {
+        'restaurantId': restaurant.id.toString(),
+        'restaurant': restaurant,
+      },
     );
   }
 
-  void _onFavoriteTap(RestaurantModel restaurant) {
-    debugPrint('收藏餐厅: ${restaurant.name} (ID: ${restaurant.id})');
+  void _onFavoriteTap(SelectedChefResponse restaurant) {
+    Logger.info('HomePage', '点击收藏餐厅: ${restaurant.chineseShopName} (ID: ${restaurant.id})');
     
-    // TODO: 实现收藏逻辑
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('已${restaurant.isFavorite ? '取消收藏' : '收藏'} ${restaurant.name}'),
-        duration: const Duration(seconds: 2),
-      ),
-    );
+    // TODO: 实现收藏功能
+    // 这里可以调用收藏服务的API
   }
 }

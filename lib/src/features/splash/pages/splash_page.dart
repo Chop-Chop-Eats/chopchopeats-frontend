@@ -5,7 +5,6 @@ import '../../../core/utils/logger/logger.dart';
 import '../../../core/routing/navigate.dart';
 import '../../../core/routing/routes.dart';
 import '../../../core/widgets/logo.dart';
-import '../../auth/providers/auth_provider.dart';
 import '../../auth/services/auth_services.dart';
 
 class SplashPage extends ConsumerStatefulWidget {
@@ -25,7 +24,10 @@ class _SplashPageState extends ConsumerState<SplashPage> {
     // 延迟初始化，避免阻塞UI渲染
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!_isInitialized) {
-        _initializeApp();
+        // 延迟两秒执行
+        Future.delayed(const Duration(seconds: 2), () { 
+          _initializeApp();
+        });
       }
     });
   }

@@ -5,6 +5,7 @@ import '../../../core/constants/app_constant.dart';
 import '../../../core/routing/navigate.dart';
 import '../../../core/utils/logger/logger.dart';
 import '../../../core/widgets/common_spacing.dart';
+import '../../../core/widgets/common_image.dart';
 import '../widgets/search_item.dart';
 
 
@@ -172,8 +173,8 @@ class _SearchPageState extends State<SearchPage> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 CommonSpacing.width(16.w),
-                Image.asset(
-                  'assets/images/search.png',
+                CommonImage(
+                  imagePath: 'assets/images/search.png',
                   width: 16.w,
                   height: 16.h,
                 ),
@@ -245,8 +246,8 @@ class _SearchPageState extends State<SearchPage> {
             ),
             GestureDetector(
               onTap: _clearSearchHistory,
-              child: Image.asset(
-                'assets/images/search_delete.png',
+              child: CommonImage(
+                imagePath: 'assets/images/search_delete.png',
                 width: 16.w,
                 height: 16.h,
               ),

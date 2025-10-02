@@ -133,4 +133,24 @@ class RestaurantModel {
   String toString() {
     return 'RestaurantModel(id: $id, name: $name, rating: $rating)';
   }
+
+  /// 转换为 SelectedChefResponse 用于兼容新的 RestaurantCard
+  /// 注意：这是一个临时的适配方法，建议后续统一数据模型
+  Map<String, dynamic> toSelectedChefResponse() {
+    return {
+      'id': id,
+      'chineseShopName': name,
+      'shopLogo': imagePath,
+      'categoryChineseName': tags,
+      'rating': rating,
+      'distance': double.tryParse(distance.replaceAll('km', '').replaceAll('km', '')) ?? 0.0,
+      'operatingHours': [
+        {
+          'time': deliveryTime,
+          'remark': '',
+          'sort': 1,
+        }
+      ],
+    };
+  }
 }
