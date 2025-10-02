@@ -157,11 +157,11 @@ class DiamondAreaQuery {
 
   Map<String, dynamic> toJson() {
     return {
-      'category_id': categoryId,
+      'categoryId': categoryId,
       'latitude': latitude,
       'longitude': longitude,
-      'page_no': pageNo,
-      'page_size': pageSize,
+      'pageNo': pageNo,
+      'pageSize': pageSize,
     };
   }
 }
@@ -169,7 +169,7 @@ class DiamondAreaQuery {
 /// 获取分类浏览私厨店铺响应
 class DiamondAreaResponse {
   ///数据
-  final List<ShopListItem> list;
+  final List<SelectedChefResponse> list;
 
   ///总量
   final int total;
@@ -177,89 +177,14 @@ class DiamondAreaResponse {
   DiamondAreaResponse({required this.list, required this.total});
 
   factory DiamondAreaResponse.fromJson(Map<String, dynamic> json) {
-    return DiamondAreaResponse(
-      list: json['list']?.map((e) => ShopListItem.fromJson(e)).toList(),
-      total: json['total'],
-    );
-  }
-}
-
-class ShopListItem {
-  ///创建时间（审核通过时间）
-  final DateTime? approveTime;
-
-  ///店铺分类中文名称
-  final String? categoryChineseName;
-
-  ///店铺分类英文名称
-  final String? categoryEnglishName;
-
-  ///店铺分类ID
-  final int? categoryId;
-
-  ///中文店铺名称
-  final String chineseShopName;
-
-  ///距离（千米）
-  final double? distance;
-
-  ///店铺编号
-  final String id;
-
-  ///新店开业标识
-  final bool? newShopMark;
-
-  ///配送时间（营业时间）
-  final List<OperatingHour>? operatingHours;
-
-  ///店铺评分
-  final double? rating;
-
-  ///店铺logo（封面图）
-  final String? shopLogo;
-
-  ShopListItem({
-    this.approveTime,
-    this.categoryChineseName,
-    this.categoryEnglishName,
-    this.categoryId,
-    required this.chineseShopName,
-    this.distance,
-    required this.id,
-    this.newShopMark,
-    this.operatingHours,
-    this.rating,
-    this.shopLogo,
-  });
-
-  factory ShopListItem.fromJson(Map<String, dynamic> json) {
-    List<OperatingHour>? operatingHours;
-    try {
-      final operatingHoursData = json['operatingHours'];  
-      if (operatingHoursData != null) {
-        if (operatingHoursData is List) {
-          operatingHours = operatingHoursData
-              .map((e) {
-                return OperatingHour.fromJson(e as Map<String, dynamic>);
-              })
-              .toList();
-        } 
-      }
-    } catch (e) {
-      operatingHours = null;
+    late List<SelectedChefResponse> list;
+    if( json['list'] is List ){
+      final List<dynamic> dataList = json['list'] as List<dynamic>;
+      list = dataList.map((e) => SelectedChefResponse.fromJson(e as Map<String, dynamic>)).toList();
     }
-
-    return ShopListItem(
-      approveTime: json['approveTime'],
-      categoryChineseName: json['categoryChineseName'],
-      categoryEnglishName: json['categoryEnglishName'],
-      categoryId: json['categoryId'],
-      chineseShopName: json['chineseShopName'],
-      id: json['id'],
-      newShopMark: json['newShopMark'],
-      operatingHours: operatingHours,
-      rating: json['rating']?.toDouble(),
-      shopLogo: json['shopLogo'],
+    return DiamondAreaResponse(
+      list: list,
+      total: json['total'],
     );
   }
 }

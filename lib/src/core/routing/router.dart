@@ -42,7 +42,7 @@ class AppRouter {
       if (settings.arguments is Map<String, dynamic>) {
         final args = settings.arguments as Map<String, dynamic>;
         final categoryId = args["categoryId"];
-        if (categoryId is String) {
+        if (categoryId is int) {
           return CategoryDetailPage(categoryId: categoryId);
         }
       }

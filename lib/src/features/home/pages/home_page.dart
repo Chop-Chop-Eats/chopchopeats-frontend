@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../core/utils/logger/logger.dart';
+import '../../../core/widgets/common_indicator.dart';
 import '../../../core/widgets/custom_sliver_app_bar.dart';
 import '../../../core/widgets/common_image.dart';
 import '../../../core/routing/navigate.dart';
@@ -81,7 +82,6 @@ class _HomePageState extends ConsumerState<HomePage> {
       backgroundWidget: CommonImage(imagePath: "assets/images/appbar_bg.png"),
       titleWidget: GestureDetector(
         onTap: () { 
-
           Navigate.push(context, Routes.search);
         },
         child: const HomeSearchBar(
@@ -92,19 +92,15 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   Widget _buildCategories() {
-    // 监听分类数据状态
     final categories = ref.watch(categoriesProvider);
     final isLoading = ref.watch(categoryLoadingProvider);
     final error = ref.watch(categoryErrorProvider);
 
     // 显示加载状态
     if (isLoading && categories.isEmpty) {
-      Logger.info('HomePage', '显示加载状态');
-      return const Center(
-        child: Padding(
-          padding: EdgeInsets.all(32.0),
-          child: CircularProgressIndicator(),
-        ),
+      return Padding(
+        padding: EdgeInsets.symmetric(vertical: 32.0),
+        child: const CommonIndicator(),
       );
     }
 
@@ -208,11 +204,9 @@ class _HomePageState extends ConsumerState<HomePage> {
 
     // 显示加载状态
     if (isLoading && restaurants.isEmpty) {
-      return const Center(
-        child: Padding(
-          padding: EdgeInsets.all(32.0),
-          child: CircularProgressIndicator(),
-        ),
+      return Padding(
+        padding: EdgeInsets.symmetric(vertical: 32.0),
+        child: const CommonIndicator(),
       );
     }
 
@@ -266,7 +260,7 @@ class _HomePageState extends ConsumerState<HomePage> {
       context,
       Routes.categoryDetail,
       arguments: {
-        'categoryId': category.id.toString(),
+        'categoryId': category.id,
       },
     );
   }

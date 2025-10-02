@@ -25,7 +25,7 @@ class _SplashPageState extends ConsumerState<SplashPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!_isInitialized) {
         // 延迟两秒执行
-        Future.delayed(const Duration(seconds: 2), () { 
+        Future.delayed(const Duration(seconds: 1), () { 
           _initializeApp();
         });
       }
@@ -87,20 +87,7 @@ class _SplashPageState extends ConsumerState<SplashPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Logo
             const Logo(),
-            SizedBox(height: 32.h),
-            
-            // 加载指示器
-            SizedBox(
-              height: 24.h,
-              width: 24.w,
-              child: const CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                strokeWidth: 3,
-              ),
-            ),
-            SizedBox(height: 24.h),
           ],
         ),
       ),

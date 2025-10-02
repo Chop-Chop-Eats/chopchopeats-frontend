@@ -11,7 +11,7 @@ class HomeServices {
       queryParameters: query.toJson(),
     );
     Logger.info("HomeServices", "获取甄选私厨店铺: ${response.data}");
-    if( response.data is List){
+    if( response.data is List ){
       final List<dynamic> dataList = response.data as List<dynamic>;
       return dataList.map((e) => SelectedChefResponse.fromJson(e as Map<String, dynamic>)).toList();
     } else {

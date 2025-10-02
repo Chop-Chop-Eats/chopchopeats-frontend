@@ -1,4 +1,7 @@
+import 'dart:math';
+
 import 'package:chop_user/src/core/routing/navigate.dart';
+import 'package:chop_user/src/core/utils/pop/toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -288,9 +291,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
               // 发送失败，显示错误信息
               final error = authState.error;
               if (error != null) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(error)),
-                );
+                toast.warn(error);
               }
             }
           },

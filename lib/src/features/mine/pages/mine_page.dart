@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../core/routing/navigate.dart';
 import '../../../core/utils/logger/logger.dart';
+import '../../../core/widgets/common_indicator.dart';
 import '../../auth/providers/auth_provider.dart';
 
 class MinePage extends ConsumerStatefulWidget {
@@ -63,7 +64,7 @@ class _MinePageState extends ConsumerState<MinePage> {
               child: authState.isLoading ? SizedBox(
                 width: 20.w,
                 height: 20.h,
-                child: const CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                child: const CommonIndicator(),
               ) : const Text("Log out"),
             ),
           ],

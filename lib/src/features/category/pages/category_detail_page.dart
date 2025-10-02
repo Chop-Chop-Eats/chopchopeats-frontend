@@ -1,18 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:pull_to_refresh/pull_to_refresh.dart';
 import '../../../core/utils/logger/logger.dart';
 import '../../../core/widgets/common_app_bar.dart';
+import '../../../core/widgets/common_indicator.dart';
 import '../../../core/widgets/custom_sliver_app_bar.dart';
 import '../../../core/widgets/common_spacing.dart';
 import '../../../core/widgets/common_image.dart';
 import '../../../core/widgets/restaurant_card.dart';
-import '../../../data/models/category_model.dart';
-import '../../../data/models/restaurant_model.dart';
+import '../../../core/widgets/custom_refresh_header.dart';
+import '../../../core/widgets/custom_refresh_footer.dart';
 import '../../home/models/home_models.dart';
+import '../providers/category_detail_provider.dart';
 
 /// 分类详情页面 - 二级页面
-class CategoryDetailPage extends StatefulWidget {
-  final String categoryId;
+class CategoryDetailPage extends ConsumerStatefulWidget {
+  final int categoryId;
 
   const CategoryDetailPage({
     super.key,
@@ -20,28 +24,30 @@ class CategoryDetailPage extends StatefulWidget {
   });
 
   @override
-  State<CategoryDetailPage> createState() => _CategoryDetailPageState();
+  ConsumerState<CategoryDetailPage> createState() => _CategoryDetailPageState();
 }
 
-class _CategoryDetailPageState extends State<CategoryDetailPage> {
-  // final MockDataService _mockDataService = MockDataService();
+class _CategoryDetailPageState extends ConsumerState<CategoryDetailPage> {
   final ScrollController _scrollController = ScrollController();
-  
-  CategoryModel? _category;
-  List<RestaurantModel> _restaurants = [];
-  bool _isLoading = true;
+  final RefreshController _refreshController = RefreshController(initialRefresh: false);
+
+
   bool _showTitle = false;
 
   @override
   void initState() {
     super.initState();
-    _loadData();
     _setupScrollListener();
+    // 加载初始数据
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(categoryDetailProvider(widget.categoryId).notifier).loadCategoryDetail(widget.categoryId);
+    });
   }
 
   @override
   void dispose() {
     _scrollController.dispose();
+    _refreshController.dispose();
     super.dispose();
   }
 
@@ -56,89 +62,118 @@ class _CategoryDetailPageState extends State<CategoryDetailPage> {
     });
   }
 
-  Future<void> _loadData() async {
-    setState(() => _isLoading = true);
-    
-    try {
-      // 模拟网络延迟
-      await Future.delayed(const Duration(milliseconds: 500));
-      
-      // final category = _mockDataService.getCategoryById(widget.categoryId);
-      // final restaurants = _mockDataService.getRestaurantsByCategory(widget.categoryId);
-      Logger.info('CategoryDetailPage', '加载数据成功');
-      setState(() {
-          // _category = category;
-          // _restaurants = restaurants;
-        _isLoading = false;
-      });
-    } catch (e) {
-      setState(() => _isLoading = false);
-      // 可以添加错误处理
-      debugPrint('加载数据失败: $e');
-    }
+  Future<void> _onRefresh() async {
+    await ref.read(categoryDetailProvider(widget.categoryId).notifier).refresh(widget.categoryId);
+    _refreshController.refreshCompleted();
+  }
+
+  Future<void> _onLoading() async {
+    await ref.read(categoryDetailProvider(widget.categoryId).notifier).loadMore(widget.categoryId);
+    _refreshController.loadComplete();
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
+    final restaurants = ref.watch(categoryDetailRestaurantsProvider(widget.categoryId));
+    final isLoading = ref.watch(categoryDetailLoadingProvider(widget.categoryId));
+    final isLoadingMore = ref.watch(categoryDetailLoadingMoreProvider(widget.categoryId));
+    final error = ref.watch(categoryDetailErrorProvider(widget.categoryId));
+    final hasMore = ref.watch(categoryDetailHasMoreProvider(widget.categoryId));
+
+    if (isLoading && restaurants.isEmpty) {
       return Scaffold(
         appBar: CommonAppBar(
-          title: 'loading...',
+          title: '加载中...',
         ),
-        body: const Center(
-          child: CircularProgressIndicator(),
-        ),
+        body: const CommonIndicator(),
       );
     }
 
-    if (_category == null) {
+    if (error != null && restaurants.isEmpty) {
       return Scaffold(
         appBar: CommonAppBar(
           title: '分类详情',
         ),
-        body: const Center(
-          child: Text('分类不存在'),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text('加载失败: $error'),
+              CommonSpacing.height(16),
+              ElevatedButton(
+                onPressed: () {
+                  ref.read(categoryDetailProvider(widget.categoryId).notifier).loadCategoryDetail(widget.categoryId);
+                },
+                child: const Text('重试'),
+              ),
+            ],
+          ),
         ),
       );
     }
 
     return Scaffold(
-      backgroundColor:Colors.white,
+      backgroundColor: Colors.white,
       appBar: null,
-      body: RefreshIndicator(
-        onRefresh: _loadData,
-        child: CustomScrollView(
-          controller: _scrollController,
-          slivers: [
-            _buildSliverAppBar(),
-            // 分类信息头部
-            SliverToBoxAdapter(
-              child: _buildCategoryHeader(),
-            ),
-            // 餐厅列表
-            SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  final restaurant = _restaurants[index];
-                  return Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16.w),
-                    child: RestaurantCard(
-                      restaurant: SelectedChefResponse.fromJson(restaurant.toSelectedChefResponse()),
-                      onTap: () => _onRestaurantTap(restaurant),
-                      onFavoriteTap: () => _onFavoriteTap(restaurant),
-                    ),
-                  );
-                },
-                childCount: _restaurants.length,
-              ),
-            ),
-            // 底部间距
-            SliverToBoxAdapter(
-              child: CommonSpacing.height(20),
-            ),
-          ],
+      body: SmartRefresher(
+        controller: _refreshController,
+        enablePullDown: true,
+        enablePullUp: hasMore,
+        onRefresh: _onRefresh,
+        onLoading: _onLoading,
+        header: CustomHeader(
+          builder: (context, mode) => CustomRefreshHeader(),
         ),
+        footer: CustomFooter(
+          builder: (context, mode) => hasMore ? const CustomRefreshFooter() : const CustomNoMoreIndicator(),
+        ),
+        child: _buildRefreshContent(restaurants, isLoadingMore)
       ),
+    );
+  }
+
+
+  Widget _buildRefreshContent(List<SelectedChefResponse> restaurants, bool isLoadingMore){
+    return CustomScrollView(
+      controller: _scrollController,
+      slivers: [
+        _buildSliverAppBar(),
+        if (restaurants.isEmpty)
+          SliverToBoxAdapter(
+            child: Center(
+              child: Text('暂无数据'),
+            ),
+          ),
+        // 餐厅列表
+        SliverList(
+          delegate: SliverChildBuilderDelegate(
+            (context, index) {
+              final restaurant = restaurants[index];
+              return Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16.w),
+                child: RestaurantCard(
+                  restaurant: restaurant,
+                  onTap: () => _onRestaurantTap(restaurant),
+                  onFavoriteTap: () => _onFavoriteTap(restaurant),
+                ),
+              );
+            },
+            childCount: restaurants.length,
+          ),
+        ),
+        // 加载更多指示器
+        if (isLoadingMore)
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: EdgeInsets.all(16.w),
+              child: const CommonIndicator(),
+            ),
+          ),
+        // 底部间距
+        SliverToBoxAdapter(
+          child: CommonSpacing.height(20),
+        ),
+      ],
     );
   }
 
@@ -153,7 +188,7 @@ class _CategoryDetailPageState extends State<CategoryDetailPage> {
         opacity: _showTitle ? 1.0 : 0.0,
         duration: const Duration(milliseconds: 50),
         child: Text(
-          _category?.title ?? '',
+          '分类详情',
           style: TextStyle(
             fontSize: 18.sp,
             fontWeight: FontWeight.bold,
@@ -166,73 +201,11 @@ class _CategoryDetailPageState extends State<CategoryDetailPage> {
     );
   }
 
-  Widget _buildCategoryHeader() {
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.symmetric(horizontal: 16.w),
-      margin: EdgeInsets.only(top: 16.h, bottom: 20.h),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            _category!.title,
-            style: TextStyle(
-              fontSize: 18.sp,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),
-          ),
-          CommonSpacing.height(2),
-          Text(
-            _category!.subtitle,
-            style: TextStyle(
-              fontSize: 12.sp,
-              color: Colors.grey[500],
-            ),
-          ),
-        ],
-      ),
-    );
+  void _onRestaurantTap(SelectedChefResponse restaurant) {
+    Logger.info('CategoryDetailPage', '点击餐厅: ${restaurant.chineseShopName}');
   }
 
-  void _onRestaurantTap(RestaurantModel restaurant) {
-    Logger.info('CategoryDetailPage', '点击餐厅: ${restaurant.name}');
-    // 可以显示一个简单的对话框
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(restaurant.name),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('评分: ${restaurant.formattedRating}'),
-            Text('配送时间: ${restaurant.deliveryTime}'),
-            Text('距离: ${restaurant.distance}'),
-            Text('地址: ${restaurant.address}'),
-            Text(restaurant.formattedDeliveryFee),
-            Text(restaurant.formattedMinOrder),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('关闭'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _onFavoriteTap(RestaurantModel restaurant) {
-    // TODO: 处理收藏逻辑
-    debugPrint('收藏餐厅: ${restaurant.name}');
-    
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('已${restaurant.isFavorite ? '取消收藏' : '收藏'} ${restaurant.name}'),
-        duration: const Duration(seconds: 2),
-      ),
-    );
+  void _onFavoriteTap(SelectedChefResponse restaurant) {
+    Logger.info('CategoryDetailPage', '收藏餐厅: ${restaurant.chineseShopName}');
   }
 }

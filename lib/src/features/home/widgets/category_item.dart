@@ -82,8 +82,8 @@ class CategoryItem extends StatelessWidget {
           color: Colors.grey[200],
           borderRadius: BorderRadius.circular(8.r),
         ),
-        child: const Center(
-          child: CircularProgressIndicator(strokeWidth: 2),
+        child: Center(
+          child: Icon(Icons.image, color: Colors.grey[500], size: height * 0.4),
         ),
       ),
       errorWidget: Container(

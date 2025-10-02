@@ -1,6 +1,4 @@
-import 'package:flutter/foundation.dart';
-import 'dart:io';
-
+// import 'package:flutter/foundation.dart';
 import '../../app_services.dart';
 import '../constants/app_constant.dart';
 
@@ -33,18 +31,15 @@ class ApiHeader {
     return await AppServices.cache.get(AppConstants.accessToken);
   }
   
-
-
-
-  String _getLanguageCode() {
-    // 使用 PlatformDispatcher 获取当前系统语言环境，更可靠
-    String language = PlatformDispatcher.instance.locale.languageCode.toLowerCase();
-    if (language.contains('zh')) {
-      return 'zh-cn';
-    } else if (language.contains('ph')) {
-      return 'en-ph';
-    } else {
-      return 'en-us';
-    }
-  }
+  // String _getLanguageCode() {
+  //   // 使用 PlatformDispatcher 获取当前系统语言环境，更可靠
+  //   String language = PlatformDispatcher.instance.locale.languageCode.toLowerCase();
+  //   if (language.contains('zh')) {
+  //     return 'zh-cn';
+  //   } else if (language.contains('ph')) {
+  //     return 'en-ph';
+  //   } else {
+  //     return 'en-us';
+  //   }
+  // }
 }
