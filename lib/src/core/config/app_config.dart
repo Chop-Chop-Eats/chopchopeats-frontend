@@ -19,7 +19,7 @@ class AppConfig {
 
   /// API 响应中代表业务『用户认证无效』的 code 码集合
   /// 用于触发特殊的业务逻辑，例如：跳转到登录页
-  static const List<int> authErrorCodes = [403];
+  static const List<int> authErrorCodes = [401];
 
   /// API 响应中代表业务『code』的字段 key
   static const String codeKey = 'code';

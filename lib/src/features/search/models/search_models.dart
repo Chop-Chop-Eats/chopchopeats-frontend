@@ -52,10 +52,50 @@ class HistoryItem {
 
   factory HistoryItem.fromJson(Map<String, dynamic> json) {
     return HistoryItem(
-      createTime: DateTime.fromMillisecondsSinceEpoch(json['createTime'] as int),
+      createTime: DateTime.fromMillisecondsSinceEpoch(
+        json['createTime'] as int,
+      ),
       id: json['id'],
       searchWord: json['searchWord'],
-      updateTime: DateTime.fromMillisecondsSinceEpoch(json['updateTime'] as int),
+      updateTime: DateTime.fromMillisecondsSinceEpoch(
+        json['updateTime'] as int,
+      ),
     );
+  }
+}
+
+/// 搜索query
+class SearchQuery {
+  ///纬度
+  final double latitude;
+
+  ///经度
+  final double longitude;
+
+  ///页码，从 1 开始
+  final int pageNo;
+
+  ///每页条数，最大值为 100
+  final int pageSize;
+
+  ///查询内容（全文检索）
+  final String? search;
+
+  SearchQuery({
+    required this.latitude,
+    required this.longitude,
+    required this.pageNo,
+    required this.pageSize,
+    this.search,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'latitude': latitude,
+      'longitude': longitude,
+      'pageNo': pageNo,
+      'pageSize': pageSize,
+      if (search != null) 'search': search,
+    };
   }
 }

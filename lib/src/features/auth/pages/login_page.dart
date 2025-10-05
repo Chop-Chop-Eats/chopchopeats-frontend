@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:chop_user/src/core/routing/navigate.dart';
 import 'package:chop_user/src/core/utils/pop/toast.dart';
 import 'package:flutter/material.dart';

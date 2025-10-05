@@ -6,6 +6,8 @@ import '../../../core/routing/navigate.dart';
 import '../../../core/utils/logger/logger.dart';
 import '../../../core/widgets/common_spacing.dart';
 import '../../../core/widgets/common_image.dart';
+import '../models/search_models.dart';
+import '../services/search_services.dart';
 import '../widgets/search_item.dart';
 
 
@@ -18,6 +20,9 @@ class SearchPage extends StatefulWidget {
 
 class _SearchPageState extends State<SearchPage> {
   final TextEditingController _searchController = TextEditingController();
+  final _latitude = AppServices.appSettings.latitude;
+  final _longitude = AppServices.appSettings.longitude;
+  final _pageSize = AppServices.appSettings.pageSize;
   List<String> _searchHistory = [];
   final List<String> _searchSuggestions = [
     '湘菜', '恰巴塔', '蜂蜜面包', '粤菜', '牛肉串', '肉夹馍', '卤鸭脖', '白切鸡', '低GI'
@@ -35,6 +40,22 @@ class _SearchPageState extends State<SearchPage> {
         });
       }
       Logger.info('SearchPage', 'searchHistory: $searchHistory');
+
+      final keywordList = await SearchServices.getKeywordList();
+      Logger.info('SearchPage', 'keywordList: $keywordList');
+
+      final historyList = await SearchServices.getHistoryList();
+      Logger.info('SearchPage', 'historyList: $historyList');
+      
+      final searchShop = await SearchServices.searchShop(SearchQuery(
+        search: "川",
+        pageNo: 1,
+        pageSize: _pageSize,
+        latitude: _latitude,
+        longitude: _longitude,
+      ));
+      Logger.info('SearchPage', 'searchShop: $searchShop');
+
     } catch (e) {
       Logger.error('SearchPage', 'Failed to load search history: $e');
       if (mounted) {

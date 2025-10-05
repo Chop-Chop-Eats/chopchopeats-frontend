@@ -23,6 +23,7 @@ class ErrorHandler {
       return;
     }
     _clearUserSession();
+    // authProvider loggot  await ref.read(authNotifierProvider.notifier).logout();
     Navigate.pushAndRemoveUntil(
       context,
       Routes.login,

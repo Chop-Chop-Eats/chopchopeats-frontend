@@ -28,8 +28,11 @@ class SearchServices {
   }
 
   /// 搜索私厨店铺
-  static Future<TotalWithChefItem> searchShop(String keyword) async {
-    final response = await ApiClient().get(ApiPaths.searchShopApi, queryParameters: {'keyword': keyword});
+  static Future<TotalWithChefItem> searchShop(SearchQuery query) async {
+    final response = await ApiClient().get(
+      ApiPaths.searchShopApi, 
+      queryParameters: query.toJson(),
+    );
     Logger.info('SearchServices', '搜索私厨店铺: ${response.data}');
     return TotalWithChefItem.fromJson(response.data);
   }
