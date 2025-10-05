@@ -16,11 +16,6 @@ class ApiInterceptor extends InterceptorsWrapper {
     // 记录请求开始时间
     options.extra[AppConstants.apiStartTime] = DateTime.now().millisecondsSinceEpoch;
     
-    // 动态添加 apiSuffix
-    // final suffix = EnvironmentConfig.config.apiSuffix;
-    // if (suffix != null && suffix.isNotEmpty) {
-    //   options.path = '$suffix${options.path}';
-    // }
 
     // 异步创建并添加请求头
     final customHeaders = await _apiHeader.createHeaders();

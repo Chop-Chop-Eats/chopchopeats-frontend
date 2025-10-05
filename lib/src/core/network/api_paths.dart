@@ -2,6 +2,7 @@
 class ApiPaths {
   ApiPaths._();
 
+  // [认证模块]
   // 发送验证码
   static const String sendSmsApi = "/app-api/member/auth/send-sms-code";
 
@@ -17,21 +18,33 @@ class ApiPaths {
   // 登出系统
   static const String logoutApi = "/app-api/member/auth/logout";
 
+
+  // [首页模块]
   // 获取甄选私厨店铺
   static const String getSelectedChefApi = "/app-api/merchant/shop/selected-chef"; 
-
-  // 获取分类浏览私厨店铺
-  static const String getDiamondAreaApi = "/app-api/merchant/shop/diamond-area";
 
   // 店铺分类列表
   static const String getCategoryListApi = "/app-api/merchant/shop/category/list";
 
-  // 搜索私厨店铺
-  static const String searchShopApi = "/app-api/merchant/shop/page";
-
-  // 获取商户店铺 (详情)
-  static const String getShopApi = "/app-api/merchant/shop/get";
+  // 获取分类浏览私厨店铺 金刚区二级页
+  static const String getDiamondAreaApi = "/app-api/merchant/shop/diamond-area";
 
   // 获取banner列表
   static const String getBannerListApi = "/app-api/market/banner/list";
+
+  // [搜索模块]
+  // 搜索私厨店铺
+  static const String searchShopApi = "/app-api/merchant/shop/page";
+
+  // 获取关键词列表
+  static const String getKeywordListApi = "/app-api/merchant/keyword/list";
+
+  // 获取历史记录列表
+  static const String getHistoryListApi = "/app-api/merchant/search-history/list";
+
+  // [详情模块]
+  // 获取商户店铺 (店铺详情)
+  static const String getShopApi = "/app-api/merchant/shop/get";
+
+  
 }

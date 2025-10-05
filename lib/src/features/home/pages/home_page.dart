@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../../app_services.dart';
 import '../../../core/utils/logger/logger.dart';
 import '../../../core/widgets/common_indicator.dart';
 import '../../../core/widgets/custom_sliver_app_bar.dart';
@@ -25,6 +26,8 @@ class HomePage extends ConsumerStatefulWidget {
 }
 
 class _HomePageState extends ConsumerState<HomePage> {
+  final _latitude = AppServices.appSettings.latitude;
+  final _longitude = AppServices.appSettings.longitude;
 
   @override
   void initState() {
@@ -33,8 +36,8 @@ class _HomePageState extends ConsumerState<HomePage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(categoryProvider.notifier).loadCategories();
       ref.read(selectedChefProvider.notifier).loadSelectedChef(
-        latitude: 43.6532,
-        longitude: -79.3832,
+        latitude: _latitude,
+        longitude: _longitude,
       );
       ref.read(bannerProvider.notifier).loadBannerList();
     });
@@ -257,8 +260,8 @@ class _HomePageState extends ConsumerState<HomePage> {
               onPressed: () {
                 Logger.info('HomePage', '用户点击甄选私厨重试按钮');
                 ref.read(selectedChefProvider.notifier).refresh(
-                  latitude: 43.6532,
-                  longitude: -79.3832,
+                  latitude: _latitude,
+                  longitude: _longitude,
                 );
               },
               child: const Text('重试'),

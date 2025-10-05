@@ -1,3 +1,4 @@
+import 'package:chop_user/src/app_services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../home/models/home_models.dart';
 import '../services/category_services.dart';
@@ -46,12 +47,10 @@ class CategoryDetailState {
 /// 分类详情数据状态管理
 class CategoryDetailNotifier extends StateNotifier<CategoryDetailState> {
   final CategoryServices _categoryServices = CategoryServices();
+  final _latitude = AppServices.appSettings.latitude;
+  final _longitude = AppServices.appSettings.longitude;
+  final _pageSize = AppServices.appSettings.pageSize;
   
-  // 固定参数
-  static const int _pageSize = 10;
-  static const double _latitude = 41.824;
-  static const double _longitude = -71.4128;
-
   CategoryDetailNotifier() : super(CategoryDetailState());
 
   /// 加载分类详情数据

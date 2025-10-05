@@ -9,8 +9,6 @@ class AppConstants {
   static const String themeMode = "THEME_MODE";
   // 语言代码
   static const String languageCode = "LANGUAGE_CODE";
-  // 是否启用
-  static const String enable = "ENABLE";
   // 用户token
   static const String accessToken = "ACCESS_TOKEN";
   // 用户刷新token

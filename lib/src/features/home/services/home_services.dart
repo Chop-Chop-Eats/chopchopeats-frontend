@@ -21,13 +21,13 @@ class HomeServices {
   }
   
   // 获取分类浏览私厨店铺
-  static Future<DiamondAreaResponse> getDiamondArea(DiamondAreaQuery query) async {
+  static Future<TotalWithChefItem> getDiamondArea(DiamondAreaQuery query) async {
     final response = await ApiClient().get(
       ApiPaths.getDiamondAreaApi,
       queryParameters: query.toJson(),
     );
     Logger.info("HomeServices", "获取分类浏览私厨店铺: ${response.data}");
-    return DiamondAreaResponse.fromJson(response.data);
+    return TotalWithChefItem.fromJson(response.data);
   }
   
   // 获取店铺分类列表

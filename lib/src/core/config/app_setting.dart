@@ -8,13 +8,28 @@ class AppSettings extends ChangeNotifier {
   // 私有构造函数
   AppSettings._();
 
-  // 内部状态
+  // 主题模式
   late ThemeMode _themeMode;
+  // 语言
   late Locale _locale;
+  /// 经度
+  late double _longitude = -71.4128;
+  /// 纬度
+  late double _latitude = 41.824;
 
-  // 外部只读访问器
+  /// 页面大小
+  late final int _pageSize = 10;
+
+  // 访问主题模式
   ThemeMode get themeMode => _themeMode;
+  // 访问语言
   Locale get locale => _locale;
+  /// 访问经度
+  double get longitude => _longitude;
+  /// 访问纬度
+  double get latitude => _latitude;
+  /// 访问页面大小
+  int get pageSize => _pageSize;
 
   /// 初始化 AppSettings
   /// 从缓存中加载用户偏好，如果不存在则使用默认值
@@ -59,5 +74,15 @@ class AppSettings extends ChangeNotifier {
 
     // 持久化到本地
     await AppServices.cache.set<String>(AppConstants.languageCode, _locale.languageCode);
+  }
+
+   /// 更新经度
+  void setLongitude(double longitude) {
+    _longitude = longitude;
+  }
+
+  /// 更新纬度
+  void setLatitude(double latitude) {
+    _latitude = latitude;
   }
 }

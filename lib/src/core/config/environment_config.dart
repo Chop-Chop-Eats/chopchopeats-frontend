@@ -19,19 +19,16 @@ class EnvironmentConfig {
   ///
   /// 它根据传入的 [AppEnvironment] 来设置对应的 [AppConfig]。
   static Future<void> initialize(AppEnvironment environment)  async {
-    final enable = await AppServices.cache.get(AppConstants.enable);
     _environment = environment;
     switch (environment) {
       case AppEnvironment.development:
         _config = AppConfig(
           baseApi: AppConfig.devApi,
-          apiSuffix: enable,
         );
         break;
       case AppEnvironment.production:
         _config =  AppConfig(
           baseApi: AppConfig.proApi,
-          apiSuffix: enable,
         );
         break;
     }
@@ -46,14 +43,4 @@ class EnvironmentConfig {
   /// 同上，用于判断生产环境
   static bool get isProduction => _environment == AppEnvironment.production;
 
-  /// 提供一个公共方法来动态更新 apiSuffix
-  static void updateApiSuffix(String newSuffix) {
-    Logger.info("EnvironmentConfig", "API suffix updated from '${_config.apiSuffix}' to '$newSuffix'");
-    _config.apiSuffix = newSuffix;
-  }
-
-  // 重置apiSuffix
-  static void resetApiSuffix(){
-    _config.apiSuffix = null;
-  }
 }

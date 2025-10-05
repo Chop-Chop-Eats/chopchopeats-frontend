@@ -47,7 +47,7 @@ class AppBootstrap {
 
       //  运行应用
       _logMilestone(stopwatch, "调用 runApp(), 开始构建 Widget 树");
-      Logger.info("Bootstrap", "Running in ${environment.name}.Base API URL: ${EnvironmentConfig.config.baseApi} ; suffix: ${EnvironmentConfig.config.apiSuffix}");
+      Logger.info("Bootstrap", "Running in ${environment.name}.Base API URL: ${EnvironmentConfig.config.baseApi}");
       runApp(
         ProviderScope(
           child:App(navigatorKey: AppServices.navigatorKey)

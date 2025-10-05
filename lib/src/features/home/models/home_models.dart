@@ -17,7 +17,7 @@ class SelectedChefQuery {
 
   Map<String, dynamic> toJson() {
     return {
-      'category_id': categoryId,
+      if (categoryId != null) 'categoryId': categoryId,
       'latitude': latitude,
       'longitude': longitude,
     };
@@ -170,17 +170,16 @@ class DiamondAreaQuery {
   }
 }
 
-/// 获取分类浏览私厨店铺响应
-class DiamondAreaResponse {
+/// 获取分类浏览私厨店铺响应 分页列表
+class TotalWithChefItem {
+  ///总量
+  final int total;
   ///数据
   final List<ChefItem> list;
 
-  ///总量
-  final int total;
+  TotalWithChefItem({required this.list, required this.total});
 
-  DiamondAreaResponse({required this.list, required this.total});
-
-  factory DiamondAreaResponse.fromJson(Map<String, dynamic> json) {
+  factory TotalWithChefItem.fromJson(Map<String, dynamic> json) {
     late List<ChefItem> list;
     if (json['list'] is List) {
       final List<dynamic> dataList = json['list'] as List<dynamic>;
@@ -189,7 +188,7 @@ class DiamondAreaResponse {
               .map((e) => ChefItem.fromJson(e as Map<String, dynamic>))
               .toList();
     }
-    return DiamondAreaResponse(list: list, total: json['total']);
+    return TotalWithChefItem(list: list, total: json['total']);
   }
 }
 
