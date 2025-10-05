@@ -133,7 +133,7 @@ class _CategoryDetailPageState extends ConsumerState<CategoryDetailPage> {
   }
 
 
-  Widget _buildRefreshContent(List<SelectedChefResponse> restaurants, bool isLoadingMore){
+  Widget _buildRefreshContent(List<ChefItem> restaurants, bool isLoadingMore){
     return CustomScrollView(
       controller: _scrollController,
       slivers: [
@@ -201,11 +201,11 @@ class _CategoryDetailPageState extends ConsumerState<CategoryDetailPage> {
     );
   }
 
-  void _onRestaurantTap(SelectedChefResponse restaurant) {
+  void _onRestaurantTap(ChefItem restaurant) {
     Logger.info('CategoryDetailPage', '点击餐厅: ${restaurant.chineseShopName}');
   }
 
-  void _onFavoriteTap(SelectedChefResponse restaurant) {
+  void _onFavoriteTap(ChefItem restaurant) {
     Logger.info('CategoryDetailPage', '收藏餐厅: ${restaurant.chineseShopName}');
   }
 }

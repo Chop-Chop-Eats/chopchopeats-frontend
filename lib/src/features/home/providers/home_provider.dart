@@ -27,6 +27,23 @@ class CategoryState {
   }
 }
 
+/// banner数据状态
+class BannerState {
+  final List<BannerItem> banners;
+  final bool isLoading;
+  final String? error;
+
+  BannerState({this.banners = const [], this.isLoading = false, this.error});
+
+  BannerState copyWith({
+    List<BannerItem>? banners,
+    bool? isLoading,
+    String? error,
+  }) {
+    return BannerState(banners: banners ?? this.banners, isLoading: isLoading ?? this.isLoading, error: error ?? this.error);
+  }
+}
+
 /// 分类数据状态管理
 class CategoryNotifier extends StateNotifier<CategoryState> {
   CategoryNotifier() : super(CategoryState());
@@ -76,7 +93,7 @@ final categoryErrorProvider = Provider<String?>((ref) {
 
 /// 甄选私厨店铺数据状态
 class SelectedChefState {
-  final List<SelectedChefResponse> restaurants;
+  final List<ChefItem> restaurants;
   final bool isLoading;
   final String? error;
 
@@ -87,7 +104,7 @@ class SelectedChefState {
   });
 
   SelectedChefState copyWith({
-    List<SelectedChefResponse>? restaurants,
+    List<ChefItem>? restaurants,
     bool? isLoading,
     String? error,
   }) {
@@ -129,6 +146,7 @@ class SelectedChefNotifier extends StateNotifier<SelectedChefState> {
     }
   }
 
+
   /// 刷新甄选私厨店铺数据
   Future<void> refresh({
     int? categoryId,
@@ -143,13 +161,33 @@ class SelectedChefNotifier extends StateNotifier<SelectedChefState> {
   }
 }
 
+/// banner数据状态管理
+class BannerNotifier extends StateNotifier<BannerState> {
+  BannerNotifier() : super(BannerState());
+
+  /// 加载banner列表
+  Future<void> loadBannerList() async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final banners = await HomeServices.getBannerList();
+      state = state.copyWith(
+        banners: banners,
+        isLoading: false,
+      );
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+      rethrow;
+    }
+  }
+}
+
 /// 甄选私厨店铺数据 Provider
 final selectedChefProvider = StateNotifierProvider<SelectedChefNotifier, SelectedChefState>((ref) {
   return SelectedChefNotifier();
 });
 
 /// 甄选私厨店铺数据选择器 - 只返回店铺列表
-final selectedChefRestaurantsProvider = Provider<List<SelectedChefResponse>>((ref) {
+final selectedChefRestaurantsProvider = Provider<List<ChefItem>>((ref) {
   return ref.watch(selectedChefProvider).restaurants;
 });
 
@@ -161,4 +199,25 @@ final selectedChefLoadingProvider = Provider<bool>((ref) {
 /// 甄选私厨店铺错误状态选择器
 final selectedChefErrorProvider = Provider<String?>((ref) {
   return ref.watch(selectedChefProvider).error;
+});
+
+
+/// banner数据 Provider
+final bannerProvider = StateNotifierProvider<BannerNotifier, BannerState>((ref) {
+  return BannerNotifier();
+});
+
+/// banner数据选择器 - 只返回banner列表
+final bannersProvider = Provider<List<BannerItem>>((ref) {
+  return ref.watch(bannerProvider).banners;
+});
+
+/// banner加载状态选择器
+final bannerLoadingProvider = Provider<bool>((ref) {
+  return ref.watch(bannerProvider).isLoading;
+});
+
+/// banner错误状态选择器
+final bannerErrorProvider = Provider<String?>((ref) {
+  return ref.watch(bannerProvider).error;
 });

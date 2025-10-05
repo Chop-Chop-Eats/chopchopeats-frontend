@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-
-import '../utils/logger/logger.dart';
 import 'common_spacing.dart';
 import 'common_image.dart';
-
 import '../../features/home/models/home_models.dart';
 
 /// 餐厅卡片组件
 class RestaurantCard extends StatelessWidget {
-  final SelectedChefResponse restaurant;
+  final ChefItem restaurant;
   final VoidCallback? onTap;
   final VoidCallback? onFavoriteTap;
 
@@ -146,7 +143,7 @@ class RestaurantCard extends StatelessWidget {
                         ),
                         GestureDetector(
                           onTap: onFavoriteTap,
-                          child: CommonImage(imagePath: "assets/images/heart_s.png", width: 20.w, height: 20.h),
+                          child: CommonImage(imagePath: restaurant.favorite ?? false ? "assets/images/heart_s.png" : "assets/images/heart.png", width: 20.w, height: 20.h),
                         ),
                       ],
                     ),

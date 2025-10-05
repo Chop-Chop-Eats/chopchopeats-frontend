@@ -25,11 +25,6 @@ class HomePage extends ConsumerStatefulWidget {
 }
 
 class _HomePageState extends ConsumerState<HomePage> {
-  final List<String> _bannerImages = const [
-    'assets/images/banner.png',
-    'assets/images/banner.png',
-    'assets/images/banner.png',
-  ];
 
   @override
   void initState() {
@@ -41,6 +36,7 @@ class _HomePageState extends ConsumerState<HomePage> {
         latitude: 43.6532,
         longitude: -79.3832,
       );
+      ref.read(bannerProvider.notifier).loadBannerList();
     });
   }
 
@@ -174,8 +170,47 @@ class _HomePageState extends ConsumerState<HomePage> {
 
 
   Widget _buildBanner() {
+    final banners = ref.watch(bannersProvider);
+    final isLoading = ref.watch(bannerLoadingProvider);
+    final error = ref.watch(bannerErrorProvider);
+
+    if (isLoading && banners.isEmpty) {
+      return Padding(
+        padding: EdgeInsets.symmetric(vertical: 32.0),
+        child: const CommonIndicator(),
+      );
+    }
+
+    if (error != null && banners.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text('加载失败: $error'),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () {
+                Logger.info('HomePage', '用户点击Banner重试按钮');
+                ref.read(bannerProvider.notifier).loadBannerList();
+              },
+              child: const Text('重试'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (banners.isEmpty) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(32.0),
+          child: Text('暂无Banner数据'),
+        ),
+      );
+    }
+
     return BannerCarousel(
-      bannerImages: _bannerImages,
+      bannerImages: banners.map((banner) => banner.imageUrl).toList(),
       onBannerTap: _onBannerTap,
     );
   }
@@ -269,7 +304,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     Logger.info('HomePage', '点击Banner: $index');
   }
 
-  void _onRestaurantTap(SelectedChefResponse restaurant) {
+  void _onRestaurantTap(ChefItem restaurant) {
     Logger.info('HomePage', '点击餐厅: ${restaurant.chineseShopName} (ID: ${restaurant.id})');
     
     // 跳转到餐厅详情页面
@@ -283,7 +318,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     );
   }
 
-  void _onFavoriteTap(SelectedChefResponse restaurant) {
+  void _onFavoriteTap(ChefItem restaurant) {
     Logger.info('HomePage', '点击收藏餐厅: ${restaurant.chineseShopName} (ID: ${restaurant.id})');
     
     // TODO: 实现收藏功能

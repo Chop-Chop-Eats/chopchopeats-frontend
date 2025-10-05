@@ -7,9 +7,9 @@ import '../models/home_models.dart';
 
 /// 餐厅列表组件 - Home模块专用
 class RestaurantList extends StatelessWidget {
-  final List<SelectedChefResponse> restaurants;
-  final Function(SelectedChefResponse)? onRestaurantTap;
-  final Function(SelectedChefResponse)? onFavoriteTap;
+  final List<ChefItem> restaurants;
+  final Function(ChefItem)? onRestaurantTap;
+  final Function(ChefItem)? onFavoriteTap;
 
   const RestaurantList({
     super.key,

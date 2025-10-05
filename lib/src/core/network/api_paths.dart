@@ -32,4 +32,6 @@ class ApiPaths {
   // 获取商户店铺 (详情)
   static const String getShopApi = "/app-api/merchant/shop/get";
 
+  // 获取banner列表
+  static const String getBannerListApi = "/app-api/market/banner/list";
 }

@@ -25,7 +25,7 @@ class SelectedChefQuery {
 }
 
 /// 获取分类浏览私厨店铺响应
-class SelectedChefResponse {
+class ChefItem {
   ///创建时间（审核通过时间）
   final DateTime? approveTime;
 
@@ -59,7 +59,9 @@ class SelectedChefResponse {
   ///店铺logo（封面图）
   final String? shopLogo;
 
-  SelectedChefResponse({
+  final bool? favorite;
+
+  ChefItem({
     this.approveTime,
     this.categoryChineseName,
     this.categoryEnglishName,
@@ -71,29 +73,30 @@ class SelectedChefResponse {
     this.operatingHours,
     this.rating,
     this.shopLogo,
+    this.favorite,
   });
 
-  factory SelectedChefResponse.fromJson(Map<String, dynamic> json) {
+  factory ChefItem.fromJson(Map<String, dynamic> json) {
     List<OperatingHour>? operatingHours;
     try {
       final operatingHoursData = json['operatingHours'];
       if (operatingHoursData != null) {
-        if (operatingHoursData is List) {          
-          operatingHours = operatingHoursData
-              .map((e) {
+        if (operatingHoursData is List) {
+          operatingHours =
+              operatingHoursData.map((e) {
                 return OperatingHour.fromJson(e as Map<String, dynamic>);
-              })
-              .toList();
+              }).toList();
         }
       }
     } catch (e) {
       operatingHours = null;
     }
 
-    return SelectedChefResponse(
-      approveTime: json['approveTime'] != null 
-          ? DateTime.fromMillisecondsSinceEpoch(json['approveTime'] as int)
-          : null,
+    return ChefItem(
+      approveTime:
+          json['approveTime'] != null
+              ? DateTime.fromMillisecondsSinceEpoch(json['approveTime'] as int)
+              : null,
       categoryChineseName: json['categoryChineseName'],
       categoryEnglishName: json['categoryEnglishName'],
       categoryId: json['categoryId'],
@@ -104,6 +107,7 @@ class SelectedChefResponse {
       operatingHours: operatingHours,
       rating: json['rating']?.toDouble(),
       shopLogo: json['shopLogo'],
+      favorite: json['favorite'],
     );
   }
 }
@@ -169,7 +173,7 @@ class DiamondAreaQuery {
 /// 获取分类浏览私厨店铺响应
 class DiamondAreaResponse {
   ///数据
-  final List<SelectedChefResponse> list;
+  final List<ChefItem> list;
 
   ///总量
   final int total;
@@ -177,15 +181,15 @@ class DiamondAreaResponse {
   DiamondAreaResponse({required this.list, required this.total});
 
   factory DiamondAreaResponse.fromJson(Map<String, dynamic> json) {
-    late List<SelectedChefResponse> list;
-    if( json['list'] is List ){
+    late List<ChefItem> list;
+    if (json['list'] is List) {
       final List<dynamic> dataList = json['list'] as List<dynamic>;
-      list = dataList.map((e) => SelectedChefResponse.fromJson(e as Map<String, dynamic>)).toList();
+      list =
+          dataList
+              .map((e) => ChefItem.fromJson(e as Map<String, dynamic>))
+              .toList();
     }
-    return DiamondAreaResponse(
-      list: list,
-      total: json['total'],
-    );
+    return DiamondAreaResponse(list: list, total: json['total']);
   }
 }
 
@@ -230,6 +234,37 @@ class CategoryListItem {
       icon: json['icon'],
       id: json['id'],
       selectedIcon: json['selectedIcon'],
+      sortOrder: json['sortOrder'],
+    );
+  }
+}
+
+/// banner Item
+class BannerItem {
+  ///编号
+  final int id;
+
+  ///图片地址
+  final String imageUrl;
+
+  ///跳转页面地址
+  final String? redirectUrl;
+
+  ///排序值，越小越靠前
+  final int sortOrder;
+
+  BannerItem({
+    required this.id,
+    required this.imageUrl,
+    this.redirectUrl,
+    required this.sortOrder,
+  });
+
+  factory BannerItem.fromJson(Map<String, dynamic> json) {
+    return BannerItem(
+      id: json['id'],
+      imageUrl: json['imageUrl'],
+      redirectUrl: json['redirectUrl'],
       sortOrder: json['sortOrder'],
     );
   }

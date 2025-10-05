@@ -39,7 +39,7 @@ class _HeartPageState extends ConsumerState<HeartPage> {
       itemBuilder: (context, index) {
         final restaurant = _restaurants[index];
         return RestaurantCard(
-          restaurant: SelectedChefResponse.fromJson(restaurant.toSelectedChefResponse()),
+          restaurant: ChefItem.fromJson(restaurant.toSelectedChefResponse()),
           onTap: () => _onRestaurantTap(restaurant),
           onFavoriteTap: () => _onFavoriteTap(restaurant),
         );

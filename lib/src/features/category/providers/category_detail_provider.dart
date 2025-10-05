@@ -4,7 +4,7 @@ import '../services/category_services.dart';
 
 /// 分类详情数据状态
 class CategoryDetailState {
-  final List<SelectedChefResponse> restaurants;
+  final List<ChefItem> restaurants;
   final bool isLoading;
   final bool isLoadingMore;
   final String? error;
@@ -23,7 +23,7 @@ class CategoryDetailState {
   });
 
   CategoryDetailState copyWith({
-    List<SelectedChefResponse>? restaurants,
+    List<ChefItem>? restaurants,
     bool? isLoading,
     bool? isLoadingMore,
     String? error,
@@ -138,7 +138,7 @@ final categoryDetailProvider = StateNotifierProvider.family<CategoryDetailNotifi
 });
 
 /// 分类详情餐厅列表选择器
-final categoryDetailRestaurantsProvider = Provider.family<List<SelectedChefResponse>, int>((ref, categoryId) {
+final categoryDetailRestaurantsProvider = Provider.family<List<ChefItem>, int>((ref, categoryId) {
   return ref.watch(categoryDetailProvider(categoryId)).restaurants;
 });
 

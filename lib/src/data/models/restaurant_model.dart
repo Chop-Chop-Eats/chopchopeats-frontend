@@ -134,7 +134,7 @@ class RestaurantModel {
     return 'RestaurantModel(id: $id, name: $name, rating: $rating)';
   }
 
-  /// 转换为 SelectedChefResponse 用于兼容新的 RestaurantCard
+  /// 转换为 ChefItem 用于兼容新的 RestaurantCard
   /// 注意：这是一个临时的适配方法，建议后续统一数据模型
   Map<String, dynamic> toSelectedChefResponse() {
     return {
