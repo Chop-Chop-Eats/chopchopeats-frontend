@@ -2,25 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
+import '../../../core/routing/navigate.dart';
 import '../../../core/utils/logger/logger.dart';
-import '../../../core/widgets/common_app_bar.dart';
 import '../../../core/widgets/common_indicator.dart';
-import '../../../core/widgets/custom_sliver_app_bar.dart';
-import '../../../core/widgets/common_spacing.dart';
 import '../../../core/widgets/common_image.dart';
-import '../../../core/widgets/restaurant_card.dart';
-import '../../../core/widgets/custom_refresh_header.dart';
-import '../../../core/widgets/custom_refresh_footer.dart';
+import '../../../core/widgets/restaurant/restaurant_list.dart';
 import '../../home/models/home_models.dart';
 import '../providers/category_detail_provider.dart';
 
 /// 分类详情页面 - 二级页面
 class CategoryDetailPage extends ConsumerStatefulWidget {
   final int categoryId;
-
+  final String categoryName;
   const CategoryDetailPage({
     super.key,
     required this.categoryId,
+    required this.categoryName,
   });
 
   @override
@@ -28,16 +25,11 @@ class CategoryDetailPage extends ConsumerStatefulWidget {
 }
 
 class _CategoryDetailPageState extends ConsumerState<CategoryDetailPage> {
-  final ScrollController _scrollController = ScrollController();
   final RefreshController _refreshController = RefreshController(initialRefresh: false);
-
-
-  bool _showTitle = false;
 
   @override
   void initState() {
     super.initState();
-    _setupScrollListener();
     // 加载初始数据
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(categoryDetailProvider(widget.categoryId).notifier).loadCategoryDetail(widget.categoryId);
@@ -46,20 +38,8 @@ class _CategoryDetailPageState extends ConsumerState<CategoryDetailPage> {
 
   @override
   void dispose() {
-    _scrollController.dispose();
     _refreshController.dispose();
     super.dispose();
-  }
-
-  void _setupScrollListener() {
-    _scrollController.addListener(() {
-      final shouldShowTitle = _scrollController.offset > 50.h;
-      if (shouldShowTitle != _showTitle) {
-        setState(() {
-          _showTitle = shouldShowTitle;
-        });
-      }
-    });
   }
 
   Future<void> _onRefresh() async {
@@ -76,35 +56,43 @@ class _CategoryDetailPageState extends ConsumerState<CategoryDetailPage> {
   Widget build(BuildContext context) {
     final restaurants = ref.watch(categoryDetailRestaurantsProvider(widget.categoryId));
     final isLoading = ref.watch(categoryDetailLoadingProvider(widget.categoryId));
-    final isLoadingMore = ref.watch(categoryDetailLoadingMoreProvider(widget.categoryId));
+    // final isLoadingMore = ref.watch(categoryDetailLoadingMoreProvider(widget.categoryId));
     final error = ref.watch(categoryDetailErrorProvider(widget.categoryId));
     final hasMore = ref.watch(categoryDetailHasMoreProvider(widget.categoryId));
 
+    // 初始加载状态
     if (isLoading && restaurants.isEmpty) {
       return Scaffold(
-        appBar: CommonAppBar(
-          title: '加载中...',
-        ),
+        backgroundColor: Colors.white,
         body: const CommonIndicator(),
       );
     }
 
+    // 错误状态
     if (error != null && restaurants.isEmpty) {
       return Scaffold(
-        appBar: CommonAppBar(
-          title: '分类详情',
-        ),
-        body: Center(
+        backgroundColor: Colors.white,
+        body: SafeArea(
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text('加载失败: $error'),
-              CommonSpacing.height(16),
-              ElevatedButton(
-                onPressed: () {
-                  ref.read(categoryDetailProvider(widget.categoryId).notifier).loadCategoryDetail(widget.categoryId);
-                },
-                child: const Text('重试'),
+              _buildHeader(),
+              Expanded(
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text('加载失败: $error'),
+                      SizedBox(height: 16.h),
+                      ElevatedButton(
+                        onPressed: () {
+                          ref.read(categoryDetailProvider(widget.categoryId).notifier)
+                              .loadCategoryDetail(widget.categoryId);
+                        },
+                        child: const Text('重试'),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ],
           ),
@@ -114,90 +102,90 @@ class _CategoryDetailPageState extends ConsumerState<CategoryDetailPage> {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: null,
-      body: SmartRefresher(
-        controller: _refreshController,
-        enablePullDown: true,
-        enablePullUp: hasMore,
-        onRefresh: _onRefresh,
-        onLoading: _onLoading,
-        header: CustomHeader(
-          builder: (context, mode) => CustomRefreshHeader(),
-        ),
-        footer: CustomFooter(
-          builder: (context, mode) => hasMore ? const CustomRefreshFooter() : const CustomNoMoreIndicator(),
-        ),
-        child: _buildRefreshContent(restaurants, isLoadingMore)
-      ),
-    );
-  }
-
-
-  Widget _buildRefreshContent(List<ChefItem> restaurants, bool isLoadingMore){
-    return CustomScrollView(
-      controller: _scrollController,
-      slivers: [
-        _buildSliverAppBar(),
-        if (restaurants.isEmpty)
-          SliverToBoxAdapter(
-            child: Center(
-              child: Text('暂无数据'),
-            ),
-          ),
-        // 餐厅列表
-        SliverList(
-          delegate: SliverChildBuilderDelegate(
-            (context, index) {
-              final restaurant = restaurants[index];
-              return Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16.w),
-                child: RestaurantCard(
-                  restaurant: restaurant,
-                  onTap: () => _onRestaurantTap(restaurant),
-                  onFavoriteTap: () => _onFavoriteTap(restaurant),
+      body: NestedScrollView(
+        headerSliverBuilder: (context, innerBoxIsScrolled) {
+          return [
+            SliverAppBar(
+              pinned: true,
+              floating: false,
+              expandedHeight: 120.h,
+              backgroundColor: Colors.white,
+              leading: IconButton(
+                icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
+                onPressed: () => Navigate.pop(context),
+              ),
+              flexibleSpace: FlexibleSpaceBar(
+                centerTitle: false,
+                title: AnimatedOpacity(
+                  opacity: 1.0,
+                  duration: const Duration(milliseconds: 200),
+                  child: Text(
+                    widget.categoryName,
+                    style: TextStyle(
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                    textAlign: TextAlign.left,
+                  ),
                 ),
-              );
-            },
-            childCount: restaurants.length,
-          ),
-        ),
-        // 加载更多指示器
-        if (isLoadingMore)
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: EdgeInsets.all(16.w),
-              child: const CommonIndicator(),
+                background: CommonImage(
+                  imagePath: "assets/images/appbar_bg.png",
+                  fit: BoxFit.cover,
+                ),
+              ),
             ),
-          ),
-        // 底部间距
-        SliverToBoxAdapter(
-          child: CommonSpacing.height(20),
+          ];
+        },
+        body: RestaurantList(
+          restaurants: restaurants,
+          onRestaurantTap: _onRestaurantTap,
+          onFavoriteTap: _onFavoriteTap,
+          enableRefresh: true,
+          refreshController: _refreshController,
+          onRefresh: _onRefresh,
+          onLoading: _onLoading,
+          hasMore: hasMore,
         ),
-      ],
+      )
     );
   }
 
-  Widget _buildSliverAppBar() {
-    return CustomSliverAppBar(
-      backgroundColor: Colors.white,
-      expandedHeight: 64.h,
-      backgroundWidget: CommonImage(
-        imagePath: "assets/images/appbar_bg.png",
-      ),
-      titleWidget: AnimatedOpacity(
-        opacity: _showTitle ? 1.0 : 0.0,
-        duration: const Duration(milliseconds: 50),
-        child: Text(
-          '分类详情',
-          style: TextStyle(
-            fontSize: 18.sp,
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
+  /// 构建顶部固定标题栏（用于错误状态）
+  Widget _buildHeader() {
+    return Container(
+      height: 56.h,
+      padding: EdgeInsets.symmetric(horizontal: 16.w),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withAlpha(10),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
           ),
-        ),
+        ],
       ),
-      showBackButton: true,
-      backButtonColor: Colors.black,
+      child: Row(
+        children: [
+          IconButton(
+            icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          Expanded(
+            child: Text(
+              widget.categoryName,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 18.sp,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+            ),
+          ),
+          SizedBox(width: 48.w), // 平衡左侧按钮宽度
+        ],
+      ),
     );
   }
 

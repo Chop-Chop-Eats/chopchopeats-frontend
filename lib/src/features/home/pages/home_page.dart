@@ -16,7 +16,7 @@ import '../widgets/category_grid.dart';
 import '../widgets/banner_carousel.dart';
 import '../widgets/tip_text_section.dart';
 import '../widgets/section_header.dart';
-import '../widgets/restaurant_list.dart';
+import '../../../core/widgets/restaurant/restaurant_list.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
@@ -299,6 +299,7 @@ class _HomePageState extends ConsumerState<HomePage> {
       Routes.categoryDetail,
       arguments: {
         'categoryId': category.id,
+        'categoryName': category.categoryName,
       },
     );
   }

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/utils/logger/logger.dart';
 import '../../../core/widgets/base_page.dart';
-import '../../../core/widgets/restaurant_card.dart';
+import '../../../core/widgets/restaurant/restaurant_card.dart';
 import '../../../data/models/restaurant_model.dart';
 import '../../home/models/home_models.dart';
 

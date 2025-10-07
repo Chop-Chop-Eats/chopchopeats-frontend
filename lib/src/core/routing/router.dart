@@ -42,8 +42,9 @@ class AppRouter {
       if (settings.arguments is Map<String, dynamic>) {
         final args = settings.arguments as Map<String, dynamic>;
         final categoryId = args["categoryId"];
-        if (categoryId is int) {
-          return CategoryDetailPage(categoryId: categoryId);
+        final categoryName = args["categoryName"];
+        if (categoryId is int && categoryName is String) {
+          return CategoryDetailPage(categoryId: categoryId, categoryName: categoryName);
         }
       }
       return const ErrorPage(message: "分类ID参数错误或缺失");

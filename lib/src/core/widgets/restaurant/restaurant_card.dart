@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'common_spacing.dart';
-import 'common_image.dart';
-import '../../features/home/models/home_models.dart';
+import '../common_spacing.dart';
+import '../common_image.dart';
+import '../../../features/home/models/home_models.dart';
 
 /// 餐厅卡片组件
 class RestaurantCard extends StatelessWidget {
