@@ -1,172 +1,156 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../../app_services.dart';
-import '../../../core/constants/app_constant.dart';
+import 'package:pull_to_refresh/pull_to_refresh.dart';
 import '../../../core/routing/navigate.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/logger/logger.dart';
 import '../../../core/widgets/common_spacing.dart';
 import '../../../core/widgets/common_image.dart';
-import '../models/search_models.dart';
-import '../services/search_services.dart';
+import '../../../core/widgets/common_indicator.dart';
+import '../../../core/widgets/restaurant/restaurant_list.dart';
+import '../../home/models/home_models.dart';
+import '../providers/search_provider.dart';
 import '../widgets/search_item.dart';
 
-
-class SearchPage extends StatefulWidget {
+class SearchPage extends ConsumerStatefulWidget {
   const SearchPage({super.key});
 
   @override
-  State<SearchPage> createState() => _SearchPageState();
+  ConsumerState<SearchPage> createState() => _SearchPageState();
 }
 
-class _SearchPageState extends State<SearchPage> {
+class _SearchPageState extends ConsumerState<SearchPage> {
   final TextEditingController _searchController = TextEditingController();
-  final _latitude = AppServices.appSettings.latitude;
-  final _longitude = AppServices.appSettings.longitude;
-  final _pageSize = AppServices.appSettings.pageSize;
-  List<String> _searchHistory = [];
-  final List<String> _searchSuggestions = [
-    '湘菜', '恰巴塔', '蜂蜜面包', '粤菜', '牛肉串', '肉夹馍', '卤鸭脖', '白切鸡', '低GI'
-  ];
-  final List<bool> _isHotList = [
-    true, false, false, false, true, true, false, false, false
-  ];
-
-  Future<void> _initializeApp() async {
-    try {
-      final searchHistory = await AppServices.cache.get<List<String>>(AppConstants.searchHistory);
-      if (mounted) {
-        setState(() {
-          _searchHistory = searchHistory ?? [];
-        });
-      }
-      Logger.info('SearchPage', 'searchHistory: $searchHistory');
-
-      final keywordList = await SearchServices.getKeywordList();
-      Logger.info('SearchPage', 'keywordList: $keywordList');
-
-      final historyList = await SearchServices.getHistoryList();
-      Logger.info('SearchPage', 'historyList: $historyList');
-      
-      final searchShop = await SearchServices.searchShop(SearchQuery(
-        search: "川",
-        pageNo: 1,
-        pageSize: _pageSize,
-        latitude: _latitude,
-        longitude: _longitude,
-      ));
-      Logger.info('SearchPage', 'searchShop: $searchShop');
-
-    } catch (e) {
-      Logger.error('SearchPage', 'Failed to load search history: $e');
-      if (mounted) {
-        setState(() {
-          _searchHistory = [];
-        });
-      }
-    }
-  }
+  final RefreshController _refreshController = RefreshController(initialRefresh: false);
+  bool _showClearButton = false;
 
   @override
   void initState() {
     super.initState();
+    // 监听输入框变化
+    _searchController.addListener(() {
+      final text = _searchController.text;
+      setState(() {
+        _showClearButton = text.isNotEmpty;
+      });
+      
+      // 当输入框被清空时，清空搜索结果
+      if (text.isEmpty) {
+        ref.read(searchResultProvider.notifier).clearResults();
+      }
+    });
+    
     // 延迟执行异步操作，避免在 initState 中直接调用
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        _initializeApp();
+        _initializeData();
       }
     });
+  }
+
+  /// 初始化数据
+  Future<void> _initializeData() async {
+    // 加载关键词列表和历史记录列表
+    ref.read(keywordListProvider.notifier).loadKeywords();
+    ref.read(historyListProvider.notifier).loadHistories();
   }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _refreshController.dispose();
     super.dispose();
   }
 
-  // 执行搜索
+  /// 执行搜索
   void _performSearch() {
     final query = _searchController.text.trim();
     if (query.isNotEmpty) {
-      _addToSearchHistory(query);
       Logger.info('SearchPage', '搜索: $query');
-      // TODO: 执行实际搜索逻辑
+      ref.read(searchResultProvider.notifier).search(query);
+      // 搜索后重新加载历史记录列表
+      ref.read(historyListProvider.notifier).loadHistories();
+      // 取消输入框焦点
+      FocusScope.of(context).unfocus();
     }
   }
 
-  // 选择历史记录项
+  /// 选择历史记录项
   void _selectHistoryItem(String item) {
     _searchController.text = item;
     _performSearch();
   }
 
-  // 选择推荐项
+  /// 选择推荐项
   void _selectSuggestion(String suggestion) {
     _searchController.text = suggestion;
     _performSearch();
   }
 
-  // 添加到搜索历史
-  Future<void> _addToSearchHistory(String query) async {
-    try {
-      if (!_searchHistory.contains(query)) {
-        _searchHistory.insert(0, query);
-        // 限制历史记录数量
-        if (_searchHistory.length > 10) {
-          _searchHistory = _searchHistory.take(10).toList();
-        }
-        await AppServices.cache.set(AppConstants.searchHistory, _searchHistory);
-        if (mounted) {
-          setState(() {});
-        }
-      }
-    } catch (e) {
-      Logger.error('SearchPage', 'Failed to save search history: $e');
-    }
-  }
-
-  // 清除搜索历史
+  /// 清除搜索历史
   Future<void> _clearSearchHistory() async {
     try {
-      await AppServices.cache.remove(AppConstants.searchHistory);
-      if (mounted) {
-        setState(() {
-          _searchHistory.clear();
-        });
-      }
+      await ref.read(historyListProvider.notifier).clearHistories();
       Logger.info('SearchPage', '清除搜索历史');
     } catch (e) {
       Logger.error('SearchPage', 'Failed to clear search history: $e');
     }
   }
 
+  /// 刷新搜索结果
+  Future<void> _onRefresh() async {
+    await ref.read(searchResultProvider.notifier).refresh();
+    _refreshController.refreshCompleted();
+  }
+
+  /// 加载更多搜索结果
+  Future<void> _onLoading() async {
+    await ref.read(searchResultProvider.notifier).loadMore();
+    _refreshController.loadComplete();
+  }
+
   @override
   Widget build(BuildContext context) {
+    final currentSearchKeyword = ref.watch(currentSearchKeywordProvider);
+    final hasSearched = currentSearchKeyword != null && currentSearchKeyword.isNotEmpty;
+
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: null, 
+      appBar: null,
       body: SafeArea(
         child: Container(
           color: Colors.white,
-          padding: EdgeInsets.symmetric(horizontal: 16.w), 
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(height: 20.h),
-                _buildSearchBar(),
-                SizedBox(height: 24.h),
-                _buildSearchHistory(),
-                SizedBox(height: 24.h),
-                _buildSearchSuggestion(),
-                SizedBox(height: 20.h),
-              ],
-            ),
+          padding: EdgeInsets.symmetric(horizontal: 16.w),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CommonSpacing.medium,
+              _buildSearchBar(),
+              CommonSpacing.medium,
+              // 根据是否有搜索结果来决定显示的内容
+              Expanded(
+                child: hasSearched 
+                    ? _buildSearchResults()
+                    : SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildSearchHistory(),
+                            CommonSpacing.medium,
+                            _buildSearchSuggestion(),
+                          ],
+                        ),
+                      ),
+              ),
+            ],
           ),
-        )
-      )
+        ),
+      ),
     );
   }
 
+  /// 构建搜索栏
   Widget _buildSearchBar() {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -174,7 +158,7 @@ class _SearchPageState extends State<SearchPage> {
         // 返回按钮
         GestureDetector(
           onTap: () => Navigate.pop(context),
-          child:Center(
+          child: Center(
             child: Icon(
               Icons.arrow_back_ios,
               size: 20.sp,
@@ -203,8 +187,9 @@ class _SearchPageState extends State<SearchPage> {
                 Expanded(
                   child: TextField(
                     controller: _searchController,
+                    onSubmitted: (_) => _performSearch(),
                     decoration: InputDecoration(
-                      hintText: '湘菜',
+                      hintText: '搜索内容',
                       hintStyle: TextStyle(
                         fontSize: 14.sp,
                         color: Color(0xFF86909C),
@@ -218,6 +203,23 @@ class _SearchPageState extends State<SearchPage> {
                     ),
                   ),
                 ),
+                if (_showClearButton)
+                  GestureDetector(
+                    onTap: () {
+                      _searchController.clear();
+                      // 清空搜索结果
+                      ref.read(searchResultProvider.notifier).clearResults();
+                    },
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 8.w),
+                      child: Icon(
+                        Icons.clear,
+                        size: 18.sp,
+                        color: Color(0xFF86909C),
+                      ),
+                    ),
+                  ),
+                CommonSpacing.width(8.w),
               ],
             ),
           ),
@@ -229,14 +231,14 @@ class _SearchPageState extends State<SearchPage> {
           child: Container(
             padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
             decoration: BoxDecoration(
-              color: Color(0xFFFF6B35),
+              color: AppTheme.primaryOrange,
               borderRadius: BorderRadius.circular(20.r),
             ),
             child: Text(
               '搜索',
               style: TextStyle(
-                fontSize: 14.sp,
-                fontWeight: FontWeight.w500,
+                fontSize: 15.sp,
+                fontWeight: FontWeight.bold,
                 color: Colors.white,
               ),
             ),
@@ -246,11 +248,22 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 
+  /// 构建搜索历史
   Widget _buildSearchHistory() {
-    if (_searchHistory.isEmpty) {
+    final histories = ref.watch(historiesProvider);
+    final isLoading = ref.watch(historyLoadingProvider);
+
+    if (isLoading) {
+      return Padding(
+        padding: EdgeInsets.symmetric(vertical: 16.h),
+        child: const CommonIndicator(),
+      );
+    }
+
+    if (histories.isEmpty) {
       return SizedBox.shrink();
     }
-    
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -279,10 +292,10 @@ class _SearchPageState extends State<SearchPage> {
         Wrap(
           spacing: 8.w,
           runSpacing: 8.h,
-          children: _searchHistory.map((item) {
+          children: histories.map((item) {
             return GestureDetector(
-              onTap: () => _selectHistoryItem(item),
-              child: SearchItem(title: item),
+              onTap: () => _selectHistoryItem(item.searchWord),
+              child: SearchItem(title: item.searchWord),
             );
           }).toList(),
         ),
@@ -290,8 +303,22 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 
-
+  /// 构建搜索推荐（猜你喜欢）
   Widget _buildSearchSuggestion() {
+    final keywords = ref.watch(keywordsProvider);
+    final isLoading = ref.watch(keywordLoadingProvider);
+
+    if (isLoading) {
+      return Padding(
+        padding: EdgeInsets.symmetric(vertical: 16.h),
+        child: const CommonIndicator(),
+      );
+    }
+
+    if (keywords.isEmpty) {
+      return SizedBox.shrink();
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -307,15 +334,12 @@ class _SearchPageState extends State<SearchPage> {
         Wrap(
           spacing: 8.w,
           runSpacing: 8.h,
-          children: _searchSuggestions.asMap().entries.map((entry) {
-            int index = entry.key;
-            String suggestion = entry.value;
-            bool isHot = _isHotList[index];
-            
+          children: keywords.map((item) {
+            final isHot = item.icon != null && item.icon!.isNotEmpty;
             return GestureDetector(
-              onTap: () => _selectSuggestion(suggestion),
+              onTap: () => _selectSuggestion(item.keyWord),
               child: SearchItem(
-                title: suggestion,
+                title: item.keyWord,
                 isHot: isHot,
               ),
             );
@@ -323,5 +347,71 @@ class _SearchPageState extends State<SearchPage> {
         ),
       ],
     );
+  }
+
+  /// 构建搜索结果
+  Widget _buildSearchResults() {
+    final restaurants = ref.watch(searchRestaurantsProvider);
+    final isLoading = ref.watch(searchLoadingProvider);
+    final error = ref.watch(searchErrorProvider);
+    final hasMore = ref.watch(searchHasMoreProvider);
+
+    // 初始加载状态
+    if (isLoading && restaurants.isEmpty) {
+      return const CommonIndicator();
+    }
+
+    // 错误状态
+    if (error != null && restaurants.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text('加载失败: $error'),
+            SizedBox(height: 16.h),
+            ElevatedButton(
+              onPressed: _performSearch,
+              child: const Text('重试'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // 空状态
+    if (restaurants.isEmpty) {
+      return Center(
+        child: CommonImage(
+          imagePath: 'assets/images/empty_search.png',
+          width: 160.w,
+          height: 120.h,
+          fit: BoxFit.contain,
+        ),
+      );
+    }
+
+    // 展示搜索结果列表
+    return RestaurantList(
+      restaurants: restaurants,
+      onRestaurantTap: _onRestaurantTap,
+      onFavoriteTap: _onFavoriteTap,
+      enableRefresh: true,
+      refreshController: _refreshController,
+      onRefresh: _onRefresh,
+      onLoading: _onLoading,
+      hasMore: hasMore,
+      padding: EdgeInsets.zero,
+    );
+  }
+
+  /// 点击餐厅
+  void _onRestaurantTap(ChefItem restaurant) {
+    Logger.info('SearchPage', '点击餐厅: ${restaurant.chineseShopName} (ID: ${restaurant.id})');
+  }
+
+  /// 点击收藏
+  void _onFavoriteTap(ChefItem restaurant) {
+    Logger.info('SearchPage', '点击收藏餐厅: ${restaurant.chineseShopName} (ID: ${restaurant.id})');
+    // TODO: 实现收藏功能
   }
 }

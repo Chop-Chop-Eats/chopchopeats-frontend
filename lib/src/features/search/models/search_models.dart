@@ -1,7 +1,7 @@
 /// keyword Item
 class KeywordItem {
   ///图标
-  final String? icon;
+  final String? icon; // 不为空说明 isHot 为true
 
   ///主键ID
   final int id;
