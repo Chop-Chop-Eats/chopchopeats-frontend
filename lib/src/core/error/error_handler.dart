@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:unified_popups/unified_popups.dart';
-import '../../app_services.dart';
+import '../config/app_services.dart';
 import '../constants/app_constant.dart';
 import '../network/api_exception.dart';
 import '../routing/navigate.dart';

@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'core/l10n/app_localizations.dart';
-import 'core/routing/router.dart';
-import 'core/routing/routes.dart';
-import 'core/theme/app_theme.dart';
+import '../l10n/app_localizations.dart';
+import '../routing/router.dart';
+import '../routing/routes.dart';
+import '../theme/app_theme.dart';
 import 'app_services.dart';
 
 class App extends StatelessWidget {

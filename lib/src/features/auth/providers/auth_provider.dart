@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../app_services.dart';
+import '../../../core/config/app_services.dart';
 import '../../../core/config/environment_config.dart';
 import '../../../core/constants/app_constant.dart';
 import '../../../core/enums/auth_enums.dart';

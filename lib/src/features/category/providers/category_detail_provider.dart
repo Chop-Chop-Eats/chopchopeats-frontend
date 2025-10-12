@@ -1,4 +1,4 @@
-import 'package:chop_user/src/app_services.dart';
+import 'package:chop_user/src/core/config/app_services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../home/models/home_models.dart';
 import '../services/category_services.dart';

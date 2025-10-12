@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../../app_services.dart';
+import '../../../core/config/app_services.dart';
 import '../../../core/utils/logger/logger.dart';
 import '../../../core/widgets/common_indicator.dart';
 import '../../../core/widgets/custom_sliver_app_bar.dart';

@@ -2,11 +2,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:unified_popups/unified_popups.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'core/utils/logger/logger.dart';
+import '../utils/logger/logger.dart';
 import 'app.dart';
 import 'app_services.dart';
-import 'core/config/app_environment.dart';
-import 'core/config/environment_config.dart';
+import 'app_environment.dart';
+import 'environment_config.dart';
 
 class AppBootstrap {
   const AppBootstrap._();

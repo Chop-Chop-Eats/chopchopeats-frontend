@@ -59,7 +59,6 @@ class CacheService {
   Future<T?> get<T>(String key, {T Function(Map<String, dynamic> json)? fromJson}) async {
     try {
       final dynamic value = _prefs.get(key);
-
       if (value == null) {
         return null;
       }

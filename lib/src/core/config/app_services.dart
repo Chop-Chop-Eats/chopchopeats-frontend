@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'core/network/api_client.dart';
-import 'data/datasources/local/cache_service.dart';
-import 'core/config/app_setting.dart';
+import '../network/api_client.dart';
+import '../../data/datasources/local/cache_service.dart';
+import 'app_setting.dart';
 
 /// 服务定位器，用于管理应用范围内的共享实例。
 class AppServices {

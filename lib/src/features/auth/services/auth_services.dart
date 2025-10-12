@@ -1,4 +1,4 @@
-import '../../../app_services.dart';
+import '../../../core/config/app_services.dart';
 import '../../../core/constants/app_constant.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/network/api_paths.dart';

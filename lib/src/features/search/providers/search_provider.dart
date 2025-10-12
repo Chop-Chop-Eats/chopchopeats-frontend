@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../app_services.dart';
+import '../../../core/config/app_services.dart';
 import '../../../core/utils/logger/logger.dart';
 import '../../home/models/home_models.dart';
 import '../models/search_models.dart';

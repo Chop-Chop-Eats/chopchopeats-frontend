@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import '../constants/app_constant.dart';
 import '../utils/logger/logger.dart';
-import '../../app_services.dart';
+import 'app_services.dart';
 
 class AppSettings extends ChangeNotifier {
   // 私有构造函数
