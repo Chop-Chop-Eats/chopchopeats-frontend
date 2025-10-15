@@ -20,7 +20,7 @@ class Logo extends StatelessWidget {
           ),
         ],
       ),
-      child: CommonImage(imagePath: "assets/images/logo.png", height: 80.h),
+      child: CommonImage(imagePath: "assets/images/logo.png", height: 80.h , borderRadiusClip: BorderRadius.circular(24.r)),
     );
   }
 }
