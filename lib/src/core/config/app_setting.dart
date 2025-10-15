@@ -77,12 +77,12 @@ class AppSettings extends ChangeNotifier {
   }
 
    /// 更新经度
-  void setLongitude(double longitude) {
+  Future<void> setLongitude(double longitude) async {
     _longitude = longitude;
   }
 
   /// 更新纬度
-  void setLatitude(double latitude) {
+  Future<void> setLatitude(double latitude) async {
     _latitude = latitude;
   }
 }
