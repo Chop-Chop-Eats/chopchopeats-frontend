@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import '../../../core/routing/navigate.dart';
+import '../../../core/routing/routes.dart';
 import '../../../core/utils/logger/logger.dart';
 import '../../../core/widgets/common_indicator.dart';
 import '../../../core/widgets/common_image.dart';
@@ -191,6 +192,14 @@ class _CategoryDetailPageState extends ConsumerState<CategoryDetailPage> {
 
   void _onRestaurantTap(ChefItem restaurant) {
     Logger.info('CategoryDetailPage', '点击餐厅: ${restaurant.chineseShopName}');
+    // 跳转到餐厅详情页面
+    Navigate.push(
+      context,
+      Routes.detail,
+      arguments: {
+        'id': restaurant.id,
+      },
+    );
   }
 
   void _onFavoriteTap(ChefItem restaurant) {

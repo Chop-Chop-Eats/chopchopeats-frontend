@@ -4,6 +4,7 @@ import '../../features/auth/pages/password_login_page.dart';
 import '../../features/auth/pages/set_new_password_page.dart';
 import '../../features/auth/pages/verification_code_page.dart';
 import '../../features/category/pages/category_detail_page.dart';
+import '../../features/detail/pages/detail_page.dart';
 import '../../features/error_page.dart';
 import '../../features/auth/pages/login_page.dart';
 import '../../features/main_screen.dart';
@@ -48,6 +49,15 @@ class AppRouter {
         }
       }
       return const ErrorPage(message: "分类ID参数错误或缺失");
+    },
+
+    Routes.detail: (settings) {
+      if (settings.arguments is Map<String, dynamic>) {
+        final args = settings.arguments as Map<String, dynamic>;
+        final id = args["id"];
+        return DetailPage(id: id);
+      }
+      return const ErrorPage(message: "参数错误或缺失");
     },
   };
 

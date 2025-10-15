@@ -30,8 +30,8 @@ class BannerCarousel extends StatelessWidget {
                 borderRadius: BorderRadius.circular(15.r),
                 child: CommonImage(
                   imagePath: imagePath,
-                  width: 343.w,
-                  height: 120.h,
+                  width: 360.w,
+                  height: 140.h,
                   fit: BoxFit.cover,
                 ),
               ),

@@ -1,3 +1,5 @@
+import '../../../core/utils/json_utils.dart';
+
 /// keyword Item
 class KeywordItem {
   ///图标
@@ -52,14 +54,10 @@ class HistoryItem {
 
   factory HistoryItem.fromJson(Map<String, dynamic> json) {
     return HistoryItem(
-      createTime: DateTime.fromMillisecondsSinceEpoch(
-        json['createTime'] as int,
-      ),
+      createTime: JsonUtils.parseDateTime(json, 'createTime') ?? DateTime.now(),
       id: json['id'],
       searchWord: json['searchWord'],
-      updateTime: DateTime.fromMillisecondsSinceEpoch(
-        json['updateTime'] as int,
-      ),
+      updateTime: JsonUtils.parseDateTime(json, 'updateTime') ?? DateTime.now(),
     );
   }
 }

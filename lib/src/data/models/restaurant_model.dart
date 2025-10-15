@@ -1,3 +1,5 @@
+import '../../core/utils/json_utils.dart';
+
 /// 餐厅数据模型 - 全局数据模型
 class RestaurantModel {
   final String id;
@@ -34,21 +36,28 @@ class RestaurantModel {
 
   /// 从 JSON 创建 RestaurantModel
   factory RestaurantModel.fromJson(Map<String, dynamic> json) {
+    // 处理categoryIds字段的类型转换
+    List<String> categoryIds = [];
+    final categoryIdsData = json['categoryIds'];
+    if (categoryIdsData is List) {
+      categoryIds = categoryIdsData.map((e) => e.toString()).toList();
+    }
+
     return RestaurantModel(
       id: json['id'] as String,
       imagePath: json['imagePath'] as String,
       name: json['name'] as String,
       tags: json['tags'] as String,
       description: json['description'] as String? ?? '',
-      rating: (json['rating'] as num).toDouble(),
+      rating: JsonUtils.parseDouble(json, 'rating') ?? 0.0,
       deliveryTime: json['deliveryTime'] as String,
       distance: json['distance'] as String,
       address: json['address'] as String? ?? '',
-      isOpen: json['isOpen'] as bool? ?? true,
-      isFavorite: json['isFavorite'] as bool? ?? false,
-      categoryIds: (json['categoryIds'] as List<dynamic>?)?.cast<String>() ?? [],
-      deliveryFee: (json['deliveryFee'] as num?)?.toDouble() ?? 0.0,
-      minOrder: (json['minOrder'] as num?)?.toDouble() ?? 0.0,
+      isOpen: JsonUtils.parseBool(json, 'isOpen') ?? true,
+      isFavorite: JsonUtils.parseBool(json, 'isFavorite') ?? false,
+      categoryIds: categoryIds,
+      deliveryFee: JsonUtils.parseDouble(json, 'deliveryFee') ?? 0.0,
+      minOrder: JsonUtils.parseDouble(json, 'minOrder') ?? 0.0,
     );
   }
 

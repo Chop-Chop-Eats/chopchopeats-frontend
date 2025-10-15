@@ -56,7 +56,7 @@ class _HomePageState extends ConsumerState<HomePage> {
               children: [
                 _buildCategories(),
                 _buildBanner(),
-                _buildTipText(),
+                // _buildTipText(),
                 _buildPrivateKitchensHeader(),
                 _buildRestaurantList(),
               ],
@@ -314,10 +314,9 @@ class _HomePageState extends ConsumerState<HomePage> {
     // 跳转到餐厅详情页面
     Navigate.push(
       context,
-      Routes.detail, // 使用现有的详情页面路由
+      Routes.detail,
       arguments: {
-        'restaurantId': restaurant.id.toString(),
-        'restaurant': restaurant,
+        'id': restaurant.id,
       },
     );
   }

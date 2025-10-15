@@ -46,5 +46,14 @@ class ApiPaths {
   // 获取商户店铺 (店铺详情)
   static const String getShopApi = "/app-api/merchant/shop/get";
 
+  // 添加收藏
+  static const String addFavoriteApi = "/app-api/merchant/shop-favorite/add";
+
+  // 取消收藏
+  static const String cancelFavoriteApi = "/app-api/merchant/shop-favorite/remove";
+
+  // 获取我的收藏
+  static const String getFavoriteApi = "/app-api/merchant/shop-favorite/page";
+
   
 }

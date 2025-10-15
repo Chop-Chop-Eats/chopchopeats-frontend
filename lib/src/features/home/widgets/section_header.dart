@@ -25,7 +25,7 @@ class SectionHeader extends StatelessWidget {
       padding: EdgeInsets.only(
         left: 16.w,
         right: 16.w,
-        top: 0,
+        top: 16.h,
         bottom: 16.h,
       ),
       child: GestureDetector(

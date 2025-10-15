@@ -1,3 +1,6 @@
+import '../../models/models.dart';
+import '../../../core/utils/json_utils.dart';
+
 /// 获取甄选私厨店铺请求query
 class SelectedChefQuery {
   ///店铺分类，不传则查询所有分类
@@ -77,35 +80,21 @@ class ChefItem {
   });
 
   factory ChefItem.fromJson(Map<String, dynamic> json) {
-    List<OperatingHour>? operatingHours;
-    try {
-      final operatingHoursData = json['operatingHours'];
-      if (operatingHoursData != null) {
-        if (operatingHoursData is List) {
-          operatingHours =
-              operatingHoursData.map((e) {
-                return OperatingHour.fromJson(e as Map<String, dynamic>);
-              }).toList();
-        }
-      }
-    } catch (e) {
-      operatingHours = null;
-    }
-
     return ChefItem(
-      approveTime:
-          json['approveTime'] != null
-              ? DateTime.fromMillisecondsSinceEpoch(json['approveTime'] as int)
-              : null,
+      approveTime: JsonUtils.parseDateTime(json, 'approveTime'),
       categoryChineseName: json['categoryChineseName'],
       categoryEnglishName: json['categoryEnglishName'],
       categoryId: json['categoryId'],
       chineseShopName: json['chineseShopName'],
       id: json['id'],
       newShopMark: json['newShopMark'],
-      distance: json['distance']?.toDouble(),
-      operatingHours: operatingHours,
-      rating: json['rating']?.toDouble(),
+      distance: JsonUtils.parseDouble(json, 'distance'),
+      operatingHours: JsonUtils.parseList<OperatingHour>(
+        json,
+        'operatingHours',
+        (e) => OperatingHour.fromJson(e),
+      ),
+      rating: JsonUtils.parseDouble(json, 'rating'),
       shopLogo: json['shopLogo'],
       favorite: json['favorite'],
     );
@@ -134,38 +123,24 @@ class OperatingHour {
   }
 }
 
-/// 获取分类浏览私厨店铺请求query
-class DiamondAreaQuery {
+/// 获取分类浏览私厨店铺请求query 
+class DiamondAreaQuery extends CommonQuery {
   ///店铺分类
   final int categoryId;
 
-  ///纬度
-  final double latitude;
-
-  ///经度
-  final double longitude;
-
-  ///页码，从 1 开始
-  final int pageNo;
-
-  ///每页条数，最大值为 100
-  final int pageSize;
-
   DiamondAreaQuery({
     required this.categoryId,
-    required this.latitude,
-    required this.longitude,
-    required this.pageNo,
-    required this.pageSize,
+    required super.latitude,
+    required super.longitude,
+    required super.pageNo,
+    required super.pageSize,
   });
 
+  @override
   Map<String, dynamic> toJson() {
     return {
       'categoryId': categoryId,
-      'latitude': latitude,
-      'longitude': longitude,
-      'pageNo': pageNo,
-      'pageSize': pageSize,
+      ...super.toJson(),
     };
   }
 }

@@ -1,4 +1,5 @@
 import '../../../core/enums/auth_enums.dart';
+import '../../../core/utils/json_utils.dart';
 
 // 发送验证码 params参数
 class AppAuthSmsSendParams {
@@ -85,7 +86,7 @@ class AppAuthLoginResponse {
   factory AppAuthLoginResponse.fromJson(Map<String, dynamic> json) {
     return AppAuthLoginResponse(
       accessToken: json['accessToken'] as String,
-      expiresTime:  DateTime.fromMillisecondsSinceEpoch(json['expiresTime'] as int),
+      expiresTime: JsonUtils.parseDateTime(json, 'expiresTime') ?? DateTime.now(),
       openid: json['openid'] as String?,
       refreshToken: json['refreshToken'] as String,
       shopId: json['shopId'] as String?,
