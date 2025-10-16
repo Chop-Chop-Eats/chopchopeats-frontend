@@ -140,8 +140,6 @@ class _CategoryDetailPageState extends ConsumerState<CategoryDetailPage> {
         },
         body: RestaurantList(
           restaurants: restaurants,
-          onRestaurantTap: _onRestaurantTap,
-          onFavoriteTap: _onFavoriteTap,
           enableRefresh: true,
           refreshController: _refreshController,
           onRefresh: _onRefresh,
@@ -188,21 +186,5 @@ class _CategoryDetailPageState extends ConsumerState<CategoryDetailPage> {
         ],
       ),
     );
-  }
-
-  void _onRestaurantTap(ChefItem restaurant) {
-    Logger.info('CategoryDetailPage', '点击餐厅: ${restaurant.chineseShopName}');
-    // 跳转到餐厅详情页面
-    Navigate.push(
-      context,
-      Routes.detail,
-      arguments: {
-        'id': restaurant.id,
-      },
-    );
-  }
-
-  void _onFavoriteTap(ChefItem restaurant) {
-    Logger.info('CategoryDetailPage', '收藏餐厅: ${restaurant.chineseShopName}');
   }
 }

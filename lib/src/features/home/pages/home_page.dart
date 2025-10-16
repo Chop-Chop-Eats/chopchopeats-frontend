@@ -283,8 +283,6 @@ class _HomePageState extends ConsumerState<HomePage> {
 
     return RestaurantList(
       restaurants: restaurants,
-      onRestaurantTap: _onRestaurantTap,
-      onFavoriteTap: _onFavoriteTap,
     );
   }
 
@@ -308,23 +306,4 @@ class _HomePageState extends ConsumerState<HomePage> {
     Logger.info('HomePage', '点击Banner: $index');
   }
 
-  void _onRestaurantTap(ChefItem restaurant) {
-    Logger.info('HomePage', '点击餐厅: ${restaurant.chineseShopName} (ID: ${restaurant.id})');
-    
-    // 跳转到餐厅详情页面
-    Navigate.push(
-      context,
-      Routes.detail,
-      arguments: {
-        'id': restaurant.id,
-      },
-    );
-  }
-
-  void _onFavoriteTap(ChefItem restaurant) {
-    Logger.info('HomePage', '点击收藏餐厅: ${restaurant.chineseShopName} (ID: ${restaurant.id})');
-    
-    // TODO: 实现收藏功能
-    // 这里可以调用收藏服务的API
-  }
 }

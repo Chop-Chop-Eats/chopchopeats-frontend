@@ -62,6 +62,7 @@ class ChefItem {
   ///店铺logo（封面图）
   final String? shopLogo;
 
+  ///收藏标识
   final bool? favorite;
 
   ChefItem({
@@ -97,6 +98,37 @@ class ChefItem {
       rating: JsonUtils.parseDouble(json, 'rating'),
       shopLogo: json['shopLogo'],
       favorite: json['favorite'],
+    );
+  }
+
+  /// copyWith 方法，用于创建修改后的副本
+  ChefItem copyWith({
+    DateTime? approveTime,
+    String? categoryChineseName,
+    String? categoryEnglishName,
+    int? categoryId,
+    String? chineseShopName,
+    double? distance,
+    String? id,
+    bool? newShopMark,
+    List<OperatingHour>? operatingHours,
+    double? rating,
+    String? shopLogo,
+    bool? favorite,
+  }) {
+    return ChefItem(
+      approveTime: approveTime ?? this.approveTime,
+      categoryChineseName: categoryChineseName ?? this.categoryChineseName,
+      categoryEnglishName: categoryEnglishName ?? this.categoryEnglishName,
+      categoryId: categoryId ?? this.categoryId,
+      chineseShopName: chineseShopName ?? this.chineseShopName,
+      distance: distance ?? this.distance,
+      id: id ?? this.id,
+      newShopMark: newShopMark ?? this.newShopMark,
+      operatingHours: operatingHours ?? this.operatingHours,
+      rating: rating ?? this.rating,
+      shopLogo: shopLogo ?? this.shopLogo,
+      favorite: favorite ?? this.favorite,
     );
   }
 }

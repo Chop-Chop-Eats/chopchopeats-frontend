@@ -129,6 +129,20 @@ class CategoryDetailNotifier extends StateNotifier<CategoryDetailState> {
   void clearError() {
     state = state.copyWith(error: null);
   }
+
+  /// 更新单个餐厅的收藏状态
+  /// [shopId] 店铺ID
+  /// [isFavorite] 是否收藏
+  void updateRestaurantFavorite(String shopId, bool isFavorite) {
+    final updatedList = state.restaurants.map((restaurant) {
+      if (restaurant.id == shopId) {
+        return restaurant.copyWith(favorite: isFavorite);
+      }
+      return restaurant;
+    }).toList();
+    
+    state = state.copyWith(restaurants: updatedList);
+  }
 }
 
 /// 分类详情数据 Provider

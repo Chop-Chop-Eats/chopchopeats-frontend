@@ -257,6 +257,20 @@ class SearchResultNotifier extends StateNotifier<SearchResultState> {
   void clearResults() {
     state = SearchResultState();
   }
+
+  /// 更新单个餐厅的收藏状态
+  /// [shopId] 店铺ID
+  /// [isFavorite] 是否收藏
+  void updateRestaurantFavorite(String shopId, bool isFavorite) {
+    final updatedList = state.restaurants.map((restaurant) {
+      if (restaurant.id == shopId) {
+        return restaurant.copyWith(favorite: isFavorite);
+      }
+      return restaurant;
+    }).toList();
+    
+    state = state.copyWith(restaurants: updatedList);
+  }
 }
 
 // ============= Providers =============

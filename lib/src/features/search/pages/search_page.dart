@@ -9,7 +9,6 @@ import '../../../core/widgets/common_spacing.dart';
 import '../../../core/widgets/common_image.dart';
 import '../../../core/widgets/common_indicator.dart';
 import '../../../core/widgets/restaurant/restaurant_list.dart';
-import '../../home/models/home_models.dart';
 import '../providers/search_provider.dart';
 import '../widgets/search_item.dart';
 
@@ -393,8 +392,6 @@ class _SearchPageState extends ConsumerState<SearchPage> {
     // 展示搜索结果列表
     return RestaurantList(
       restaurants: restaurants,
-      onRestaurantTap: _onRestaurantTap,
-      onFavoriteTap: _onFavoriteTap,
       enableRefresh: true,
       refreshController: _refreshController,
       onRefresh: _onRefresh,
@@ -404,14 +401,4 @@ class _SearchPageState extends ConsumerState<SearchPage> {
     );
   }
 
-  /// 点击餐厅
-  void _onRestaurantTap(ChefItem restaurant) {
-    Logger.info('SearchPage', '点击餐厅: ${restaurant.chineseShopName} (ID: ${restaurant.id})');
-  }
-
-  /// 点击收藏
-  void _onFavoriteTap(ChefItem restaurant) {
-    Logger.info('SearchPage', '点击收藏餐厅: ${restaurant.chineseShopName} (ID: ${restaurant.id})');
-    // TODO: 实现收藏功能
-  }
 }

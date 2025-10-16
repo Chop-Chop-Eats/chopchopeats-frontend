@@ -30,23 +30,23 @@ class DetailServices {
     return FavoriteModel.fromJson(response.data);
   }
 
-  /// 添加收藏
+  /// 添加收藏 入参: shopId 店铺Id
   Future<void> addFavorite({required String shopId}) async {
     final response = await ApiClient().post(
       ApiPaths.addFavoriteApi,
       data: {
-        'shopId': shopId,
+        'shopId': shopId, // 店铺Id
       },
     );
   }
 
-  /// 取消收藏
+  /// 取消收藏 入参: shopId 店铺Id, favoriteId 收藏Id
   Future<void> cancelFavorite({required String shopId, required String favoriteId}) async {
     final response = await ApiClient().post(
       ApiPaths.cancelFavoriteApi,
       data: {
-        'shopId': shopId,
-        'favoriteId': favoriteId,
+        'shopId': shopId, // 店铺Id
+        'favoriteId': favoriteId, // 收藏Id
       },
     );
   }

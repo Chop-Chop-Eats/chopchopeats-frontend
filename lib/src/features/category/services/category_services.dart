@@ -6,6 +6,7 @@ import '../../../core/utils/logger/logger.dart';
 import '../../home/models/home_models.dart';
 
 class CategoryServices {
+  /// 分类浏览私厨店铺
   Future<TotalWithChefItem> getDiamondArea(DiamondAreaQuery query) async {
     final response = await ApiClient().get(
       ApiPaths.getDiamondAreaApi,

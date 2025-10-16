@@ -1,19 +1,25 @@
+import 'package:chop_user/src/core/utils/pop/toast.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
+import 'package:unified_popups/unified_popups.dart';
 
+import '../../network/api_exception.dart';
+import '../../routing/navigate.dart';
+import '../../routing/routes.dart';
+import '../../utils/logger/logger.dart';
 import '../common_spacing.dart';
 import '../common_indicator.dart';
 import '../custom_refresh_footer.dart';
 import 'restaurant_card.dart';
 import '../../../features/home/models/home_models.dart';
+import '../../controllers/favorite_controller.dart';
 
 /// 餐厅列表组件
 /// 支持可选的SmartRefresher功能（默认关闭）
-class RestaurantList extends StatelessWidget {
+class RestaurantList extends ConsumerWidget {
   final List<ChefItem> restaurants;
-  final Function(ChefItem)? onRestaurantTap;
-  final Function(ChefItem)? onFavoriteTap;
   
   // 刷新功能相关参数（可选）
   final bool enableRefresh;
@@ -26,12 +32,9 @@ class RestaurantList extends StatelessWidget {
   final EdgeInsetsGeometry? padding;
   final bool addBottomSpacing;
 
-  // 注意：isLoadingMore 这个参数可以去掉，因为 SmartRefresher 的 footer 已经处理了加载更多的UI
   const RestaurantList({
     super.key,
     required this.restaurants,
-    this.onRestaurantTap,
-    this.onFavoriteTap,
     this.enableRefresh = false,
     this.refreshController,
     this.onRefresh,
@@ -42,10 +45,39 @@ class RestaurantList extends StatelessWidget {
     this.addBottomSpacing = true,
   });
 
+
+   void _onRestaurantTap(BuildContext context, ChefItem restaurant) {
+    Logger.info('RestaurantList', '点击餐厅: ${restaurant.chineseShopName} (ID: ${restaurant.id})');
+    
+    // 跳转到餐厅详情页面
+    Navigate.push(
+      context,
+      Routes.detail,
+      arguments: {
+        'id': restaurant.id,
+      },
+    );
+  }
+
+  void _onFavoriteTap(WidgetRef ref, ChefItem restaurant) async {
+    // 调用全局收藏控制器处理收藏操作
+    try {
+      await ref.read(favoriteControllerProvider).toggleFavorite(restaurant);
+    } catch (e) {
+      Logger.error('RestaurantList', '收藏操作失败: $e');
+      // 可以在这里显示错误提示（可选）
+      // if(e is ApiException) {
+      //   toast.warn(e.message);
+      // } else {
+      //   toast.warn('收藏操作失败，请重试');
+      // }
+    }
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     // _buildRestaurantList 现在直接返回一个 ListView
-    final content = _buildRestaurantList(context); 
+    final content = _buildRestaurantList(context, ref); 
     
     if (enableRefresh && refreshController != null) {
       return SmartRefresher(
@@ -81,7 +113,7 @@ class RestaurantList extends StatelessWidget {
     return content;
   }
 
-  Widget _buildRestaurantList(BuildContext context) {
+  Widget _buildRestaurantList(BuildContext context, WidgetRef ref) {
     // 当列表为空时，直接显示空状态视图
     if (restaurants.isEmpty) {
       // 为了让空状态居中，我们可以使用一个容器占满可用空间
@@ -111,13 +143,12 @@ class RestaurantList extends StatelessWidget {
         if (addBottomSpacing && index == restaurants.length) {
           return CommonSpacing.height(20);
         }
-        
         // 否则，构建餐厅卡片
         final restaurant = restaurants[index];
         return RestaurantCard(
           restaurant: restaurant,
-          onTap: () => onRestaurantTap?.call(restaurant),
-          onFavoriteTap: () => onFavoriteTap?.call(restaurant),
+          onTap: () => _onRestaurantTap(context, restaurant),
+          onFavoriteTap: () => _onFavoriteTap(ref, restaurant),
         );
       },
     );
