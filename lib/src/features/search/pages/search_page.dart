@@ -9,6 +9,7 @@ import '../../../core/widgets/common_spacing.dart';
 import '../../../core/widgets/common_image.dart';
 import '../../../core/widgets/common_indicator.dart';
 import '../../../core/widgets/restaurant/restaurant_list.dart';
+import '../../../core/providers/favorite_provider.dart';
 import '../providers/search_provider.dart';
 import '../widgets/search_item.dart';
 
@@ -57,10 +58,22 @@ class _SearchPageState extends ConsumerState<SearchPage> {
 
   @override
   void dispose() {
+    // 注意：在 dispose 中访问 ref 必须在 super.dispose() 之前
+    // 但为了避免潜在的错误，我们使用 deactivate 钩子来清空搜索结果
     _searchController.dispose();
     _refreshController.dispose();
     super.dispose();
   }
+
+  // @override
+  // void deactivate() {
+  //   // 在页面即将销毁时（但还未完全销毁）清空搜索结果
+  //   // 这样可以安全地访问 ref
+  //   if (mounted) {
+  //     ref.read(searchResultProvider.notifier).clearResults();
+  //   }
+  //   super.deactivate();
+  // }
 
   /// 执行搜索
   void _performSearch() {
@@ -354,6 +367,9 @@ class _SearchPageState extends ConsumerState<SearchPage> {
     final isLoading = ref.watch(searchLoadingProvider);
     final error = ref.watch(searchErrorProvider);
     final hasMore = ref.watch(searchHasMoreProvider);
+    
+    // 监听收藏操作的 loading 状态
+    final hasFavoriteProcessing = ref.watch(hasFavoriteProcessingProvider);
 
     // 初始加载状态
     if (isLoading && restaurants.isEmpty) {
@@ -398,6 +414,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
       onLoading: _onLoading,
       hasMore: hasMore,
       padding: EdgeInsets.zero,
+      isInteractionDisabled: hasFavoriteProcessing, // 收藏操作进行中时禁用交互
     );
   }
 

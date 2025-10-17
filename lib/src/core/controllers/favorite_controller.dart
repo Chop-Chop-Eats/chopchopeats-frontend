@@ -1,8 +1,11 @@
+import 'package:chop_user/src/core/utils/pop/toast.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../features/detail/services/detail_services.dart';
 import '../../features/home/models/home_models.dart';
 import '../../features/home/providers/home_provider.dart';
+import '../../features/category/providers/category_detail_provider.dart';
 import '../../features/search/providers/search_provider.dart';
+import '../providers/favorite_provider.dart';
 import '../utils/logger/logger.dart';
 
 /// 全局收藏控制器
@@ -15,46 +18,56 @@ class FavoriteController {
 
   /// 切换收藏状态（添加或取消收藏）
   /// 使用乐观更新策略：先更新UI，失败则回滚
-  Future<void> toggleFavorite(ChefItem restaurant) async {
+  /// [restaurant] 餐厅信息
+  /// [categoryId] 可选的分类ID，如果在分类详情页调用则传入
+  Future<void> toggleFavorite(ChefItem restaurant, {int? categoryId}) async {
     final isFavorite = restaurant.favorite ?? false;
-    final shopId = restaurant.id; // 店铺ID 等待接口修复
-    // final favoriteId = restaurant.favoriteId; // 收藏ID 等待接口修复
+    final shopId = restaurant.id; // 店铺ID
+    final favoriteId = restaurant.favoriteId; // 收藏ID 
 
-    Logger.info('FavoriteController', 
-      '${isFavorite ? "取消收藏" : "添加收藏"}：店铺 ${restaurant.chineseShopName} (ID: $shopId)');
+    // 标记为正在处理中
+    ref.read(favoriteStateProvider.notifier).startProcessing(shopId);
 
     // 乐观更新：先更新所有页面的UI
-    _syncFavoriteState(shopId, !isFavorite);
+    _syncFavoriteState(shopId, !isFavorite, categoryId: categoryId);
 
     try {
       if (isFavorite) {
         // 取消收藏
         // 注意：这里使用 shopId 作为 favoriteId，因为当前接口可能缺少 favoriteId
         // 如果后端返回了 favoriteId，应该使用 restaurant.favoriteId
+        if (favoriteId == null) {
+          throw Exception('收藏ID为空');
+        }
         await _detailServices.cancelFavorite(
           shopId: shopId,
-          favoriteId: shopId, // 临时方案，等待接口修复
+          favoriteId: favoriteId,
         );
-        Logger.info('FavoriteController', '取消收藏成功');
+        toast.success('取消收藏成功');
       } else {
         // 添加收藏
         await _detailServices.addFavorite(shopId: shopId);
-        Logger.info('FavoriteController', '添加收藏成功');
+        toast.success('添加收藏成功');
       }
     } catch (e) {
       // 操作失败，回滚UI状态
       Logger.error('FavoriteController', '收藏操作失败: $e');
-      _syncFavoriteState(shopId, isFavorite);
+      _syncFavoriteState(shopId, isFavorite, categoryId: categoryId);
       
       // 重新抛出异常，让UI层可以选择性地显示错误提示
       rethrow;
+    } finally {
+      // 无论成功还是失败，都标记为处理完成
+      ref.read(favoriteStateProvider.notifier).endProcessing(shopId);
+      Logger.info('FavoriteController', '收藏操作处理完成: $shopId');
     }
   }
 
   /// 同步收藏状态到所有页面
   /// [shopId] 店铺ID
   /// [isFavorite] 是否收藏
-  void _syncFavoriteState(String shopId, bool isFavorite) {
+  /// [categoryId] 可选的分类ID
+  void _syncFavoriteState(String shopId, bool isFavorite, {int? categoryId}) {
     Logger.info('FavoriteController', '同步收藏状态: shopId=$shopId, isFavorite=$isFavorite');
 
     // 更新首页的甄选私厨列表
@@ -73,11 +86,16 @@ class FavoriteController {
       Logger.warn('FavoriteController', '更新搜索页状态失败: $e');
     }
 
-    // 更新分类详情页（需要特殊处理）
-    // 由于分类详情页是按 categoryId 分开管理的，这里无法直接遍历所有实例
-    // 解决方案：在分类详情页中监听收藏变化事件，或者在进入页面时刷新数据
-    // 目前采用简单方案：分类详情页在每次从后台恢复时刷新数据
-    Logger.info('FavoriteController', '分类详情页状态需在页面恢复时刷新');
+    // 更新分类详情页（如果提供了 categoryId）
+    if (categoryId != null) {
+      try {
+        ref.read(categoryDetailProvider(categoryId).notifier)
+          .updateRestaurantFavorite(shopId, isFavorite);
+        Logger.info('FavoriteController', '更新分类详情页状态成功 (categoryId: $categoryId)');
+      } catch (e) {
+        Logger.warn('FavoriteController', '更新分类详情页状态失败: $e');
+      }
+    }
   }
 }
 

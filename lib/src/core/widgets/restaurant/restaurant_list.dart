@@ -1,14 +1,12 @@
-import 'package:chop_user/src/core/utils/pop/toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
-import 'package:unified_popups/unified_popups.dart';
 
-import '../../network/api_exception.dart';
 import '../../routing/navigate.dart';
 import '../../routing/routes.dart';
 import '../../utils/logger/logger.dart';
+import '../../utils/pop/toast.dart';
 import '../common_spacing.dart';
 import '../common_indicator.dart';
 import '../custom_refresh_footer.dart';
@@ -31,6 +29,12 @@ class RestaurantList extends ConsumerWidget {
   // 布局控制
   final EdgeInsetsGeometry? padding;
   final bool addBottomSpacing;
+  
+  // 分类ID（用于分类详情页的收藏状态同步）
+  final int? categoryId;
+  
+  // 是否禁用收藏交互（用于加载状态）
+  final bool isInteractionDisabled;
 
   const RestaurantList({
     super.key,
@@ -43,6 +47,8 @@ class RestaurantList extends ConsumerWidget {
     // this.isLoadingMore, // 建议移除
     this.padding,
     this.addBottomSpacing = true,
+    this.categoryId,
+    this.isInteractionDisabled = false,
   });
 
 
@@ -60,9 +66,18 @@ class RestaurantList extends ConsumerWidget {
   }
 
   void _onFavoriteTap(WidgetRef ref, ChefItem restaurant) async {
+    // 如果交互被禁用（加载中），直接返回，不做任何操作
+    if (isInteractionDisabled) {
+      Logger.warn('RestaurantList', '加载中，忽略收藏操作');
+      return;
+    }
+    
     // 调用全局收藏控制器处理收藏操作
     try {
-      await ref.read(favoriteControllerProvider).toggleFavorite(restaurant);
+      await ref.read(favoriteControllerProvider).toggleFavorite(
+        restaurant,
+        categoryId: categoryId, // 传递 categoryId 用于分类详情页状态同步
+      );
     } catch (e) {
       Logger.error('RestaurantList', '收藏操作失败: $e');
       // 可以在这里显示错误提示（可选）

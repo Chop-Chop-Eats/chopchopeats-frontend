@@ -8,6 +8,7 @@ import '../../../core/widgets/custom_sliver_app_bar.dart';
 import '../../../core/widgets/common_image.dart';
 import '../../../core/routing/navigate.dart';
 import '../../../core/routing/routes.dart';
+import '../../../core/providers/favorite_provider.dart';
 import '../providers/home_provider.dart';
 import '../models/home_models.dart';
 import '../widgets/location_bar.dart';
@@ -239,6 +240,9 @@ class _HomePageState extends ConsumerState<HomePage> {
     final restaurants = ref.watch(selectedChefRestaurantsProvider);
     final isLoading = ref.watch(selectedChefLoadingProvider);
     final error = ref.watch(selectedChefErrorProvider);
+    
+    // 监听收藏操作的 loading 状态
+    final hasFavoriteProcessing = ref.watch(hasFavoriteProcessingProvider);
 
     // 显示加载状态
     if (isLoading && restaurants.isEmpty) {
@@ -283,6 +287,7 @@ class _HomePageState extends ConsumerState<HomePage> {
 
     return RestaurantList(
       restaurants: restaurants,
+      isInteractionDisabled: hasFavoriteProcessing, // 收藏操作进行中时禁用交互
     );
   }
 

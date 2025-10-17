@@ -62,12 +62,14 @@ class ApiClient {
   Future<Response> post(
       String path, {
         dynamic data,
-        bool encryptBody = true,
+        bool encryptBody = true, 
+        Map<String, String>? queryParameters,
       }) async {
     try {
       final response = await _dio.post(
         path,
         data: data,
+        queryParameters: queryParameters,
         options: Options(
           extra: {'encrypt_body': encryptBody},
         ),

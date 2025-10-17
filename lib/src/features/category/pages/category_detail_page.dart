@@ -3,12 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import '../../../core/routing/navigate.dart';
-import '../../../core/routing/routes.dart';
-import '../../../core/utils/logger/logger.dart';
 import '../../../core/widgets/common_indicator.dart';
 import '../../../core/widgets/common_image.dart';
 import '../../../core/widgets/restaurant/restaurant_list.dart';
-import '../../home/models/home_models.dart';
+import '../../../core/providers/favorite_provider.dart';
 import '../providers/category_detail_provider.dart';
 
 /// 分类详情页面 - 二级页面
@@ -60,6 +58,9 @@ class _CategoryDetailPageState extends ConsumerState<CategoryDetailPage> {
     // final isLoadingMore = ref.watch(categoryDetailLoadingMoreProvider(widget.categoryId));
     final error = ref.watch(categoryDetailErrorProvider(widget.categoryId));
     final hasMore = ref.watch(categoryDetailHasMoreProvider(widget.categoryId));
+    
+    // 监听收藏操作的 loading 状态
+    final hasFavoriteProcessing = ref.watch(hasFavoriteProcessingProvider);
 
     // 初始加载状态
     if (isLoading && restaurants.isEmpty) {
@@ -145,6 +146,8 @@ class _CategoryDetailPageState extends ConsumerState<CategoryDetailPage> {
           onRefresh: _onRefresh,
           onLoading: _onLoading,
           hasMore: hasMore,
+          categoryId: widget.categoryId, // 传入 categoryId 用于收藏状态同步
+          isInteractionDisabled: isLoading || hasFavoriteProcessing, // 页面加载或收藏操作时禁用交互
         ),
       )
     );

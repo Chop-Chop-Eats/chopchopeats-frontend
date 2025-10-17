@@ -34,7 +34,7 @@ class DetailServices {
   Future<void> addFavorite({required String shopId}) async {
     final response = await ApiClient().post(
       ApiPaths.addFavoriteApi,
-      data: {
+      queryParameters: {
         'shopId': shopId, // 店铺Id
       },
     );

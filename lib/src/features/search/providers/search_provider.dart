@@ -44,7 +44,6 @@ class KeywordListNotifier extends StateNotifier<KeywordListState> {
         keywords: keywords,
         isLoading: false,
       );
-      Logger.info('KeywordListNotifier', '关键词列表加载成功，共 ${keywords.length} 条');
     } catch (e) {
       Logger.error('KeywordListNotifier', '关键词列表加载失败: $e');
       state = state.copyWith(
@@ -94,7 +93,6 @@ class HistoryListNotifier extends StateNotifier<HistoryListState> {
         histories: histories,
         isLoading: false,
       );
-      Logger.info('HistoryListNotifier', '历史记录列表加载成功，共 ${histories.length} 条');
     } catch (e) {
       Logger.error('HistoryListNotifier', '历史记录列表加载失败: $e');
       state = state.copyWith(

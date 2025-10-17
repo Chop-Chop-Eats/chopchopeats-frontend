@@ -65,6 +65,9 @@ class ChefItem {
   ///收藏标识
   final bool? favorite;
 
+  ///收藏id
+  final String? favoriteId;
+
   ChefItem({
     this.approveTime,
     this.categoryChineseName,
@@ -78,6 +81,7 @@ class ChefItem {
     this.rating,
     this.shopLogo,
     this.favorite,
+    this.favoriteId,
   });
 
   factory ChefItem.fromJson(Map<String, dynamic> json) {
@@ -98,6 +102,7 @@ class ChefItem {
       rating: JsonUtils.parseDouble(json, 'rating'),
       shopLogo: json['shopLogo'],
       favorite: json['favorite'],
+      favoriteId: json['favoriteId'],
     );
   }
 
@@ -115,6 +120,7 @@ class ChefItem {
     double? rating,
     String? shopLogo,
     bool? favorite,
+    String? favoriteId,
   }) {
     return ChefItem(
       approveTime: approveTime ?? this.approveTime,
@@ -129,6 +135,7 @@ class ChefItem {
       rating: rating ?? this.rating,
       shopLogo: shopLogo ?? this.shopLogo,
       favorite: favorite ?? this.favorite,
+      favoriteId: favoriteId ?? this.favoriteId,
     );
   }
 }
