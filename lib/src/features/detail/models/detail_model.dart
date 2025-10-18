@@ -195,6 +195,47 @@ class ShopModel {
       taxRate: JsonUtils.parseDouble(json, 'taxRate'),
     );
   }
+
+  /// copyWith 方法，用于创建修改后的副本（主要用于更新收藏状态）
+  ShopModel copyWith({
+    bool? favorite,
+  }) {
+    return ShopModel(
+      address: address,
+      approveReviewId: approveReviewId,
+      approveTime: approveTime,
+      averageRate: averageRate,
+      backgroundImage: backgroundImage,
+      categoryId: categoryId,
+      chineseDescription: chineseDescription,
+      chineseShopName: chineseShopName,
+      chineseTagList: chineseTagList,
+      chineseTags: chineseTags,
+      commentCount: commentCount,
+      contactNumber: contactNumber,
+      deliveryFeePerMile: deliveryFeePerMile,
+      deliveryMethod: deliveryMethod,
+      deliveryRestrictionDuration: deliveryRestrictionDuration,
+      detailedAddress: detailedAddress,
+      distance: distance,
+      englishDescription: englishDescription,
+      englishShopName: englishShopName,
+      englishTagList: englishTagList,
+      englishTags: englishTags,
+      estimatedDeliveryFee: estimatedDeliveryFee,
+      favorite: favorite ?? this.favorite,
+      id: id,
+      locationState: locationState,
+      newShopMark: newShopMark,
+      operatingHours: operatingHours,
+      platformCommissionRate: platformCommissionRate,
+      rating: rating,
+      salesVolume: salesVolume,
+      shopLogo: shopLogo,
+      shopStatus: shopStatus,
+      taxRate: taxRate,
+    );
+  }
 }
 
 ///UploadedFile，上传文件信息

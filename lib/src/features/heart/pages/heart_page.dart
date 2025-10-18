@@ -63,10 +63,10 @@ class _HeartPageState extends ConsumerState<HeartPage> {
     // 监听收藏操作的 loading 状态
     final hasFavoriteProcessing = ref.watch(hasFavoriteProcessingProvider);
 
-    // 【方案一】监听 Tab 切换：当切换到收藏页时自动刷新
+    // 监听 Tab 切换：当切换到收藏页时自动刷新 造成性能浪费 约束只有首页刷新
     ref.listen<int>(currentTabIndexProvider, (previous, next) {
-      // 当从其他页面切换到收藏页（index=1）时，自动刷新数据
-      if (next == 1 && previous != 1 && mounted) {
+      // 当从其他页面(首页)切换到收藏页（index=1）时，自动刷新数据
+      if (next == 1 && previous == 0 && mounted) {
         Logger.info('HeartPage', '检测到切换到收藏页，自动刷新数据');
         ref.read(heartProvider.notifier).refresh();
       }

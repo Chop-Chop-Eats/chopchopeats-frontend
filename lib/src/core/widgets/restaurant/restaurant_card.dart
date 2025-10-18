@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../utils/formats.dart';
 import '../common_spacing.dart';
 import '../common_image.dart';
 import '../../../features/home/models/home_models.dart';
+import 'favorite_icon.dart';
+import 'operating_hours.dart';
+import 'rating.dart';
 
 /// 餐厅卡片组件
 class RestaurantCard extends StatelessWidget {
@@ -16,25 +20,6 @@ class RestaurantCard extends StatelessWidget {
     this.onTap,
     this.onFavoriteTap,
   });
-
-  /// 格式化营业时间
-  String _formatOperatingHours(List<OperatingHour>? operatingHours) {
-    if (operatingHours == null || operatingHours.isEmpty) {
-      return '营业时间未知';
-    }
-    
-    // 取第一个营业时间作为显示
-    final firstHour = operatingHours.first;
-    if (firstHour.time != null && firstHour.remark != null) {
-      return '${firstHour.time} ${firstHour.remark}';
-    } else if (firstHour.time != null) {
-      return firstHour.time!;
-    } else if (firstHour.remark != null) {
-      return firstHour.remark!;
-    }
-    
-    return '营业时间未知';
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -102,33 +87,15 @@ class RestaurantCard extends StatelessWidget {
                       restaurant.categoryChineseName ?? '',
                       style: TextStyle(
                         fontSize: 12.sp,
+                        fontWeight: FontWeight.bold,
                         color: Colors.grey[600],
                       ),
                     ),
                     Row(
                       children: [
-                        CommonImage(imagePath: "assets/images/star.png", height: 16.h),
-                        CommonSpacing.width(4),
-                        Text(
-                          restaurant.rating?.toString() ?? '0.0',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12.sp,
-                          ),
-                        ),
+                        Rating(rating: restaurant.rating?.toString() ?? '0.0'),
                         CommonSpacing.width(8),
-                        CommonImage(imagePath: "assets/images/clock.png", height: 16.h),
-                        CommonSpacing.width(4),
-                        Expanded(
-                          child: Text(
-                            _formatOperatingHours(restaurant.operatingHours),
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 12.sp,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                        ),
+                        OperatingHours(operatingHours: formatOperatingHours(restaurant.operatingHours)),
                       ],
                     ),
                     Row(
@@ -141,10 +108,7 @@ class RestaurantCard extends StatelessWidget {
                             color: Colors.grey[600],
                           ),
                         ),
-                        GestureDetector(
-                          onTap: onFavoriteTap,
-                          child: CommonImage(imagePath: restaurant.favorite ?? false ? "assets/images/heart_s.png" : "assets/images/heart.png", width: 20.w, height: 20.h),
-                        ),
+                        FavoriteIcon(isFavorite: restaurant.favorite ?? false, onTap: onFavoriteTap ?? () {}),
                       ],
                     ),
                   ],

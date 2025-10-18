@@ -14,7 +14,7 @@ class TabbarAppBar extends StatelessWidget {
       fontWeight: FontWeight.bold,
       color: Colors.black,
     );
-    return Container(
+    return SizedBox(
       width: double.infinity,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,

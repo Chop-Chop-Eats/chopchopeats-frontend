@@ -50,6 +50,7 @@ class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
       elevation: elevation ?? 0,
       leading: leading ?? (showBackButton ? _buildBackButton(context) : null),
       actions: actions,
+      actionsPadding: EdgeInsets.only(right: 16.w),
       iconTheme: IconThemeData(
         color: iconColor ?? Colors.black,
       ),

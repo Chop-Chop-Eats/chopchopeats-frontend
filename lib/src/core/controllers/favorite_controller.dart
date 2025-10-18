@@ -2,6 +2,7 @@ import 'package:chop_user/src/core/utils/pop/toast.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../features/heart/services/heart_services.dart';
 import '../../features/heart/providers/heart_provider.dart';
+import '../../features/detail/providers/detail_provider.dart';
 import '../../features/home/models/home_models.dart';
 import '../../features/home/providers/home_provider.dart';
 import '../../features/category/providers/category_detail_provider.dart';
@@ -105,6 +106,15 @@ class FavoriteController {
       Logger.info('FavoriteController', '更新收藏页状态成功');
     } catch (e) {
       Logger.warn('FavoriteController', '更新收藏页状态失败: $e');
+    }
+
+    // 更新店铺详情页（如果该详情页已加载）
+    try {
+      ref.read(detailProvider(shopId).notifier)
+        .updateShopFavorite(shopId, isFavorite);
+      Logger.info('FavoriteController', '更新店铺详情页状态成功 (shopId: $shopId)');
+    } catch (e) {
+      Logger.warn('FavoriteController', '更新店铺详情页状态失败: $e');
     }
   }
 }

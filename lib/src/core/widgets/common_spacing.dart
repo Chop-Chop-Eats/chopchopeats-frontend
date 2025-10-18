@@ -2,6 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 /// 通用间距组件
+/// small: 8
+/// medium: 12
+/// standard: 16
+/// large: 20
+/// extraLarge: 24
+/// huge: 40
+/// height: 自定义高度间距
+/// width: 自定义宽度间距
 class CommonSpacing {
   /// 小间距 - 8
   static Widget get small => SizedBox(height: 8.h);
