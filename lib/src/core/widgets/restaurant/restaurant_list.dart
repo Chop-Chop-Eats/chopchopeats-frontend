@@ -44,7 +44,6 @@ class RestaurantList extends ConsumerWidget {
     this.onRefresh,
     this.onLoading,
     this.hasMore,
-    // this.isLoadingMore, // 建议移除
     this.padding,
     this.addBottomSpacing = true,
     this.categoryId,

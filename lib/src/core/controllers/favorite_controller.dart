@@ -1,6 +1,7 @@
 import 'package:chop_user/src/core/utils/pop/toast.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../features/detail/services/detail_services.dart';
+import '../../features/heart/services/heart_services.dart';
+import '../../features/heart/providers/heart_provider.dart';
 import '../../features/home/models/home_models.dart';
 import '../../features/home/providers/home_provider.dart';
 import '../../features/category/providers/category_detail_provider.dart';
@@ -12,7 +13,7 @@ import '../utils/logger/logger.dart';
 /// 负责统一处理收藏/取消收藏操作，并同步更新所有页面的状态
 class FavoriteController {
   final Ref ref;
-  final DetailServices _detailServices = DetailServices();
+  final HeartServices _heartServices = HeartServices();
 
   FavoriteController(this.ref);
 
@@ -39,14 +40,14 @@ class FavoriteController {
         if (favoriteId == null) {
           throw Exception('收藏ID为空');
         }
-        await _detailServices.cancelFavorite(
+        await _heartServices.cancelFavorite(
           shopId: shopId,
           favoriteId: favoriteId,
         );
         toast.success('取消收藏成功');
       } else {
         // 添加收藏
-        await _detailServices.addFavorite(shopId: shopId);
+        await _heartServices.addFavorite(shopId: shopId);
         toast.success('添加收藏成功');
       }
     } catch (e) {
@@ -95,6 +96,15 @@ class FavoriteController {
       } catch (e) {
         Logger.warn('FavoriteController', '更新分类详情页状态失败: $e');
       }
+    }
+
+    // 更新收藏页的列表
+    try {
+      ref.read(heartProvider.notifier)
+        .updateRestaurantFavorite(shopId, isFavorite);
+      Logger.info('FavoriteController', '更新收藏页状态成功');
+    } catch (e) {
+      Logger.warn('FavoriteController', '更新收藏页状态失败: $e');
     }
   }
 }

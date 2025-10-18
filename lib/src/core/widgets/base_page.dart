@@ -20,7 +20,7 @@ class BasePage extends StatelessWidget {
       appBar: null,
       body: SafeArea(
         child: Container(
-          padding: EdgeInsets.symmetric(horizontal: 20.w),
+          padding: EdgeInsets.symmetric(horizontal: 16.w),
           color: Colors.white,
           child: Column(
             children: [
