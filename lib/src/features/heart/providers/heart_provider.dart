@@ -148,6 +148,8 @@ class HeartNotifier extends StateNotifier<HeartState> {
         restaurants: updatedList,
         total: state.total - 1,
       );
+      // 清除错误状态（状态更新成功，应该清除旧的错误信息）
+      clearError();
       Logger.info('HeartNotifier', '从收藏列表移除: $shopId');
     } else {
       // 如果是添加收藏，需要重新加载列表以获取完整数据

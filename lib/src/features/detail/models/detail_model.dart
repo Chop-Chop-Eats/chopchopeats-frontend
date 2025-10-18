@@ -71,6 +71,9 @@ class ShopModel {
 
   ///是否收藏/点赞
   final bool? favorite;
+  
+  ///收藏ID
+  final String? favoriteId;
 
   ///店铺编号
   final String id;
@@ -126,6 +129,7 @@ class ShopModel {
     this.englishTags,
     this.estimatedDeliveryFee,
     this.favorite,
+    this.favoriteId,
     required this.id,
     this.locationState,
     this.newShopMark,
@@ -179,6 +183,7 @@ class ShopModel {
       englishTags: json['englishTags'],
       estimatedDeliveryFee: JsonUtils.parseDouble(json, 'estimatedDeliveryFee'),
       favorite: json['favorite'],
+      favoriteId: json['favoriteId'],
       id: json['id'],
       locationState: json['locationState'],
       newShopMark: json['newShopMark'],
@@ -234,6 +239,21 @@ class ShopModel {
       shopLogo: shopLogo,
       shopStatus: shopStatus,
       taxRate: taxRate,
+    );
+  }
+
+  /// 转换为 ChefItem（用于收藏操作）
+  ChefItem toChefItem() {
+    return ChefItem(
+      id: id,
+      chineseShopName: chineseShopName,
+      categoryId: categoryId,
+      distance: distance,
+      operatingHours: operatingHours,
+      rating: rating,
+      shopLogo: shopLogo,
+      favorite: favorite,
+      favoriteId: favoriteId,
     );
   }
 }

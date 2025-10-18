@@ -4,12 +4,15 @@ import 'package:chop_user/src/core/widgets/common_spacing.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:pull_to_refresh/pull_to_refresh.dart';
 
 import '../../../core/utils/logger/logger.dart';
 import '../../../core/widgets/common_indicator.dart';
 import '../../../core/widgets/restaurant/favorite_icon.dart';
 import '../../../core/widgets/restaurant/operating_hours.dart';
 import '../../../core/widgets/restaurant/rating.dart';
+import '../../../core/controllers/favorite_controller.dart';
+import '../../../core/providers/favorite_provider.dart';
 import '../models/detail_model.dart';
 import '../providers/detail_provider.dart';
 
@@ -23,16 +26,59 @@ class DetailPage extends ConsumerStatefulWidget {
 
 class _DetailPageState extends ConsumerState<DetailPage> {
   final double logoHeight = 200.h;
+  final RefreshController _refreshController = RefreshController(initialRefresh: false);
   
   @override
   void initState() {
     super.initState();
     Logger.info('DetailPage', '店铺详情页面初始化: shopId=${widget.id}');
     
-    // 加载店铺详情数据
+    // 【方案一：检查缓存】仅在无数据时请求，避免重复请求
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(detailProvider(widget.id).notifier).loadShopDetail(widget.id);
+      final existingShop = ref.read(shopDetailProvider(widget.id));
+      
+      if (existingShop == null) {
+        // 没有缓存数据，需要加载
+        Logger.info('DetailPage', '无缓存数据，开始加载: shopId=${widget.id}');
+        ref.read(detailProvider(widget.id).notifier).loadShopDetail(widget.id);
+      } else {
+        // 有缓存数据，直接使用
+        Logger.info('DetailPage', '使用缓存数据: shopId=${widget.id}, shopName=${existingShop.chineseShopName}');
+      }
     });
+  }
+
+  @override
+  void dispose() {
+    _refreshController.dispose();
+    super.dispose();
+  }
+
+  /// 下拉刷新
+  Future<void> _onRefresh() async {
+    Logger.info('DetailPage', '手动刷新店铺详情: shopId=${widget.id}');
+    await ref.read(detailProvider(widget.id).notifier).refresh(widget.id);
+    _refreshController.refreshCompleted();
+  }
+
+  /// 处理收藏按钮点击
+  void _onFavoriteTap(ShopModel shop) async {
+    // 监听收藏操作的 loading 状态，禁用时直接返回
+    final hasFavoriteProcessing = ref.read(hasFavoriteProcessingProvider);
+    if (hasFavoriteProcessing) {
+      Logger.warn('DetailPage', '收藏操作进行中，忽略点击');
+      return;
+    }
+
+    // 将 ShopModel 转换为 ChefItem
+    final restaurant = shop.toChefItem();
+
+    // 调用全局收藏控制器处理收藏操作
+    try {
+      await ref.read(favoriteControllerProvider).toggleFavorite(restaurant);
+    } catch (e) {
+      Logger.error('DetailPage', '收藏操作失败: $e');
+    }
   }
 
   /// 构建AppBar
@@ -42,14 +88,12 @@ class _DetailPageState extends ConsumerState<DetailPage> {
       titleColor: Colors.white,
       iconColor: Colors.white,
       title: "商家详情" , 
-      actions: [
+      actions: shop != null ? [
         FavoriteIcon(
-          isFavorite: shop?.favorite ?? false, 
-          onTap: () {
-            //
-          }
+          isFavorite: shop.favorite ?? false, 
+          onTap: () => _onFavoriteTap(shop),
         ),
-      ],
+      ] : null,
     );
   }
 
@@ -176,7 +220,11 @@ class _DetailPageState extends ConsumerState<DetailPage> {
       return Scaffold(
         body: Stack(
           children: [
-            CommonImage(imagePath: "assets/images/banner.png", height: logoHeight),
+            CommonImage(
+              imagePath: "assets/images/banner.png", 
+              height: logoHeight,
+              width: 1.sw, // 100% 屏幕宽度
+            ),
             Positioned(
               top: 0,
               left: 0,
@@ -196,7 +244,11 @@ class _DetailPageState extends ConsumerState<DetailPage> {
       return Scaffold(
         body: Stack(
           children: [
-            CommonImage(imagePath: "assets/images/banner.png", height: logoHeight),
+            CommonImage(
+              imagePath: "assets/images/banner.png", 
+              height: logoHeight,
+              width: 1.sw, // 100% 屏幕宽度
+            ),
             Positioned(
               top: 0,
               left: 0,
@@ -228,7 +280,11 @@ class _DetailPageState extends ConsumerState<DetailPage> {
       return Scaffold(
         body: Stack(
           children: [
-            CommonImage(imagePath: "assets/images/banner.png", height: logoHeight),
+            CommonImage(
+              imagePath: "assets/images/banner.png", 
+              height: logoHeight,
+              width: 1.sw, // 100% 屏幕宽度
+            ),
             Positioned(
               top: 0,
               left: 0,
@@ -245,24 +301,36 @@ class _DetailPageState extends ConsumerState<DetailPage> {
 
     // 展示店铺详情
     return Scaffold(
-      body: Stack(
-        children: [
-          // 背景图：优先使用店铺背景图，否则使用默认图片
-          CommonImage(
-            imagePath: shop.backgroundImage?.isNotEmpty == true 
-              ? shop.backgroundImage!.first.url ?? "assets/images/banner.png"
-              : "assets/images/banner.png",
-            height: logoHeight,
-            width: 200.w, /// 100% 宽度
+      body: SmartRefresher(
+        controller: _refreshController,
+        enablePullDown: true,
+        enablePullUp: false, // 详情页不需要上拉加载
+        onRefresh: _onRefresh,
+        header: CustomHeader(
+          builder: (context, mode) => Container(
+            color: Colors.black,
+            padding: EdgeInsets.symmetric(vertical: 16.w),
+            child: CommonIndicator(size: 16.w), // 使用 CommonIndicator
           ),
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: _buildAppBar(shop),
-          ),
-          _buildProductDetail(shop),
-        ],
+        ),
+        child: Stack(
+          children: [
+            CommonImage(
+              imagePath: shop.backgroundImage?.isNotEmpty == true 
+                ? shop.backgroundImage!.first.url ?? "assets/images/banner.png"
+                : "assets/images/banner.png",
+              height: logoHeight,
+              width: 1.sw, // 100% 屏幕宽度
+            ),
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: _buildAppBar(shop),
+            ),
+            _buildProductDetail(shop),
+          ],
+        ),
       ),
     );
   }
