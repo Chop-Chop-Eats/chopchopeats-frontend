@@ -36,4 +36,14 @@ class SearchServices {
     Logger.info('SearchServices', '搜索私厨店铺: ${response.data}');
     return TotalWithChefItem.fromJson(response.data);
   }
+
+  /// 清除搜索记录
+  static Future<void> clearSearchHistory() async {
+    try {
+      await ApiClient().delete(ApiPaths.clearSearchHistoryApi);
+      Logger.info('SearchServices', '清除搜索记录成功');
+    } catch (e) {
+      Logger.error('SearchServices', '清除搜索记录失败: $e');
+    }
+  }
 }

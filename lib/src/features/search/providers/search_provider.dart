@@ -1,4 +1,6 @@
+import 'package:chop_user/src/core/utils/pop/toast.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:unified_popups/unified_popups.dart';
 import '../../../core/config/app_services.dart';
 import '../../../core/utils/logger/logger.dart';
 import '../../home/models/home_models.dart';
@@ -105,7 +107,10 @@ class HistoryListNotifier extends StateNotifier<HistoryListState> {
   /// 清除历史记录
   Future<void> clearHistories() async {
     try {
+      final loading = Pop.loading();
+      await SearchServices.clearSearchHistory();
       state = state.copyWith(histories: []);
+      Pop.hideLoading(loading);
       Logger.info('HistoryListNotifier', '历史记录已清除');
     } catch (e) {
       Logger.error('HistoryListNotifier', '清除历史记录失败: $e');
@@ -252,7 +257,8 @@ class SearchResultNotifier extends StateNotifier<SearchResultState> {
   }
 
   /// 清空搜索结果
-  void clearResults() {
+  Future<void> clearResults() async {
+    await SearchServices.clearSearchHistory();
     state = SearchResultState();
   }
 

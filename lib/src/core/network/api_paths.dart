@@ -42,10 +42,20 @@ class ApiPaths {
   // 获取历史记录列表
   static const String getHistoryListApi = "/app-api/merchant/search-history/list";
 
+  // 清除搜索记录(未实现)
+  static const String clearSearchHistoryApi = "/app-api/merchant/search-history/clear";
+
   // [详情模块]
   // 获取商户店铺 (店铺详情)
   static const String getShopApi = "/app-api/merchant/shop/get";
 
+  // 获得可售商品列表 (未写model)
+  static const String getSaleProductListApi = "/app-api/merchant/shop-product/available";
+
+  // 获得可领取优惠券列表(未写model)
+  static const String getAvailableCouponListApi = "/app-api/market/user-coupon/available";
+
+  // [收藏模块]
   // 添加收藏
   static const String addFavoriteApi = "/app-api/merchant/shop-favorite/add";
 

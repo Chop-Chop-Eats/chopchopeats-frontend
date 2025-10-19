@@ -65,16 +65,6 @@ class _SearchPageState extends ConsumerState<SearchPage> {
     super.dispose();
   }
 
-  // @override
-  // void deactivate() {
-  //   // 在页面即将销毁时（但还未完全销毁）清空搜索结果
-  //   // 这样可以安全地访问 ref
-  //   if (mounted) {
-  //     ref.read(searchResultProvider.notifier).clearResults();
-  //   }
-  //   super.deactivate();
-  // }
-
   /// 执行搜索
   void _performSearch() {
     final query = _searchController.text.trim();

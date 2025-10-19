@@ -5,7 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
-
+import 'package:carousel_slider/carousel_slider.dart';
+import '../../../core/utils/formats.dart';
 import '../../../core/utils/logger/logger.dart';
 import '../../../core/widgets/common_indicator.dart';
 import '../../../core/widgets/restaurant/favorite_icon.dart';
@@ -33,16 +34,13 @@ class _DetailPageState extends ConsumerState<DetailPage> {
     super.initState();
     Logger.info('DetailPage', '店铺详情页面初始化: shopId=${widget.id}');
     
-    // 【方案一：检查缓存】仅在无数据时请求，避免重复请求
+    //仅在无数据时请求，避免重复请求
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final existingShop = ref.read(shopDetailProvider(widget.id));
-      
       if (existingShop == null) {
-        // 没有缓存数据，需要加载
         Logger.info('DetailPage', '无缓存数据，开始加载: shopId=${widget.id}');
         ref.read(detailProvider(widget.id).notifier).loadShopDetail(widget.id);
       } else {
-        // 有缓存数据，直接使用
         Logger.info('DetailPage', '使用缓存数据: shopId=${widget.id}, shopName=${existingShop.chineseShopName}');
       }
     });
@@ -69,16 +67,63 @@ class _DetailPageState extends ConsumerState<DetailPage> {
       Logger.warn('DetailPage', '收藏操作进行中，忽略点击');
       return;
     }
-
     // 将 ShopModel 转换为 ChefItem
     final restaurant = shop.toChefItem();
-
     // 调用全局收藏控制器处理收藏操作
     try {
       await ref.read(favoriteControllerProvider).toggleFavorite(restaurant);
     } catch (e) {
       Logger.error('DetailPage', '收藏操作失败: $e');
     }
+  }
+
+  /// 构建轮播图背景
+  Widget _buildCarouselBackground(ShopModel? shop) {
+    // 获取背景图列表
+    final backgroundImages = shop?.backgroundImage?.where((img) => img.url != null).toList() ?? [];
+    
+    // 如果没有背景图或为空，使用默认图片
+    if (backgroundImages.isEmpty) {
+      return CommonImage(
+        imagePath: "assets/images/banner.png",
+        height: logoHeight,
+        width: 1.sw,
+      );
+    }
+
+    // 如果只有一张图，直接显示
+    if (backgroundImages.length == 1) {
+      return CommonImage(
+        imagePath: backgroundImages.first.url!,
+        height: logoHeight,
+        width: 1.sw,
+      );
+    }
+
+    // 多张图片时使用轮播图
+    return CarouselSlider(
+      options: CarouselOptions(
+        height: logoHeight,
+        viewportFraction: 1.0,
+        autoPlay: true,
+        autoPlayInterval: const Duration(seconds: 3),
+        autoPlayAnimationDuration: const Duration(milliseconds: 800),
+        autoPlayCurve: Curves.fastOutSlowIn,
+        enlargeCenterPage: false,
+        scrollDirection: Axis.horizontal,
+      ),
+      items: backgroundImages.map((image) {
+        return Builder(
+          builder: (BuildContext context) {
+            return CommonImage(
+              imagePath: image.url!,
+              height: logoHeight,
+              width: 1.sw,
+            );
+          },
+        );
+      }).toList(),
+    );
   }
 
   /// 构建AppBar
@@ -97,22 +142,8 @@ class _DetailPageState extends ConsumerState<DetailPage> {
     );
   }
 
-
   /// 构建商品详情
   Widget _buildProductDetail(ShopModel shop){
-    // 格式化营业时间
-    String operatingHoursText = '营业时间未知';
-    if (shop.operatingHours != null && shop.operatingHours!.isNotEmpty) {
-      final firstHour = shop.operatingHours!.first;
-      if (firstHour.time != null && firstHour.remark != null) {
-        operatingHoursText = '${firstHour.time} ${firstHour.remark}';
-      } else if (firstHour.time != null) {
-        operatingHoursText = firstHour.time!;
-      } else if (firstHour.remark != null) {
-        operatingHoursText = firstHour.remark!;
-      }
-    }
-
     return Container(
       margin: EdgeInsets.only(top: logoHeight-30.h),
       padding: EdgeInsets.all(16.w),
@@ -130,7 +161,7 @@ class _DetailPageState extends ConsumerState<DetailPage> {
           CommonSpacing.medium,
           _buildRatingWithOperatingHours(
             rating: shop.rating?.toString() ?? '0.0',
-            operatingHours: operatingHoursText,
+            operatingHours: formatOperatingHours(shop.operatingHours),
             distance: shop.distance != null ? '${shop.distance!.toStringAsFixed(1)}km' : '距离未知',
             commentCount: shop.commentCount?.toString() ?? '0',
           ),
@@ -139,19 +170,9 @@ class _DetailPageState extends ConsumerState<DetailPage> {
     );
   }
 
-  Widget _buildShopName(String name){
-    return Text(
-      name,
-      style: TextStyle(color: Colors.black, fontSize: 16.sp, fontWeight: FontWeight.bold),
-    );
-  }
+  Widget _buildShopName(String name) => Text(name,style: TextStyle(color: Colors.black, fontSize: 16.sp, fontWeight: FontWeight.bold),);
 
-  Widget _buildShowDesc(String desc){
-    return Text(
-      desc,
-      style: TextStyle(color: Colors.black, fontSize: 14.sp, fontWeight: FontWeight.normal),
-    );
-  }
+  Widget _buildShowDesc(String desc) => Text(desc,style: TextStyle(color: Colors.black, fontSize: 14.sp, fontWeight: FontWeight.normal),);
 
   Widget _buildRatingWithOperatingHours({
     required String rating,
@@ -181,6 +202,7 @@ class _DetailPageState extends ConsumerState<DetailPage> {
             children: [
               Row(
                 mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Rating(rating: rating),
                   CommonSpacing.width(8),
@@ -215,16 +237,11 @@ class _DetailPageState extends ConsumerState<DetailPage> {
     final isLoading = ref.watch(shopDetailLoadingProvider(widget.id));
     final error = ref.watch(shopDetailErrorProvider(widget.id));
 
-    // 加载状态
     if (isLoading && shop == null) {
       return Scaffold(
         body: Stack(
           children: [
-            CommonImage(
-              imagePath: "assets/images/banner.png", 
-              height: logoHeight,
-              width: 1.sw, // 100% 屏幕宽度
-            ),
+            _buildCarouselBackground(null),
             Positioned(
               top: 0,
               left: 0,
@@ -244,11 +261,7 @@ class _DetailPageState extends ConsumerState<DetailPage> {
       return Scaffold(
         body: Stack(
           children: [
-            CommonImage(
-              imagePath: "assets/images/banner.png", 
-              height: logoHeight,
-              width: 1.sw, // 100% 屏幕宽度
-            ),
+            _buildCarouselBackground(null),
             Positioned(
               top: 0,
               left: 0,
@@ -280,11 +293,7 @@ class _DetailPageState extends ConsumerState<DetailPage> {
       return Scaffold(
         body: Stack(
           children: [
-            CommonImage(
-              imagePath: "assets/images/banner.png", 
-              height: logoHeight,
-              width: 1.sw, // 100% 屏幕宽度
-            ),
+            _buildCarouselBackground(null),
             Positioned(
               top: 0,
               left: 0,
@@ -315,13 +324,7 @@ class _DetailPageState extends ConsumerState<DetailPage> {
         ),
         child: Stack(
           children: [
-            CommonImage(
-              imagePath: shop.backgroundImage?.isNotEmpty == true 
-                ? shop.backgroundImage!.first.url ?? "assets/images/banner.png"
-                : "assets/images/banner.png",
-              height: logoHeight,
-              width: 1.sw, // 100% 屏幕宽度
-            ),
+            _buildCarouselBackground(shop),
             Positioned(
               top: 0,
               left: 0,
