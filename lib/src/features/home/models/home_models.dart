@@ -1,5 +1,6 @@
 import '../../models/models.dart';
 import '../../../core/utils/json_utils.dart';
+import '../../../core/l10n/locale_service.dart';
 
 /// 获取甄选私厨店铺请求query
 class SelectedChefQuery {
@@ -138,6 +139,16 @@ class ChefItem {
       favoriteId: favoriteId ?? this.favoriteId,
     );
   }
+
+  /// ========== 国际化便捷属性 ==========
+  
+  /// 获取本地化的店铺名称
+  String get localizedShopName => chineseShopName;
+  
+  /// 获取本地化的分类名称
+  String? get localizedCategoryName {
+    return LocaleService.getLocalizedText(categoryChineseName, categoryEnglishName);
+  }
 }
 
 /// 配送时间
@@ -249,6 +260,13 @@ class CategoryListItem {
       selectedIcon: json['selectedIcon'],
       sortOrder: json['sortOrder'],
     );
+  }
+
+  /// ========== 国际化便捷属性 ==========
+  
+  /// 获取本地化的分类名称
+  String? get localizedCategoryName {
+    return LocaleService.getLocalizedText(categoryName, englishCategoryName);
   }
 }
 

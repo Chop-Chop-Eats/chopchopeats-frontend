@@ -21,7 +21,97 @@ abstract class AppLocalizations {
   String get themeLight;
   String get themeDark;
   String get themeSystem;
-  String get homePageTitle;
+  
+  // ============== 底部导航 ==============
+  String get tabHome;
+  String get tabHeart;
+  String get tabMessage;
+  String get tabOrder;
+  String get tabMine;
+  
+  // ============== 通用按钮 ==============
+  String get btnConfirm;
+  String get btnCancel;
+  String get btnSave;
+  String get btnDelete;
+  String get btnEdit;
+  String get btnSearch;
+  String get btnClear;
+  String get btnViewAll;
+  
+  // ============== 提示信息 ==============
+  String get loadingText;
+  String get noDataText;
+  String get networkErrorText;
+  String get emptyListText;
+  String get tryAgainText;
+  
+  // ============== 业务文案 - 店铺相关 ==============
+  String get distanceUnit; // km
+  String get deliveryFee;
+  String get operatingHours;
+  String get rating;
+  String get newShop;
+  String get hotProduct;
+  String get favorite;
+  String get unfavorite;
+  
+  // ============== 业务文案 - 分类相关 ==============
+  String get allCategories;
+  String get selectedChef;
+  
+  // ============== 业务文案 - 搜索相关 ==============
+  String get searchPlaceholder;
+  String get searchHistory;
+  String get hotSearchKeywords;
+  String get clearHistory;
+  
+  // ============== 业务文案 - 详情页相关 ==============
+  String get productDetail;
+  String get shopIntroduction;
+  String get addToCart;
+  String get selectSpec;
+  String get stock;
+  String get price;
+  
+  // ============== 业务文案 - 语言设置 ==============
+  String get languageSettings;
+  String get languageSystem;
+  String get languageChinese;
+  String get languageEnglish;
+  
+  // ============== Splash 启动页 ==============
+  String get locationPermissionTitle;
+  String get locationPermissionSubtitle;
+  String get findNearbyStores;
+  String get findNearbyStoresDesc;
+  String get calculateDeliveryDistance;
+  String get calculateDeliveryDistanceDesc;
+  String get planBestRoute;
+  String get planBestRouteDesc;
+  String get goToSettings;
+  String get returnAfterEnable;
+  
+  // ============== Home 首页 ==============
+  String get searchHintHome;
+  String get noCategoryData;
+  String get noBannerData;
+  String get noRestaurantData;
+  
+  // ============== Search 搜索页 ==============
+  String get searchContentHint;
+  String get guessYouLike;
+  
+  // ============== Detail 详情页 ==============
+  String get merchantDetail;
+  String get noShopDescription;
+  String get unknownDistance;
+  String get comments;
+  String get shopNotExist;
+  
+  // ============== 通用文案 ==============
+  String get loadingFailedWithError;
+  String loadingFailedMessage(String error);
 }
 
 // Delegate 类，Flutter 会用它来加载对应的语言类

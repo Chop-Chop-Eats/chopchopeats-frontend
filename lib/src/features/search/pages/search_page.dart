@@ -10,6 +10,7 @@ import '../../../core/widgets/common_image.dart';
 import '../../../core/widgets/common_indicator.dart';
 import '../../../core/widgets/restaurant/restaurant_list.dart';
 import '../../../core/providers/favorite_provider.dart';
+import '../../../core/l10n/app_localizations.dart';
 import '../providers/search_provider.dart';
 import '../widgets/search_item.dart';
 
@@ -191,7 +192,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                     controller: _searchController,
                     onSubmitted: (_) => _performSearch(),
                     decoration: InputDecoration(
-                      hintText: '搜索内容',
+                      hintText: AppLocalizations.of(context)!.searchContentHint,
                       hintStyle: TextStyle(
                         fontSize: 14.sp,
                         color: Color(0xFF86909C),
@@ -237,7 +238,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
               borderRadius: BorderRadius.circular(20.r),
             ),
             child: Text(
-              '搜索',
+              AppLocalizations.of(context)!.btnSearch,
               style: TextStyle(
                 fontSize: 15.sp,
                 fontWeight: FontWeight.bold,
@@ -266,6 +267,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
       return SizedBox.shrink();
     }
 
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -273,7 +275,7 @@ class _SearchPageState extends ConsumerState<SearchPage> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              '搜索历史',
+              l10n.searchHistory,
               style: TextStyle(
                 fontSize: 16.sp,
                 fontWeight: FontWeight.w500,
@@ -321,11 +323,12 @@ class _SearchPageState extends ConsumerState<SearchPage> {
       return SizedBox.shrink();
     }
 
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '猜你喜欢',
+          l10n.guessYouLike,
           style: TextStyle(
             fontSize: 16.sp,
             fontWeight: FontWeight.w500,
@@ -368,15 +371,16 @@ class _SearchPageState extends ConsumerState<SearchPage> {
 
     // 错误状态
     if (error != null && restaurants.isEmpty) {
+      final l10n = AppLocalizations.of(context)!;
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text('加载失败: $error'),
+            Text(l10n.loadingFailedMessage(error)),
             SizedBox(height: 16.h),
             ElevatedButton(
               onPressed: _performSearch,
-              child: const Text('重试'),
+              child: Text(l10n.tryAgainText),
             ),
           ],
         ),

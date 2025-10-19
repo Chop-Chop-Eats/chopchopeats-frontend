@@ -1,5 +1,6 @@
 import '../../home/models/home_models.dart';
 import '../../../core/utils/json_utils.dart';
+import '../../../core/l10n/locale_service.dart';
 
 /// 商户店铺返回
 class ShopModel {
@@ -71,7 +72,7 @@ class ShopModel {
 
   ///是否收藏/点赞
   final bool? favorite;
-  
+
   ///收藏ID
   final String? favoriteId;
 
@@ -192,7 +193,10 @@ class ShopModel {
         'operatingHours',
         (e) => OperatingHour.fromJson(e),
       ),
-      platformCommissionRate: JsonUtils.parseDouble(json, 'platformCommissionRate'),
+      platformCommissionRate: JsonUtils.parseDouble(
+        json,
+        'platformCommissionRate',
+      ),
       rating: JsonUtils.parseDouble(json, 'rating'),
       salesVolume: json['salesVolume'],
       shopLogo: json['shopLogo'],
@@ -202,9 +206,7 @@ class ShopModel {
   }
 
   /// copyWith 方法，用于创建修改后的副本（主要用于更新收藏状态）
-  ShopModel copyWith({
-    bool? favorite,
-  }) {
+  ShopModel copyWith({bool? favorite}) {
     return ShopModel(
       address: address,
       approveReviewId: approveReviewId,
@@ -256,6 +258,23 @@ class ShopModel {
       favoriteId: favoriteId,
     );
   }
+
+  /// ========== 国际化便捷属性 ==========
+  
+  /// 获取本地化的店铺名称
+  String get localizedShopName {
+    return LocaleService.getLocalizedText(chineseShopName, englishShopName);
+  }
+  
+  /// 获取本地化的店铺介绍
+  String? get localizedDescription {
+    return LocaleService.getLocalizedText(chineseDescription, englishDescription);
+  }
+  
+  /// 获取本地化的店铺标签列表
+  List<TagInfo>? get localizedTagList {
+    return LocaleService.isZh ? chineseTagList : englishTagList;
+  }
 }
 
 ///UploadedFile，上传文件信息
@@ -293,6 +312,11 @@ class TagInfo {
   factory TagInfo.fromJson(Map<String, dynamic> json) {
     return TagInfo(id: json['id'], tag: json['tag']);
   }
+
+  /// ========== 国际化便捷属性 ==========
+  
+  /// 获取本地化的标签名称（tag 字段已经是本地化的）
+  String? get localizedTag => tag;
 }
 
 ///DeliveryMethod，配送方式信息
@@ -307,5 +331,146 @@ class DeliveryMethod {
 
   factory DeliveryMethod.fromJson(Map<String, dynamic> json) {
     return DeliveryMethod(id: json['id'], method: json['method']);
+  }
+}
+
+/// 可售商品信息
+class SaleProduct {
+  ///商品轮播图
+  final List<UploadedFile>? carouselImages;
+
+  ///中文描述
+  final String? chineseDescription;
+
+  ///中文名称
+  final String chineseName;
+
+  ///商品详情图
+  final List<UploadedFile>? detailImages;
+
+  ///英文描述
+  final String? englishDescription;
+
+  ///英文名称
+  final String englishName;
+
+  ///商品卖点，200字以内
+  final String? highlight;
+
+  ///热门标记
+  final bool? hotMark;
+
+  ///商品ID
+  final String id;
+
+  ///商品缩略图
+  final String? imageThumbnail;
+
+  ///是否上架
+  final bool isOnSale;
+
+  ///销售日期
+  final DateTime saleDate;
+
+  ///店铺ID
+  final String shopId;
+
+  ///商品SKU列表
+  final List<SaleProductSku> skus;
+
+  ///SKU规格设置：0=不区分规格，1=区分规格
+  final int skuSetting;
+
+  SaleProduct({
+    this.carouselImages,
+    this.chineseDescription,
+    required this.chineseName,
+    this.detailImages,
+    this.englishDescription,
+    required this.englishName,
+    this.highlight,
+    this.hotMark,
+    required this.id,
+    this.imageThumbnail,
+    required this.isOnSale,
+    required this.saleDate,
+    required this.shopId,
+    required this.skus,
+    required this.skuSetting,
+  });
+
+  factory SaleProduct.fromJson(Map<String, dynamic> json) {
+    return SaleProduct(
+      carouselImages: JsonUtils.parseList<UploadedFile>(
+        json,
+        'carouselImages',
+        (e) => UploadedFile.fromJson(e),
+      ),
+      chineseDescription: json['chineseDescription'],
+      chineseName: json['chineseName'],
+      detailImages: JsonUtils.parseList<UploadedFile>(
+        json,
+        'detailImages',
+        (e) => UploadedFile.fromJson(e),
+      ),
+      englishDescription: json['englishDescription'],
+      englishName: json['englishName'],
+      highlight: json['highlight'],
+      hotMark: json['hotMark'],
+      id: json['id'],
+      imageThumbnail: json['imageThumbnail'],
+      isOnSale: json['isOnSale'],
+      saleDate: JsonUtils.parseDateTime(json, 'saleDate') ?? DateTime.now(),
+      shopId: json['shopId'],
+      skus: JsonUtils.parseList<SaleProductSku>(json, 'skus', (e) => SaleProductSku.fromJson(e)) ?? [],
+      skuSetting: json['skuSetting'],
+    );
+  }
+
+  /// ========== 国际化便捷属性 ==========
+  
+  /// 获取本地化的商品名称
+  String get localizedName {
+    return LocaleService.getLocalizedText(chineseName, englishName);
+  }
+  
+  /// 获取本地化的商品描述
+  String? get localizedDescription {
+    return LocaleService.getLocalizedText(chineseDescription, englishDescription);
+  }
+}
+
+class SaleProductSku {
+  ///SKU ID
+  final String? id;
+
+  ///商品价格
+  final double price;
+
+  ///SKU名称（规格名称）
+  final String? skuName;
+
+  ///状态：0=停售，1=在售
+  final int status;
+
+  ///库存数量
+  final int stock;
+
+  SaleProductSku({
+    this.id,
+    required this.price,
+    this.skuName,
+    required this.status,
+    required this.stock,
+  });
+
+  factory SaleProductSku.fromJson(Map<String, dynamic> json) {
+    return SaleProductSku(
+      id: json['id'],
+      price: json['price'],
+      skuName: json['skuName'],
+      status: json['status'],
+      stock: json['stock'],
+    );
   }
 }

@@ -9,6 +9,7 @@ import '../../../core/routing/routes.dart';
 import '../../../core/widgets/logo.dart';
 import '../../../core/widgets/common_spacing.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/l10n/app_localizations.dart';
 import '../../auth/services/auth_services.dart';
 
 class SplashPage extends ConsumerStatefulWidget {
@@ -310,7 +311,7 @@ class _SplashPageState extends ConsumerState<SplashPage> with WidgetsBindingObse
             
             // 标题
             Text(
-              '需要位置权限',
+              AppLocalizations.of(context)!.locationPermissionTitle,
               style: TextStyle(
                 fontSize: 24.sp,
                 fontWeight: FontWeight.bold,
@@ -321,7 +322,7 @@ class _SplashPageState extends ConsumerState<SplashPage> with WidgetsBindingObse
             CommonSpacing.standard,
             
             Text(
-              '为了给您提供更好的服务',
+              AppLocalizations.of(context)!.locationPermissionSubtitle,
               style: TextStyle(
                 fontSize: 14.sp,
                 color: Colors.black45,
@@ -332,24 +333,24 @@ class _SplashPageState extends ConsumerState<SplashPage> with WidgetsBindingObse
 
             _buildPermissionItem(
               icon: Icons.store_rounded,
-              title: '发现附近商家',
-              description: '准确展示您身边的餐厅和优惠',
+              title: AppLocalizations.of(context)!.findNearbyStores,
+              description: AppLocalizations.of(context)!.findNearbyStoresDesc,
             ),
             
             CommonSpacing.large,
             
             _buildPermissionItem(
               icon: Icons.local_shipping_rounded,
-              title: '计算配送距离',
-              description: '为您预估精准的配送费和送达时间',
+              title: AppLocalizations.of(context)!.calculateDeliveryDistance,
+              description: AppLocalizations.of(context)!.calculateDeliveryDistanceDesc,
             ),
             
             CommonSpacing.large,
             
             _buildPermissionItem(
               icon: Icons.route_rounded,
-              title: '规划最佳路线',
-              description: '帮助骑手更快地将美食送到您手中',
+              title: AppLocalizations.of(context)!.planBestRoute,
+              description: AppLocalizations.of(context)!.planBestRouteDesc,
             ),
             
             const Spacer(),
@@ -371,7 +372,7 @@ class _SplashPageState extends ConsumerState<SplashPage> with WidgetsBindingObse
                   ),
                 ),
                 child: Text(
-                  '前往设置开启',
+                  AppLocalizations.of(context)!.goToSettings,
                   style: TextStyle(
                     fontSize: 16.sp,
                     fontWeight: FontWeight.w600,
@@ -383,7 +384,7 @@ class _SplashPageState extends ConsumerState<SplashPage> with WidgetsBindingObse
             CommonSpacing.standard,
             
             Text(
-              '开启后请返回应用继续使用',
+              AppLocalizations.of(context)!.returnAfterEnable,
               style: TextStyle(
                 fontSize: 12.sp,
                 color: Colors.black38,

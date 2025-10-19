@@ -1,5 +1,6 @@
 import '../../../core/utils/json_utils.dart';
 import '../../home/models/home_models.dart';
+import '../../../core/l10n/locale_service.dart';
 
 /// 我的收藏返回
 class FavoriteModel {
@@ -105,5 +106,17 @@ class FavoriteItem {
       favorite: true, // 收藏列表中的都是已收藏的
       favoriteId: id, // 使用收藏ID作为 favoriteId
     );
+  }
+
+  /// ========== 国际化便捷属性 ==========
+  
+  /// 获取本地化的店铺名称
+  String get localizedShopName {
+    return LocaleService.getLocalizedText(shopName, shopEnglishName);
+  }
+  
+  /// 获取本地化的分类名称
+  String? get localizedCategoryName {
+    return LocaleService.getLocalizedText(categoryName, categoryEnglishName);
   }
 }

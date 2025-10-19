@@ -7,8 +7,8 @@ class AppConstants {
   static const String deviceUuid = "DEVICE_UUID";
   // 主题模式
   static const String themeMode = "THEME_MODE";
-  // 语言代码
-  static const String languageCode = "LANGUAGE_CODE";
+  // 语言模式
+  static const String languageMode = "LANGUAGE_MODE";
   // 用户token
   static const String accessToken = "ACCESS_TOKEN";
   // 用户刷新token

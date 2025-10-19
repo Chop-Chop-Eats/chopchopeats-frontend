@@ -7,6 +7,7 @@ import '../../../core/widgets/common_indicator.dart';
 import '../../../core/widgets/common_image.dart';
 import '../../../core/widgets/restaurant/restaurant_list.dart';
 import '../../../core/providers/favorite_provider.dart';
+import '../../../core/l10n/app_localizations.dart';
 import '../providers/category_detail_provider.dart';
 
 /// 分类详情页面 - 二级页面
@@ -72,6 +73,7 @@ class _CategoryDetailPageState extends ConsumerState<CategoryDetailPage> {
 
     // 错误状态
     if (error != null && restaurants.isEmpty) {
+      final l10n = AppLocalizations.of(context)!;
       return Scaffold(
         backgroundColor: Colors.white,
         body: SafeArea(
@@ -83,14 +85,14 @@ class _CategoryDetailPageState extends ConsumerState<CategoryDetailPage> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text('加载失败: $error'),
+                      Text(l10n.loadingFailedMessage(error)),
                       SizedBox(height: 16.h),
                       ElevatedButton(
                         onPressed: () {
                           ref.read(categoryDetailProvider(widget.categoryId).notifier)
                               .loadCategoryDetail(widget.categoryId);
                         },
-                        child: const Text('重试'),
+                        child: Text(l10n.tryAgainText),
                       ),
                     ],
                   ),

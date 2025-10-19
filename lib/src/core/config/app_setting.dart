@@ -2,6 +2,8 @@
 import 'package:flutter/material.dart';
 import '../constants/app_constant.dart';
 import '../utils/logger/logger.dart';
+import '../enums/language_mode.dart';
+import '../l10n/locale_service.dart';
 import 'app_services.dart';
 
 class AppSettings extends ChangeNotifier {
@@ -10,8 +12,8 @@ class AppSettings extends ChangeNotifier {
 
   // 主题模式
   late ThemeMode _themeMode;
-  // 语言
-  late Locale _locale;
+  // 语言模式
+  late LanguageMode _languageMode;
   /// 经度
   late double _longitude = -71.4128;
   /// 纬度
@@ -22,8 +24,20 @@ class AppSettings extends ChangeNotifier {
 
   // 访问主题模式
   ThemeMode get themeMode => _themeMode;
-  // 访问语言
-  Locale get locale => _locale;
+  // 访问语言模式
+  LanguageMode get languageMode => _languageMode;
+  
+  // 获取实际的 Locale（根据语言模式）
+  Locale? get locale {
+    switch (_languageMode) {
+      case LanguageMode.zh:
+        return const Locale('zh');
+      case LanguageMode.en:
+        return const Locale('en');
+      case LanguageMode.system:
+        return null; // null 表示跟随系统
+    }
+  }
   /// 访问经度
   double get longitude => _longitude;
   /// 访问纬度
@@ -42,8 +56,12 @@ class AppSettings extends ChangeNotifier {
     );
 
     // 加载语言设置
-    final langCode = await AppServices.cache.get<String>(AppConstants.languageCode);
-    settings._locale = langCode != null ? Locale(langCode) : const Locale('en'); // 默认英文
+    final languageModeStr = await AppServices.cache.get<String>(AppConstants.languageMode);
+    settings._languageMode = LanguageMode.fromString(languageModeStr); // 默认跟随系统
+    
+    // 初始化 LocaleService（使用系统默认语言或设置的语言）
+    final initialLocale = settings.locale ?? const Locale('zh'); // 如果跟随系统，先用中文初始化
+    LocaleService.updateLocale(initialLocale);
 
     return settings;
   }
@@ -62,18 +80,22 @@ class AppSettings extends ChangeNotifier {
     await AppServices.cache.set<String>(AppConstants.themeMode, _themeMode.name);
   }
 
-  /// 更新语言
-  Future<void> updateLocale(Locale newLocale) async {
-    if (newLocale == _locale) return;
+  /// 更新语言模式
+  Future<void> updateLanguageMode(LanguageMode newMode) async {
+    if (newMode == _languageMode) return;
 
-    _locale = newLocale;
-    Logger.info("AppSettings", "Locale updated to: ${_locale.languageCode}");
+    _languageMode = newMode;
+    Logger.info("AppSettings", "Language mode updated to: ${_languageMode.name}");
+
+    // 更新 LocaleService（用于 Model 层访问）
+    final newLocale = locale ?? const Locale('zh'); // 如果是system模式，默认使用中文
+    LocaleService.updateLocale(newLocale);
 
     // 通知监听者 UI 需要更新
     notifyListeners();
 
     // 持久化到本地
-    await AppServices.cache.set<String>(AppConstants.languageCode, _locale.languageCode);
+    await AppServices.cache.set<String>(AppConstants.languageMode, _languageMode.name);
   }
 
    /// 更新经度

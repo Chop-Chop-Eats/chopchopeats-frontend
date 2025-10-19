@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../l10n/app_localizations.dart';
 import '../../utils/formats.dart';
 import '../common_spacing.dart';
 import '../common_image.dart';
@@ -77,14 +78,14 @@ class RestaurantCard extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
                     Text(
-                      restaurant.chineseShopName,
+                      restaurant.localizedShopName,
                       style: TextStyle(
                         fontSize: 16.sp,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     Text(
-                      restaurant.categoryChineseName ?? '',
+                      restaurant.localizedCategoryName ?? '',
                       style: TextStyle(
                         fontSize: 12.sp,
                         fontWeight: FontWeight.bold,
@@ -102,7 +103,7 @@ class RestaurantCard extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          restaurant.distance != null ? '${restaurant.distance!.toStringAsFixed(1)}km' : '距离未知',
+                          restaurant.distance != null ? '${restaurant.distance!.toStringAsFixed(1)}km' : AppLocalizations.of(context)!.unknownDistance,
                           style: TextStyle(
                             fontSize: 12.sp,
                             color: Colors.grey[600],

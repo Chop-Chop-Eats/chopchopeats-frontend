@@ -9,13 +9,13 @@ import '../../../core/widgets/common_image.dart';
 import '../../../core/routing/navigate.dart';
 import '../../../core/routing/routes.dart';
 import '../../../core/providers/favorite_provider.dart';
+import '../../../core/l10n/app_localizations.dart';
 import '../providers/home_provider.dart';
 import '../models/home_models.dart';
 import '../widgets/location_bar.dart';
 import '../widgets/search_bar.dart';
 import '../widgets/category_grid.dart';
 import '../widgets/banner_carousel.dart';
-import '../widgets/tip_text_section.dart';
 import '../widgets/section_header.dart';
 import '../../../core/widgets/restaurant/restaurant_list.dart';
 
@@ -84,8 +84,8 @@ class _HomePageState extends ConsumerState<HomePage> {
         onTap: () { 
           Navigate.push(context, Routes.search);
         },
-        child: const HomeSearchBar(
-          hintText: '想吃点什么?',
+        child: HomeSearchBar(
+          hintText: AppLocalizations.of(context)!.searchHintHome,
         ),
       ),
     );
@@ -107,18 +107,19 @@ class _HomePageState extends ConsumerState<HomePage> {
     // 显示错误状态
     if (error != null && categories.isEmpty) {
       Logger.error('HomePage', '显示错误状态: $error');
+      final l10n = AppLocalizations.of(context)!;
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text('加载失败: $error'),
+            Text(l10n.loadingFailedMessage(error)),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () {
                 Logger.info('HomePage', '用户点击重试按钮');
                 ref.read(categoryProvider.notifier).refresh();
               },
-              child: const Text('重试'),
+              child: Text(l10n.tryAgainText),
             ),
           ],
         ),
@@ -128,10 +129,11 @@ class _HomePageState extends ConsumerState<HomePage> {
     // 如果没有数据，显示空状态
     if (categories.isEmpty) {
       Logger.warn('HomePage', '显示空状态 - 没有分类数据');
-      return const Center(
+      final l10n = AppLocalizations.of(context)!;
+      return Center(
         child: Padding(
-          padding: EdgeInsets.all(32.0),
-          child: Text('暂无分类数据'),
+          padding: const EdgeInsets.all(32.0),
+          child: Text(l10n.noCategoryData),
         ),
       );
     }
@@ -143,7 +145,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     final topRowCategoryData = topRowCategories.map((category) {
       return CategoryData(
         imagePath: category.selectedIcon ?? category.icon ?? '',
-        title: category.categoryName ?? '', 
+        title: category.localizedCategoryName ?? '', 
         subtitle: category.description ?? '', 
         imgToRight: true, 
       );
@@ -153,7 +155,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     
       return CategoryData(
         imagePath: category.selectedIcon ?? category.icon ?? '',
-        title: category.categoryName ?? '',
+        title: category.localizedCategoryName ?? '',
         subtitle: category.description ?? '',
         imgToRight: false,
       );
@@ -164,7 +166,7 @@ class _HomePageState extends ConsumerState<HomePage> {
       bottomRowCategories: bottomRowCategoryData,
       onCategoryTap: (categoryData) {
         final categoryItem = categories.firstWhere(
-          (item) => item.categoryName == categoryData.title,
+          (item) => item.localizedCategoryName == categoryData.title,
         );
         _onCategoryTap(categoryItem);
       },
@@ -186,18 +188,19 @@ class _HomePageState extends ConsumerState<HomePage> {
     }
 
     if (error != null && banners.isEmpty) {
+      final l10n = AppLocalizations.of(context)!;
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text('加载失败: $error'),
+            Text(l10n.loadingFailedMessage(error)),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () {
                 Logger.info('HomePage', '用户点击Banner重试按钮');
                 ref.read(bannerProvider.notifier).loadBannerList();
               },
-              child: const Text('重试'),
+              child: Text(l10n.tryAgainText),
             ),
           ],
         ),
@@ -205,10 +208,11 @@ class _HomePageState extends ConsumerState<HomePage> {
     }
 
     if (banners.isEmpty) {
-      return const Center(
+      final l10n = AppLocalizations.of(context)!;
+      return Center(
         child: Padding(
-          padding: EdgeInsets.all(32.0),
-          child: Text('暂无Banner数据'),
+          padding: const EdgeInsets.all(32.0),
+          child: Text(l10n.noBannerData),
         ),
       );
     }
@@ -219,18 +223,18 @@ class _HomePageState extends ConsumerState<HomePage> {
     );
   }
 
-  Widget _buildTipText() {
-    return const TipTextSection(
-      topText: "The taste of home",
-      normalText: '一起寻找',
-      highlightText: '家的味道',
-      bottomText: "without the cooking",
-    );
-  }
+  // Widget _buildTipText() {
+  //   return const TipTextSection(
+  //     topText: "The taste of home",
+  //     normalText: '一起寻找',
+  //     highlightText: '家的味道',
+  //     bottomText: "without the cooking",
+  //   );
+  // }
 
   Widget _buildPrivateKitchensHeader() {
-    return const SectionHeader(
-      title: '臻选私厨',
+    return SectionHeader(
+      title: AppLocalizations.of(context)!.selectedChef,
       iconPath: 'assets/images/fire.png', // 可以添加火苗图标
     );
   }
@@ -254,11 +258,12 @@ class _HomePageState extends ConsumerState<HomePage> {
 
     // 显示错误状态
     if (error != null && restaurants.isEmpty) {
+      final l10n = AppLocalizations.of(context)!;
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text('加载失败: $error'),
+            Text(l10n.loadingFailedMessage(error)),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () {
@@ -268,7 +273,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                   longitude: _longitude,
                 );
               },
-              child: const Text('重试'),
+              child: Text(l10n.tryAgainText),
             ),
           ],
         ),
@@ -277,10 +282,11 @@ class _HomePageState extends ConsumerState<HomePage> {
 
     // 如果没有数据，显示空状态
     if (restaurants.isEmpty) {
-      return const Center(
+      final l10n = AppLocalizations.of(context)!;
+      return Center(
         child: Padding(
-          padding: EdgeInsets.all(32.0),
-          child: Text('暂无甄选私厨数据'),
+          padding: const EdgeInsets.all(32.0),
+          child: Text(l10n.noRestaurantData),
         ),
       );
     }
@@ -291,18 +297,17 @@ class _HomePageState extends ConsumerState<HomePage> {
     );
   }
 
+
   // 事件处理方法
   void _onCategoryTap(CategoryListItem category) {
-    Logger.info('HomePage', '点击分类: ${category.categoryName} (ID: ${category.id})');
-
-    
+    Logger.info('HomePage', '点击分类: ${category.localizedCategoryName} (ID: ${category.id})');
     // 跳转到分类详情页面
     Navigate.push(
       context,
       Routes.categoryDetail,
       arguments: {
         'categoryId': category.id,
-        'categoryName': category.categoryName,
+        'categoryName': category.localizedCategoryName ?? category.categoryName,
       },
     );
   }

@@ -1,4 +1,3 @@
-import 'package:chop_user/src/core/utils/pop/toast.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:unified_popups/unified_popups.dart';
 import '../../../core/config/app_services.dart';
@@ -258,7 +257,6 @@ class SearchResultNotifier extends StateNotifier<SearchResultState> {
 
   /// 清空搜索结果
   Future<void> clearResults() async {
-    await SearchServices.clearSearchHistory();
     state = SearchResultState();
   }
 

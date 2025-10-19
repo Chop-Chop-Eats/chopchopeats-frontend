@@ -14,6 +14,7 @@ import '../../../core/widgets/restaurant/operating_hours.dart';
 import '../../../core/widgets/restaurant/rating.dart';
 import '../../../core/controllers/favorite_controller.dart';
 import '../../../core/providers/favorite_provider.dart';
+import '../../../core/l10n/app_localizations.dart';
 import '../models/detail_model.dart';
 import '../providers/detail_provider.dart';
 
@@ -127,12 +128,13 @@ class _DetailPageState extends ConsumerState<DetailPage> {
   }
 
   /// 构建AppBar
-  Widget _buildAppBar(ShopModel? shop){
+  Widget _buildAppBar(ShopModel? shop, BuildContext context){
+    final l10n = AppLocalizations.of(context)!;
     return CommonAppBar(
       backgroundColor: Colors.transparent,
       titleColor: Colors.white,
       iconColor: Colors.white,
-      title: "商家详情" , 
+      title: l10n.merchantDetail, 
       actions: shop != null ? [
         FavoriteIcon(
           isFavorite: shop.favorite ?? false, 
@@ -143,7 +145,8 @@ class _DetailPageState extends ConsumerState<DetailPage> {
   }
 
   /// 构建商品详情
-  Widget _buildProductDetail(ShopModel shop){
+  Widget _buildProductDetail(ShopModel shop, BuildContext context){
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       margin: EdgeInsets.only(top: logoHeight-30.h),
       padding: EdgeInsets.all(16.w),
@@ -155,15 +158,16 @@ class _DetailPageState extends ConsumerState<DetailPage> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildShopName(shop.chineseShopName),
+          _buildShopName(shop.localizedShopName),
           CommonSpacing.medium,
-          _buildShowDesc(shop.chineseDescription ?? '暂无店铺描述'),
+          _buildShowDesc(shop.localizedDescription ?? l10n.noShopDescription),
           CommonSpacing.medium,
           _buildRatingWithOperatingHours(
             rating: shop.rating?.toString() ?? '0.0',
             operatingHours: formatOperatingHours(shop.operatingHours),
-            distance: shop.distance != null ? '${shop.distance!.toStringAsFixed(1)}km' : '距离未知',
+            distance: shop.distance != null ? '${shop.distance!.toStringAsFixed(1)}km' : l10n.unknownDistance,
             commentCount: shop.commentCount?.toString() ?? '0',
+            context: context,
           ),
         ],
       ),
@@ -179,7 +183,9 @@ class _DetailPageState extends ConsumerState<DetailPage> {
     required String operatingHours,
     required String distance,
     required String commentCount,
+    required BuildContext context,
   }){
+    final l10n = AppLocalizations.of(context)!;
     LinearGradient gradient = LinearGradient(
       colors: [
         Color.fromARGB(255, 250, 250, 253),
@@ -207,7 +213,7 @@ class _DetailPageState extends ConsumerState<DetailPage> {
                   Rating(rating: rating),
                   CommonSpacing.width(8),
                   Text(
-                    "($commentCount 条评论)",
+                    "($commentCount ${l10n.comments})",
                     style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold , color: Colors.grey[500]),
                   ),
                 ],
@@ -233,6 +239,7 @@ class _DetailPageState extends ConsumerState<DetailPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final shop = ref.watch(shopDetailProvider(widget.id));
     final isLoading = ref.watch(shopDetailLoadingProvider(widget.id));
     final error = ref.watch(shopDetailErrorProvider(widget.id));
@@ -246,7 +253,7 @@ class _DetailPageState extends ConsumerState<DetailPage> {
               top: 0,
               left: 0,
               right: 0,
-              child: _buildAppBar(null),
+              child: _buildAppBar(null, context),
             ),
             const Center(
               child: CommonIndicator(),
@@ -266,19 +273,19 @@ class _DetailPageState extends ConsumerState<DetailPage> {
               top: 0,
               left: 0,
               right: 0,
-              child: _buildAppBar(null),
+              child: _buildAppBar(null, context),
             ),
             Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text('加载失败: $error'),
+                  Text(l10n.loadingFailedMessage(error)),
                   SizedBox(height: 16.h),
                   ElevatedButton(
                     onPressed: () {
                       ref.read(detailProvider(widget.id).notifier).loadShopDetail(widget.id);
                     },
-                    child: const Text('重试'),
+                    child: Text(l10n.tryAgainText),
                   ),
                 ],
               ),
@@ -298,10 +305,10 @@ class _DetailPageState extends ConsumerState<DetailPage> {
               top: 0,
               left: 0,
               right: 0,
-              child: _buildAppBar(null),
+              child: _buildAppBar(null, context),
             ),
-            const Center(
-              child: Text('店铺信息不存在'),
+            Center(
+              child: Text(l10n.shopNotExist),
             ),
           ],
         ),
@@ -329,9 +336,9 @@ class _DetailPageState extends ConsumerState<DetailPage> {
               top: 0,
               left: 0,
               right: 0,
-              child: _buildAppBar(shop),
+              child: _buildAppBar(shop, context),
             ),
-            _buildProductDetail(shop),
+            _buildProductDetail(shop, context),
           ],
         ),
       ),
