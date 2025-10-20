@@ -1,22 +1,19 @@
 import 'package:chop_user/src/core/widgets/common_app_bar.dart';
-import 'package:chop_user/src/core/widgets/common_image.dart';
-import 'package:chop_user/src/core/widgets/common_spacing.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
-import 'package:carousel_slider/carousel_slider.dart';
-import '../../../core/utils/formats.dart';
 import '../../../core/utils/logger/logger.dart';
 import '../../../core/widgets/common_indicator.dart';
 import '../../../core/widgets/restaurant/favorite_icon.dart';
-import '../../../core/widgets/restaurant/operating_hours.dart';
-import '../../../core/widgets/restaurant/rating.dart';
 import '../../../core/controllers/favorite_controller.dart';
 import '../../../core/providers/favorite_provider.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../models/detail_model.dart';
 import '../providers/detail_provider.dart';
+import '../services/detail_services.dart';
+import '../widgets/carousel_background.dart';
+import '../widgets/product_detail.dart';
 
 class DetailPage extends ConsumerStatefulWidget {
   final String id;
@@ -37,6 +34,7 @@ class _DetailPageState extends ConsumerState<DetailPage> {
     
     //仅在无数据时请求，避免重复请求
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadData();
       final existingShop = ref.read(shopDetailProvider(widget.id));
       if (existingShop == null) {
         Logger.info('DetailPage', '无缓存数据，开始加载: shopId=${widget.id}');
@@ -45,6 +43,13 @@ class _DetailPageState extends ConsumerState<DetailPage> {
         Logger.info('DetailPage', '使用缓存数据: shopId=${widget.id}, shopName=${existingShop.chineseShopName}');
       }
     });
+  }
+
+  Future<void> _loadData() async {
+    final availableCouponList = await DetailServices().getAvailableCouponList(widget.id);
+    Logger.info('DetailPage', '可领取优惠券列表: ${availableCouponList}');
+    final saleProductList = await DetailServices().getSaleProductList(SaleProductListQuery(shopId: widget.id, saleWeekDay: 1));
+    Logger.info('DetailPage', '可售商品列表: ${saleProductList}');
   }
 
   @override
@@ -78,54 +83,6 @@ class _DetailPageState extends ConsumerState<DetailPage> {
     }
   }
 
-  /// 构建轮播图背景
-  Widget _buildCarouselBackground(ShopModel? shop) {
-    // 获取背景图列表
-    final backgroundImages = shop?.backgroundImage?.where((img) => img.url != null).toList() ?? [];
-    
-    // 如果没有背景图或为空，使用默认图片
-    if (backgroundImages.isEmpty) {
-      return CommonImage(
-        imagePath: "assets/images/banner.png",
-        height: logoHeight,
-        width: 1.sw,
-      );
-    }
-
-    // 如果只有一张图，直接显示
-    if (backgroundImages.length == 1) {
-      return CommonImage(
-        imagePath: backgroundImages.first.url!,
-        height: logoHeight,
-        width: 1.sw,
-      );
-    }
-
-    // 多张图片时使用轮播图
-    return CarouselSlider(
-      options: CarouselOptions(
-        height: logoHeight,
-        viewportFraction: 1.0,
-        autoPlay: true,
-        autoPlayInterval: const Duration(seconds: 3),
-        autoPlayAnimationDuration: const Duration(milliseconds: 800),
-        autoPlayCurve: Curves.fastOutSlowIn,
-        enlargeCenterPage: false,
-        scrollDirection: Axis.horizontal,
-      ),
-      items: backgroundImages.map((image) {
-        return Builder(
-          builder: (BuildContext context) {
-            return CommonImage(
-              imagePath: image.url!,
-              height: logoHeight,
-              width: 1.sw,
-            );
-          },
-        );
-      }).toList(),
-    );
-  }
 
   /// 构建AppBar
   Widget _buildAppBar(ShopModel? shop, BuildContext context){
@@ -144,99 +101,6 @@ class _DetailPageState extends ConsumerState<DetailPage> {
     );
   }
 
-  /// 构建商品详情
-  Widget _buildProductDetail(ShopModel shop, BuildContext context){
-    final l10n = AppLocalizations.of(context)!;
-    return Container(
-      margin: EdgeInsets.only(top: logoHeight-30.h),
-      padding: EdgeInsets.all(16.w),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16.r),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildShopName(shop.localizedShopName),
-          CommonSpacing.medium,
-          _buildShowDesc(shop.localizedDescription ?? l10n.noShopDescription),
-          CommonSpacing.medium,
-          _buildRatingWithOperatingHours(
-            rating: shop.rating?.toString() ?? '0.0',
-            operatingHours: formatOperatingHours(shop.operatingHours),
-            distance: shop.distance != null ? '${shop.distance!.toStringAsFixed(1)}km' : l10n.unknownDistance,
-            commentCount: shop.commentCount?.toString() ?? '0',
-            context: context,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildShopName(String name) => Text(name,style: TextStyle(color: Colors.black, fontSize: 16.sp, fontWeight: FontWeight.bold),);
-
-  Widget _buildShowDesc(String desc) => Text(desc,style: TextStyle(color: Colors.black, fontSize: 14.sp, fontWeight: FontWeight.normal),);
-
-  Widget _buildRatingWithOperatingHours({
-    required String rating,
-    required String operatingHours,
-    required String distance,
-    required String commentCount,
-    required BuildContext context,
-  }){
-    final l10n = AppLocalizations.of(context)!;
-    LinearGradient gradient = LinearGradient(
-      colors: [
-        Color.fromARGB(255, 250, 250, 253),
-        Color.fromARGB(255, 197, 197, 194).withValues(alpha: 0.04),
-      ],
-      begin: Alignment.centerLeft,
-      end: Alignment.centerRight,
-    );
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12.r),
-        gradient: gradient,
-      ),
-      padding: EdgeInsets.symmetric(horizontal: 16.w , vertical: 10.h),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Rating(rating: rating),
-                  CommonSpacing.width(8),
-                  Text(
-                    "($commentCount ${l10n.comments})",
-                    style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold , color: Colors.grey[500]),
-                  ),
-                ],
-              ),
-              CommonSpacing.medium,
-              OperatingHours(operatingHours: operatingHours),
-            ],
-          ),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              CommonImage(imagePath: "assets/images/location.png", width: 20.w, height: 20.h),
-              Text(
-                distance,
-                style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold , color: Colors.grey[500]),
-              ),
-            ],
-          )
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -248,7 +112,7 @@ class _DetailPageState extends ConsumerState<DetailPage> {
       return Scaffold(
         body: Stack(
           children: [
-            _buildCarouselBackground(null),
+            CarouselBackground(shop: null, logoHeight: logoHeight),
             Positioned(
               top: 0,
               left: 0,
@@ -268,7 +132,7 @@ class _DetailPageState extends ConsumerState<DetailPage> {
       return Scaffold(
         body: Stack(
           children: [
-            _buildCarouselBackground(null),
+            CarouselBackground(shop: null, logoHeight: logoHeight),
             Positioned(
               top: 0,
               left: 0,
@@ -300,7 +164,7 @@ class _DetailPageState extends ConsumerState<DetailPage> {
       return Scaffold(
         body: Stack(
           children: [
-            _buildCarouselBackground(null),
+            CarouselBackground(shop: null, logoHeight: logoHeight),
             Positioned(
               top: 0,
               left: 0,
@@ -331,14 +195,14 @@ class _DetailPageState extends ConsumerState<DetailPage> {
         ),
         child: Stack(
           children: [
-            _buildCarouselBackground(shop),
+            CarouselBackground(shop: shop, logoHeight: logoHeight),
             Positioned(
               top: 0,
               left: 0,
               right: 0,
               child: _buildAppBar(shop, context),
             ),
-            _buildProductDetail(shop, context),
+            ProductDetail(shop: shop, logoHeight: logoHeight),
           ],
         ),
       ),

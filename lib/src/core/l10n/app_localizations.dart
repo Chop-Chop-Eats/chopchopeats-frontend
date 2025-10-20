@@ -73,6 +73,7 @@ abstract class AppLocalizations {
   String get selectSpec;
   String get stock;
   String get price;
+  String get newShopMark;
   
   // ============== 业务文案 - 语言设置 ==============
   String get languageSettings;

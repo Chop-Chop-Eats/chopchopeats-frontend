@@ -105,7 +105,8 @@ class AppLocalizationsEn implements AppLocalizations {
   String get stock => 'Stock';
   @override
   String get price => 'Price';
-  
+  @override
+  String get newShopMark => 'New Shop';
   // ============== 业务文案 - 语言设置 ==============
   @override
   String get languageSettings => 'Language Settings';

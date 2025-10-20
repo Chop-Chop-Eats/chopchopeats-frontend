@@ -49,10 +49,10 @@ class ApiPaths {
   // 获取商户店铺 (店铺详情)
   static const String getShopApi = "/app-api/merchant/shop/get";
 
-  // 获得可售商品列表 (未写model)
+  // 获得可售商品列表
   static const String getSaleProductListApi = "/app-api/merchant/shop-product/available";
 
-  // 获得可领取优惠券列表(未写model)
+  // 获得可领取优惠券列表
   static const String getAvailableCouponListApi = "/app-api/market/user-coupon/available";
 
   // [收藏模块]
@@ -64,6 +64,4 @@ class ApiPaths {
 
   // 获取我的收藏
   static const String getFavoriteApi = "/app-api/merchant/shop-favorite/page";
-
-  
 }

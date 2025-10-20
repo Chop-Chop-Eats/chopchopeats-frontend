@@ -260,17 +260,20 @@ class ShopModel {
   }
 
   /// ========== 国际化便捷属性 ==========
-  
+
   /// 获取本地化的店铺名称
   String get localizedShopName {
     return LocaleService.getLocalizedText(chineseShopName, englishShopName);
   }
-  
+
   /// 获取本地化的店铺介绍
   String? get localizedDescription {
-    return LocaleService.getLocalizedText(chineseDescription, englishDescription);
+    return LocaleService.getLocalizedText(
+      chineseDescription,
+      englishDescription,
+    );
   }
-  
+
   /// 获取本地化的店铺标签列表
   List<TagInfo>? get localizedTagList {
     return LocaleService.isZh ? chineseTagList : englishTagList;
@@ -314,7 +317,7 @@ class TagInfo {
   }
 
   /// ========== 国际化便捷属性 ==========
-  
+
   /// 获取本地化的标签名称（tag 字段已经是本地化的）
   String? get localizedTag => tag;
 }
@@ -334,8 +337,23 @@ class DeliveryMethod {
   }
 }
 
-/// 可售商品信息
-class SaleProduct {
+/// 可售商品列表query
+class SaleProductListQuery {
+  ///店铺ID
+  final String shopId;
+
+  /// 销售日期 1-7 周一到周日 取值>=1 <=7
+  final int saleWeekDay;
+
+  SaleProductListQuery({required this.shopId, required this.saleWeekDay});
+
+  Map<String, dynamic> toJson() {
+    return {'shopId': shopId, 'saleWeekDay': saleWeekDay};
+  }
+}
+
+/// 可售商品列表
+class SaleProductModel {
   ///商品轮播图
   final List<UploadedFile>? carouselImages;
 
@@ -381,7 +399,7 @@ class SaleProduct {
   ///SKU规格设置：0=不区分规格，1=区分规格
   final int skuSetting;
 
-  SaleProduct({
+  SaleProductModel({
     this.carouselImages,
     this.chineseDescription,
     required this.chineseName,
@@ -399,8 +417,8 @@ class SaleProduct {
     required this.skuSetting,
   });
 
-  factory SaleProduct.fromJson(Map<String, dynamic> json) {
-    return SaleProduct(
+  factory SaleProductModel.fromJson(Map<String, dynamic> json) {
+    return SaleProductModel(
       carouselImages: JsonUtils.parseList<UploadedFile>(
         json,
         'carouselImages',
@@ -422,21 +440,30 @@ class SaleProduct {
       isOnSale: json['isOnSale'],
       saleDate: JsonUtils.parseDateTime(json, 'saleDate') ?? DateTime.now(),
       shopId: json['shopId'],
-      skus: JsonUtils.parseList<SaleProductSku>(json, 'skus', (e) => SaleProductSku.fromJson(e)) ?? [],
+      skus:
+          JsonUtils.parseList<SaleProductSku>(
+            json,
+            'skus',
+            (e) => SaleProductSku.fromJson(e),
+          ) ??
+          [],
       skuSetting: json['skuSetting'],
     );
   }
 
   /// ========== 国际化便捷属性 ==========
-  
+
   /// 获取本地化的商品名称
   String get localizedName {
     return LocaleService.getLocalizedText(chineseName, englishName);
   }
-  
+
   /// 获取本地化的商品描述
   String? get localizedDescription {
-    return LocaleService.getLocalizedText(chineseDescription, englishDescription);
+    return LocaleService.getLocalizedText(
+      chineseDescription,
+      englishDescription,
+    );
   }
 }
 
@@ -471,6 +498,100 @@ class SaleProductSku {
       skuName: json['skuName'],
       status: json['status'],
       stock: json['stock'],
+    );
+  }
+}
+
+/// 用户可领取优惠券列表响应
+class AvailableCouponModel {
+  ///可领取的优惠券类型数量
+  final int? canClaimCouponTypeCount;
+
+  ///可领取优惠券列表
+  final List<AvailableCouponItem>? list;
+
+  AvailableCouponModel({this.canClaimCouponTypeCount, this.list});
+
+  factory AvailableCouponModel.fromJson(Map<String, dynamic> json) {
+    return AvailableCouponModel(
+      canClaimCouponTypeCount: json['canClaimCouponTypeCount'],
+      list: JsonUtils.parseList<AvailableCouponItem>(json, 'list', (e) => AvailableCouponItem.fromJson(e)),
+    );
+  }
+}
+
+/// 用户可领取优惠券响应
+class AvailableCouponItem {
+  ///是否可以领取
+  final bool? canClaim;
+
+  ///优惠券标题
+  final String? couponTitle;
+
+  ///优惠金额
+  final double? discountAmount;
+
+  ///优惠券ID
+  final String? id;
+
+  ///使用条件金额（满减金额）
+  final double? minSpendAmount;
+
+  ///优惠券的备注信息
+  final String? remark;
+
+  ///店铺ID
+  final String? shopId;
+
+  ///店铺名称
+  final String? shopName;
+
+  ///优惠券状态：0表示下架，1表示上架
+  final int? status;
+
+  ///当前用户已领取数量
+  final int? userClaimedCount;
+
+  ///每个用户的领取上限
+  final int? userLimit;
+
+  ///有效开始时间
+  final DateTime? validFrom;
+
+  ///有效截止时间
+  final DateTime? validUntil;
+
+  AvailableCouponItem({
+    this.canClaim,
+    this.couponTitle,
+    this.discountAmount,
+    this.id,
+    this.minSpendAmount,
+    this.remark,
+    this.shopId,
+    this.shopName,
+    this.status,
+    this.userClaimedCount,
+    this.userLimit,
+    this.validFrom,
+    this.validUntil,
+  });
+
+  factory AvailableCouponItem.fromJson(Map<String, dynamic> json) {
+    return AvailableCouponItem(
+      canClaim: json['canClaim'],
+      couponTitle: json['couponTitle'],
+      discountAmount: json['discountAmount'],
+      id: json['id'],
+      minSpendAmount: json['minSpendAmount'],
+      remark: json['remark'],
+      shopId: json['shopId'],
+      shopName: json['shopName'],
+      status: json['status'],
+      userClaimedCount: json['userClaimedCount'],
+      userLimit: json['userLimit'],
+      validFrom: JsonUtils.parseDateTime(json, 'validFrom'),
+      validUntil: JsonUtils.parseDateTime(json, 'validUntil'),
     );
   }
 }

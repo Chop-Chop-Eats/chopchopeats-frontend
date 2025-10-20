@@ -105,7 +105,8 @@ class AppLocalizationsZh implements AppLocalizations {
   String get stock => '库存';
   @override
   String get price => '价格';
-  
+  @override
+  String get newShopMark => '新店开业';
   // ============== 业务文案 - 语言设置 ==============
   @override
   String get languageSettings => '语言设置';
