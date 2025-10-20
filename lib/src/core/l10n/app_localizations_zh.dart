@@ -166,6 +166,12 @@ class AppLocalizationsZh implements AppLocalizations {
   @override
   String get shopNotExist => '店铺信息不存在';
   
+  // ============== Heart 收藏页 ==============
+  @override
+  String get noFavoriteText => '暂未收藏任何餐厅';
+  @override
+  String get goToShop => '去逛逛';
+  
   // ============== 通用文案 ==============
   @override
   String get loadingFailedWithError => '加载失败';

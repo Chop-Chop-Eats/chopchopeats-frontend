@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
+import '../../../core/l10n/app_localizations.dart';
 import '../../../core/routing/navigate.dart';
 import '../../../core/routing/routes.dart';
 import '../../../core/theme/app_theme.dart';
@@ -55,6 +56,7 @@ class _HeartPageState extends ConsumerState<HeartPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final restaurants = ref.watch(heartRestaurantsProvider);
     final isLoading = ref.watch(heartLoadingProvider);
     final error = ref.watch(heartErrorProvider);
@@ -73,7 +75,7 @@ class _HeartPageState extends ConsumerState<HeartPage> {
     });
 
     return BasePage(
-      title: "收藏",
+      title: l10n.tabHeart,
       content: _buildContent(
         restaurants: restaurants,
         isLoading: isLoading,
@@ -91,6 +93,7 @@ class _HeartPageState extends ConsumerState<HeartPage> {
     required bool hasMore,
     required bool hasFavoriteProcessing,
   }) {
+    final l10n = AppLocalizations.of(context)!;
     // 初始加载状态
     if (isLoading && restaurants.isEmpty) {
       return const Center(
@@ -104,13 +107,13 @@ class _HeartPageState extends ConsumerState<HeartPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text('加载失败: $error'),
+            Text(l10n.loadingFailedMessage(error)),
             SizedBox(height: 16.h),
             ElevatedButton(
               onPressed: () {
                 ref.read(heartProvider.notifier).loadFavorites();
               },
-              child: const Text('重试'),
+              child: Text(l10n.tryAgainText),
             ),
           ],
         ),
@@ -125,12 +128,12 @@ class _HeartPageState extends ConsumerState<HeartPage> {
           children: [
             CommonImage(imagePath: "assets/images/empty_heart.png", width: 160.w, height: 120.h),
             CommonSpacing.large,
-            Text('暂未收藏任何餐厅', style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold, color: Colors.black)),
+            Text(l10n.noFavoriteText, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold, color: Colors.black)),
             TextButton(
               onPressed: () {
                 Navigate.push(context, Routes.home);
               },
-              child: Text('去逛逛', style: TextStyle(fontSize: 14.sp, color: AppTheme.primaryOrange)),
+              child: Text(l10n.goToShop, style: TextStyle(fontSize: 14.sp, color: AppTheme.primaryOrange)),
             ),
           ],
         ),

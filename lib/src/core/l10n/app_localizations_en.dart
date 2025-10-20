@@ -166,6 +166,12 @@ class AppLocalizationsEn implements AppLocalizations {
   @override
   String get shopNotExist => 'Shop does not exist';
   
+  // ============== Heart 收藏页 ==============
+  @override
+  String get noFavoriteText => 'No favorite restaurants';
+  @override
+  String get goToShop => 'Go to shop';
+  
   // ============== 通用文案 ==============
   @override
   String get loadingFailedWithError => 'Loading failed';

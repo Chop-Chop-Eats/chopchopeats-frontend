@@ -42,7 +42,7 @@ class ApiPaths {
   // 获取历史记录列表
   static const String getHistoryListApi = "/app-api/merchant/search-history/list";
 
-  // 清除搜索记录(未实现)
+  // 清除搜索记录
   static const String clearSearchHistoryApi = "/app-api/merchant/search-history/clear";
 
   // [详情模块]

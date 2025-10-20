@@ -108,6 +108,10 @@ abstract class AppLocalizations {
   String get unknownDistance;
   String get comments;
   String get shopNotExist;
+
+  // ============== Heart 收藏页 ==============
+  String get noFavoriteText;
+  String get goToShop;
   
   // ============== 通用文案 ==============
   String get loadingFailedWithError;
