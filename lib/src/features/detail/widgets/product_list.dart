@@ -124,17 +124,20 @@ class _ProductListState extends ConsumerState<ProductList> {
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 16.w),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: onSaleProducts.map<Widget>((product) {
-            return _buildSaleItem(
-              product: product,
-              selectSpecification: l10n.selectSpecification,
-            );
-          }).toList(),
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: onSaleProducts.map<Widget>((product) {
+              return _buildSaleItem(
+                product: product,
+                selectSpecification: l10n.selectSpecification,
+              );
+            }).toList(),
+          ),
         ),
       ),
     );
@@ -154,7 +157,7 @@ class _ProductListState extends ConsumerState<ProductList> {
         borderRadius: BorderRadius.circular(16.r),
       ),
       margin: EdgeInsets.only(right: 8.w),
-      padding: EdgeInsets.all(10.w),
+      padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 10.h),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -163,9 +166,10 @@ class _ProductListState extends ConsumerState<ProductList> {
             width: 48.w,
             height: 48.h,
           ),
+
           CommonSpacing.small,
 
-          Text(
+         Text(
             product.localizedName,
             style: TextStyle(
               color: Colors.black,
@@ -174,13 +178,14 @@ class _ProductListState extends ConsumerState<ProductList> {
             ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.left,
           ),
+          
           CommonSpacing.small,
 
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // 价格显示
               Text(
                 firstSku != null
                     ? isSku? '\$${firstSku.price.toStringAsFixed(2)}' : '\$${firstSku.price.toStringAsFixed(2)}+'
@@ -212,7 +217,6 @@ class _ProductListState extends ConsumerState<ProductList> {
   /// 构建SKU计数器
   Widget _buildSkuCounter(SaleProductSku? sku) {
     if (sku == null) return SizedBox.shrink();
-
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [

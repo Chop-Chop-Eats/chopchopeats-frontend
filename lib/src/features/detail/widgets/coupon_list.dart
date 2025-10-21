@@ -70,7 +70,7 @@ class _CouponListState extends ConsumerState<CouponList> {
     String? error,
   ) {
     if (isLoading) {
-      return CommonIndicator();
+      return CommonIndicator(size: 20.w);
     }
 
     if (error != null) {
@@ -90,10 +90,7 @@ class _CouponListState extends ConsumerState<CouponList> {
     // 显示优惠券列表（最多显示3个）
     final coupons = couponData.list!.take(3).toList();
     return Row(
-      children:
-          coupons.map<Widget>((coupon) {
-            return _buildCouponItem(coupon.couponTitle ?? '');
-          }).toList(),
+      children:coupons.map<Widget>((coupon) => _buildCouponItem(coupon.couponTitle ?? '')).toList(),
     );
   }
 
