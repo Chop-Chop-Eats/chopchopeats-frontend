@@ -74,6 +74,9 @@ abstract class AppLocalizations {
   String get stock;
   String get price;
   String get newShopMark;
+  String get dailyMenu;
+  String get getCoupon;
+  String get selectSpecification;
   
   // ============== 业务文案 - 语言设置 ==============
   String get languageSettings;
@@ -109,6 +112,16 @@ abstract class AppLocalizations {
   String get unknownDistance;
   String get comments;
   String get shopNotExist;
+  
+  // 星期相关
+  String get today;
+  String get monday;
+  String get tuesday;
+  String get wednesday;
+  String get thursday;
+  String get friday;
+  String get saturday;
+  String get sunday;
 
   // ============== Heart 收藏页 ==============
   String get noFavoriteText;

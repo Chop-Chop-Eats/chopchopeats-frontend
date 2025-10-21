@@ -11,7 +11,6 @@ import '../../../core/providers/favorite_provider.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../models/detail_model.dart';
 import '../providers/detail_provider.dart';
-import '../services/detail_services.dart';
 import '../widgets/carousel_background.dart';
 import '../widgets/product_detail.dart';
 
@@ -32,9 +31,7 @@ class _DetailPageState extends ConsumerState<DetailPage> {
     super.initState();
     Logger.info('DetailPage', '店铺详情页面初始化: shopId=${widget.id}');
     
-    //仅在无数据时请求，避免重复请求
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadData();
       final existingShop = ref.read(shopDetailProvider(widget.id));
       if (existingShop == null) {
         Logger.info('DetailPage', '无缓存数据，开始加载: shopId=${widget.id}');
@@ -43,13 +40,6 @@ class _DetailPageState extends ConsumerState<DetailPage> {
         Logger.info('DetailPage', '使用缓存数据: shopId=${widget.id}, shopName=${existingShop.chineseShopName}');
       }
     });
-  }
-
-  Future<void> _loadData() async {
-    final availableCouponList = await DetailServices().getAvailableCouponList(widget.id);
-    Logger.info('DetailPage', '可领取优惠券列表: ${availableCouponList}');
-    final saleProductList = await DetailServices().getSaleProductList(SaleProductListQuery(shopId: widget.id, saleWeekDay: 1));
-    Logger.info('DetailPage', '可售商品列表: ${saleProductList}');
   }
 
   @override

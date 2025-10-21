@@ -10,6 +10,8 @@ class SectionHeader extends StatelessWidget {
   final String? iconPath;
   final Widget? customIcon;
   final VoidCallback? onTap;
+  final double? size;
+  final EdgeInsets? padding;
 
   const SectionHeader({
     super.key,
@@ -17,12 +19,14 @@ class SectionHeader extends StatelessWidget {
     this.iconPath,
     this.customIcon,
     this.onTap,
+    this.size,
+    this.padding,
   });
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.only(
+      padding: padding ?? EdgeInsets.only(
         left: 16.w,
         right: 16.w,
         top: 16.h,
@@ -35,7 +39,7 @@ class SectionHeader extends StatelessWidget {
             Text(
               title,
               style: TextStyle(
-                fontSize: 20.sp,
+                fontSize: size ?? 20.sp,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -43,7 +47,7 @@ class SectionHeader extends StatelessWidget {
             if (customIcon != null)
               customIcon!
             else if (iconPath != null)
-              CommonImage(imagePath: iconPath!, height: 20.h),
+              CommonImage(imagePath: iconPath!, height: size ?? 20.h),
           ],
         ),
       ),

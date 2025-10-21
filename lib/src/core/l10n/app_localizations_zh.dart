@@ -107,6 +107,12 @@ class AppLocalizationsZh implements AppLocalizations {
   String get price => '价格';
   @override
   String get newShopMark => '新店开业';
+  @override
+  String get dailyMenu => '每日菜单';
+  @override
+  String get getCoupon => '领券';
+  @override
+  String get selectSpecification => '选取规格';
   // ============== 业务文案 - 语言设置 ==============
   @override
   String get languageSettings => '语言设置';
@@ -166,6 +172,24 @@ class AppLocalizationsZh implements AppLocalizations {
   String get comments => '条评论';
   @override
   String get shopNotExist => '店铺信息不存在';
+  
+  // 星期相关
+  @override
+  String get today => '今天';
+  @override
+  String get monday => '周一';
+  @override
+  String get tuesday => '周二';
+  @override
+  String get wednesday => '周三';
+  @override
+  String get thursday => '周四';
+  @override
+  String get friday => '周五';
+  @override
+  String get saturday => '周六';
+  @override
+  String get sunday => '周日';
   
   // ============== Heart 收藏页 ==============
   @override

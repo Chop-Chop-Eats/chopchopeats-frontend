@@ -1,165 +1,99 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import '../../../core/l10n/app_localizations.dart';
-import '../../../core/theme/app_theme.dart';
-import '../../../core/utils/formats.dart';
-import '../../../core/widgets/common_image.dart';
+import '../../../core/utils/logger/logger.dart';
 import '../../../core/widgets/common_spacing.dart';
-import '../../../core/widgets/restaurant/operating_hours.dart';
-import '../../../core/widgets/restaurant/rating.dart';
 import '../models/detail_model.dart';
+import 'daily_menu.dart';
+import 'product_list.dart';
+import 'shop_info_card.dart';
 
-class ProductDetail extends StatelessWidget {
+class ProductDetail extends StatefulWidget {
   final ShopModel shop;
   final double logoHeight;
-  const ProductDetail({super.key, required this.shop, required this.logoHeight});
+  
+  const ProductDetail({
+    super.key,
+    required this.shop,
+    required this.logoHeight,
+  });
+
+  @override
+  State<ProductDetail> createState() => _ProductDetailState();
+}
+
+class _ProductDetailState extends State<ProductDetail> {
+  late int _currentWeekday; // 当前选中的星期
+  int _previousWeekday = 0; // 上一个选中的星期，用于判断切换方向
+
+  @override
+  void initState() {
+    super.initState();
+    // 默认选中今天
+    _currentWeekday = DateTime.now().weekday;
+    _previousWeekday = _currentWeekday;
+  }
+
+  /// 处理日期变化
+  void _onDateChanged(int weekday, DailyMenuItem item) {
+    setState(() {
+      _previousWeekday = _currentWeekday;
+      _currentWeekday = weekday;
+    });
+    
+    Logger.info("ProductDetail", "切换每日菜单 - 日期: ${item.dateTime}, 星期: $weekday (1-7代表周一到周日)");
+  }
+
+  /// 判断切换方向：true = 向右（前进），false = 向左（后退）
+  bool get _isForward => _currentWeekday > _previousWeekday;
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
-    return Container(
-      margin: EdgeInsets.only(top: logoHeight-30.h),
-      padding: EdgeInsets.all(16.w),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16.r),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if(shop.newShopMark ?? false)
-           _buildNewShopMark(l10n.newShopMark),
-          _buildShopName(shop.localizedShopName),
-          CommonSpacing.medium,
-          _buildShowDesc(shop.localizedDescription ?? l10n.noShopDescription),
-          CommonSpacing.medium,
-          _buildRatingWithOperatingHours(
-            rating: shop.rating?.toString() ?? '0.0',
-            operatingHours: formatOperatingHours(shop.operatingHours),
-            distance: shop.distance != null ? '${shop.distance!.toStringAsFixed(1)}km' : l10n.unknownDistance,
-            commentCount: shop.commentCount?.toString() ?? '0',
-            context: context,
-          ),
-          CommonSpacing.medium,
-          // 优惠券列表
-          _buildAvailableCouponList(),
-        ],
-      ),
-    );
-  }
-
-
-  
-  Widget _buildNewShopMark(String text) => Container(
-    decoration: BoxDecoration(
-      color: AppTheme.primaryOrange,
-      borderRadius: BorderRadius.circular(8.r),
-    ),
-    margin: EdgeInsets.only(bottom: 8.h),
-    padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 4.h),
-    child: Row(
-      mainAxisSize: MainAxisSize.min,
+    return Column(
       children: [
-        CommonImage(imagePath: "assets/images/new.png", width: 16.w, height: 16.h),
-        CommonSpacing.width(8),
-        Text(text , style: TextStyle(color: Colors.white, fontSize: 10.sp, fontWeight: FontWeight.bold),)
-      ],
-    ),
-  );
+        // 店铺信息卡片
+        ShopInfoCard(
+          shop: widget.shop,
+          logoHeight: widget.logoHeight,
+        ),
+        
+        // 每日菜单
+        DailyMenu(
+          onDateChanged: _onDateChanged,
+        ),
 
-  Widget _buildShopName(String name) => Text(name,style: TextStyle(color: Colors.black, fontSize: 16.sp, fontWeight: FontWeight.bold),);
-
-  Widget _buildShowDesc(String desc) => Text(desc,style: TextStyle(color: Colors.black, fontSize: 14.sp, fontWeight: FontWeight.normal),);
-
-  Widget _buildRatingWithOperatingHours({
-    required String rating,
-    required String operatingHours,
-    required String distance,
-    required String commentCount,
-    required BuildContext context,
-  }){
-    final l10n = AppLocalizations.of(context)!;
-    LinearGradient gradient = LinearGradient(
-      colors: [
-        Color.fromARGB(255, 250, 250, 253),
-        Color.fromARGB(255, 197, 197, 194).withValues(alpha: 0.04),
-      ],
-      begin: Alignment.centerLeft,
-      end: Alignment.centerRight,
-    );
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12.r),
-        gradient: gradient,
-      ),
-      padding: EdgeInsets.symmetric(horizontal: 16.w , vertical: 10.h),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Rating(rating: rating),
-                  CommonSpacing.width(8),
-                  Text(
-                    "($commentCount ${l10n.comments})",
-                    style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold , color: Colors.grey[500]),
-                  ),
-                ],
+        CommonSpacing.medium,
+        
+        // 使用 AnimatedSwitcher 提供平滑左右切换动画
+        // 懒加载：只加载用户选中的星期，Provider 会缓存已加载的数据
+        AnimatedSwitcher(
+          duration: const Duration(milliseconds: 350),
+          switchInCurve: Curves.easeOutCubic,
+          switchOutCurve: Curves.easeInCubic,
+          transitionBuilder: (Widget child, Animation<double> animation) {
+            // 根据切换方向决定滑动方向
+            // 向右（前进）：新内容从右侧滑入，旧内容向左侧滑出
+            // 向左（后退）：新内容从左侧滑入，旧内容向右侧滑出
+            final offset = _isForward 
+                ? const Offset(1.0, 0.0)  // 从右侧滑入
+                : const Offset(-1.0, 0.0); // 从左侧滑入
+            
+            return SlideTransition(
+              position: Tween<Offset>(
+                begin: offset,
+                end: Offset.zero,
+              ).animate(animation),
+              child: FadeTransition(
+                opacity: animation,
+                child: child,
               ),
-              CommonSpacing.medium,
-              OperatingHours(operatingHours: operatingHours),
-            ],
+            );
+          },
+          child: ProductList(
+            key: ValueKey('product_list_$_currentWeekday'),
+            shopId: widget.shop.id,
+            saleWeekDay: _currentWeekday,
           ),
-          Column(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              CommonImage(imagePath: "assets/images/location.png", width: 20.w, height: 20.h),
-              Text(
-                distance,
-                style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold , color: Colors.grey[500]),
-              ),
-            ],
-          )
-        ],
-      ),
+        ),
+      ],
     );
   }
-
-  Widget _buildCouponItem(String title) => Container(
-    decoration: BoxDecoration(
-      color: AppTheme.primaryOrange.withValues(alpha: 0.1),
-      borderRadius: BorderRadius.circular(6.r),
-      border: Border.all(color: AppTheme.primaryOrange, width: 1.w),
-    ),
-    margin: EdgeInsets.only(right: 2.w),
-    padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
-    child: Text(title, style: TextStyle(color: AppTheme.primaryOrange, fontSize: 10.sp, fontWeight: FontWeight.normal),),
-  );
-
-  Widget _buildAvailableCouponList() => Row(
-    children: [
-      Text("领券", style: TextStyle(color: Colors.black, fontSize: 14.sp, fontWeight: FontWeight.normal),),
-      CommonSpacing.width(4),
-      // 数据来源于接口 若超出一行，则显示省略号 
-      Expanded(
-        child: Row(
-          children: [
-            ...["满100减10", "满200减20", "满300减30"].map((e) => _buildCouponItem(e)),
-            if (["满100减10", "满200减20", "满300减30"].length > 3)
-              Text("...", style: TextStyle(color: Colors.black, fontSize: 14.sp, fontWeight: FontWeight.normal),),
-          ],
-        ),
-      ),
-      IconButton(
-        onPressed: () {}, 
-        icon: Icon(Icons.arrow_forward_ios, size: 16.w, color: Colors.black,)
-      ),
-    ],
-  );
 }

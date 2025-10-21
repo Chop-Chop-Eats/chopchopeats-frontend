@@ -107,6 +107,13 @@ class AppLocalizationsEn implements AppLocalizations {
   String get price => 'Price';
   @override
   String get newShopMark => 'New Shop';
+  @override
+  String get dailyMenu => 'Daily Menu';
+  @override
+  String get getCoupon => 'Get Coupon';
+  @override
+  String get selectSpecification => 'Select Specification';
+
   // ============== 业务文案 - 语言设置 ==============
   @override
   String get languageSettings => 'Language Settings';
@@ -166,6 +173,24 @@ class AppLocalizationsEn implements AppLocalizations {
   String get comments => 'comments';
   @override
   String get shopNotExist => 'Shop does not exist';
+  
+  // 星期相关
+  @override
+  String get today => 'Today';
+  @override
+  String get monday => 'Mon';
+  @override
+  String get tuesday => 'Tue';
+  @override
+  String get wednesday => 'Wed';
+  @override
+  String get thursday => 'Thu';
+  @override
+  String get friday => 'Fri';
+  @override
+  String get saturday => 'Sat';
+  @override
+  String get sunday => 'Sun';
   
   // ============== Heart 收藏页 ==============
   @override

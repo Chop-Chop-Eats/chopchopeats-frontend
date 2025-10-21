@@ -2,7 +2,6 @@ import '../../../core/config/app_services.dart';
 import '../../../core/network/api_client.dart';
 import '../../../core/network/api_paths.dart';
 import '../../../core/utils/logger/logger.dart';
-import '../../models/models.dart';
 import '../models/detail_model.dart';
 
 class DetailServices {
