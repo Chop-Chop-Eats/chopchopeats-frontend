@@ -31,7 +31,7 @@ class SettingItem extends StatelessWidget {
               children: [
                 CommonImage(imagePath: icon, width: 24.w, height: 24.h),
                 CommonSpacing.width(16.w),
-                Text(title, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.normal, color: Colors.grey.shade800)),
+                Text(title, style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w600, color: Colors.grey.shade800)),
               ],
             ),
             Row(

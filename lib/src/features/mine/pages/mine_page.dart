@@ -1,11 +1,12 @@
+import 'package:chop_user/src/core/config/app_services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import '../../../core/enums/language_mode.dart';
 import '../../../core/utils/logger/logger.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../../../core/widgets/common_spacing.dart';
-import '../../auth/providers/auth_provider.dart';
 import '../widgets/setting_item.dart';
 import '../widgets/shop_enter.dart';
 import '../widgets/userinfo_card.dart';
@@ -31,12 +32,12 @@ class _MinePageState extends ConsumerState<MinePage> {
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter, // 到大概0.4 就停止渐变
-              stops: [0.0, 0.6],
+              stops: [0.0, 0.5],
               colors: [Color(0xFFDAE4F0), Color(0xFFFFFFFF)],
             ),
           ),
           child: Padding(
-            padding: EdgeInsets.fromLTRB(16.w, 40.h, 16.w, 0),
+            padding: EdgeInsets.fromLTRB(16.w, 48.h, 16.w, 16.h),
             child: Column(
               children: [
                 UserinfoCard(),
@@ -54,7 +55,7 @@ class _MinePageState extends ConsumerState<MinePage> {
   Widget _buildSettingsList(AppLocalizations l10n) {
     final settingsData = [
       {
-        'title': '个人资料',
+        'title': l10n.profile,
         'icon': 'assets/images/setting_1.png',
         'onTap': () {
           Logger.info('MinePage', '点击个人资料');
@@ -62,7 +63,7 @@ class _MinePageState extends ConsumerState<MinePage> {
         },
       },
       {
-        'title': '收货地址',
+        'title': l10n.deliveryAddress,
         'icon': 'assets/images/setting_2.png',
         'onTap': () {
           Logger.info('MinePage', '点击收货地址');
@@ -70,7 +71,7 @@ class _MinePageState extends ConsumerState<MinePage> {
         },
       },
       {
-        'title': '获取帮助',
+        'title': l10n.help,
         'icon': 'assets/images/setting_3.png',
         'onTap': () {
           Logger.info('MinePage', '点击获取帮助');
@@ -78,7 +79,7 @@ class _MinePageState extends ConsumerState<MinePage> {
         },
       },
       {
-        'title': '账号设置',
+        'title': l10n.accountSettings,
         'icon': 'assets/images/setting_4.png',
         'onTap': () {
           Logger.info('MinePage', '点击账号设置');
@@ -86,7 +87,7 @@ class _MinePageState extends ConsumerState<MinePage> {
         },
       },
       {
-        'title': '语言',
+        'title': l10n.language,
         'icon': 'assets/images/setting_5.png',
         'onTap': () {
           Logger.info('MinePage', '点击语言设置');
@@ -94,7 +95,7 @@ class _MinePageState extends ConsumerState<MinePage> {
         },
       },
       {
-        'title': '隐私政策',
+        'title': l10n.privacyPolicy,
         'icon': 'assets/images/setting_6.png',
         'onTap': () {
           Logger.info('MinePage', '点击隐私政策');
@@ -102,7 +103,7 @@ class _MinePageState extends ConsumerState<MinePage> {
         },
       },
       {
-        'title': '平台协议',
+        'title': l10n.platformAgreement,
         'icon': 'assets/images/setting_7.png',
         'onTap': () {
           Logger.info('MinePage', '点击平台协议');
@@ -110,7 +111,7 @@ class _MinePageState extends ConsumerState<MinePage> {
         },
       },
       {
-        'title': '退出登录',
+        'title': l10n.logout,
         'icon': 'assets/images/setting_8.png',
         'onTap': () {
           Logger.info('MinePage', '点击退出登录');
@@ -139,24 +140,27 @@ class _MinePageState extends ConsumerState<MinePage> {
   }
 
   void _showLanguageDialog() {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('选择语言'),
+        title: Text(l10n.selectLanguage),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
-              title: Text('中文'),
-              onTap: () {
+              title: Text(l10n.languageChinese),
+              onTap: () async {
                 Navigator.pop(context);
+                await AppServices.appSettings.updateLanguageMode(LanguageMode.zh);
                 // TODO: 切换语言
               },
             ),
             ListTile(
-              title: Text('English'),
-              onTap: () {
+              title: Text(l10n.languageEnglish),
+              onTap: () async {
                 Navigator.pop(context);
+                await AppServices.appSettings.updateLanguageMode(LanguageMode.en);
                 // TODO: 切换语言
               },
             ),

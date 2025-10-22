@@ -203,6 +203,34 @@ class AppLocalizationsZh implements AppLocalizations {
   @override
   String get goToShop => '去逛逛';
   
+  // ============== Mine 我的页面 ==============
+  @override
+  String get profile => '个人资料';
+  @override
+  String get deliveryAddress => '收货地址';
+  @override
+  String get help => '获取帮助';
+  @override
+  String get accountSettings => '账号设置';
+  @override
+  String get privacyPolicy => '隐私政策';
+  @override
+  String get platformAgreement => '平台协议';
+  @override
+  String get logout => '退出登录';
+  @override
+  String get selectLanguage => '选择语言';
+  @override
+  String get confirmLogout => '确认退出登录';
+  @override
+  String get logoutConfirmMessage => '确定要退出登录吗？';
+  @override
+  String get wallet => '钱包';
+  @override
+  String get coupons => '优惠券';
+  @override
+  String get recharge => '去充值';
+  
   // ============== 通用文案 ==============
   @override
   String get loadingFailedWithError => '加载失败';

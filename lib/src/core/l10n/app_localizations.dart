@@ -130,6 +130,21 @@ abstract class AppLocalizations {
   String get noFavoriteText;
   String get goToShop;
   
+  // ============== Mine 我的页面 ==============
+  String get profile; // 个人资料
+  String get deliveryAddress; // 收货地址
+  String get help; // 获取帮助
+  String get accountSettings; // 账号设置
+  String get privacyPolicy; // 隐私政策
+  String get platformAgreement; // 平台协议
+  String get logout; // 退出登录
+  String get selectLanguage; // 选择语言
+  String get confirmLogout; // 确认退出登录
+  String get logoutConfirmMessage; // 确定要退出登录吗？
+  String get wallet; // 钱包
+  String get coupons; // 优惠券
+  String get recharge; // 去充值
+  
   // ============== 通用文案 ==============
   String get loadingFailedWithError;
   String loadingFailedMessage(String error);

@@ -3,6 +3,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../core/widgets/common_image.dart';
 import '../../../core/widgets/common_spacing.dart';
+import '../../../core/l10n/app_localizations.dart';
 
 class UserinfoCard extends StatefulWidget {
   const UserinfoCard({super.key});
@@ -14,6 +15,7 @@ class UserinfoCard extends StatefulWidget {
 class _UserinfoCardState extends State<UserinfoCard> {
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       decoration: BoxDecoration(
         border: Border.all(color: Colors.white, width: 2.w),
@@ -47,13 +49,13 @@ class _UserinfoCardState extends State<UserinfoCard> {
           ),
           Row(
             children: [
-              Expanded(child: _buildItem(title: "钱包", value: "9999元", tip: "去充值", onTap: () {})),
+              Expanded(child: _buildItem(title: l10n.wallet, value: "9999元", tip: l10n.recharge, onTap: () {})),
               Container(
                 width: 1.w,
                 height: 32.h,
                 color: Colors.grey.shade400,
               ),
-              Expanded(child: _buildItem(title: "优惠券", value: "2张", onTap: () {})),
+              Expanded(child: _buildItem(title: l10n.coupons, value: "2张", onTap: () {})),
             ],
           )
           

@@ -204,6 +204,34 @@ class AppLocalizationsEn implements AppLocalizations {
   @override
   String get goToShop => 'Go to shop';
   
+  // ============== Mine 我的页面 ==============
+  @override
+  String get profile => 'Profile';
+  @override
+  String get deliveryAddress => 'Delivery Address';
+  @override
+  String get help => 'Help';
+  @override
+  String get accountSettings => 'Account Settings';
+  @override
+  String get privacyPolicy => 'Privacy Policy';
+  @override
+  String get platformAgreement => 'Platform Agreement';
+  @override
+  String get logout => 'Logout';
+  @override
+  String get selectLanguage => 'Select Language';
+  @override
+  String get confirmLogout => 'Confirm Logout';
+  @override
+  String get logoutConfirmMessage => 'Are you sure you want to logout?';
+  @override
+  String get wallet => 'Wallet';
+  @override
+  String get coupons => 'Coupons';
+  @override
+  String get recharge => 'Recharge';
+  
   // ============== 通用文案 ==============
   @override
   String get loadingFailedWithError => 'Loading failed';
