@@ -63,8 +63,9 @@ class _ShopCartState extends State<ShopCart> {
             CommonImage(imagePath: 'assets/images/shop_cart.png', width: 24.w, height: 24.h),
           ],
         ), 
-        CommonSpacing.width(8.w),
+        CommonSpacing.width(12.w),
         Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text.rich(
               TextSpan(
@@ -74,7 +75,6 @@ class _ShopCartState extends State<ShopCart> {
                 ],
               ),
             ),
-            // 国际化
             Text('${l10n.estimatedDeliveryFee}  : \$10', style: TextStyle(fontSize: 11.sp, color: Colors.grey.shade600)),
           ],
         )
