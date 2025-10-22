@@ -113,6 +113,12 @@ class AppLocalizationsZh implements AppLocalizations {
   String get getCoupon => '领券';
   @override
   String get selectSpecification => '选取规格';
+  @override
+  String get estimatedDeliveryFee => '预估配送费';
+  @override
+  String get totalPrice => '总价';
+  @override
+  String get orderNow => '立即下单';
   // ============== 业务文案 - 语言设置 ==============
   @override
   String get languageSettings => '语言设置';

@@ -62,7 +62,7 @@ class _ProductListState extends ConsumerState<ProductList> {
       return Padding(
         padding: EdgeInsets.symmetric(horizontal: 16.w),
         child: SizedBox(
-          height: 200.h, // 固定高度，与商品列表大致相同
+          height: 100.h, // 固定高度，与商品列表大致相同
           child: const Center(
             child: CommonIndicator(),
           ),
@@ -217,7 +217,7 @@ class _ProductListState extends ConsumerState<ProductList> {
   /// 构建SKU计数器
   Widget _buildSkuCounter(SaleProductSku? sku) {
     if (sku == null) return SizedBox.shrink();
-    return Row(
+    return Row( 
       mainAxisSize: MainAxisSize.min,
       children: [
         GestureDetector(

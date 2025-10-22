@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../core/utils/logger/logger.dart';
 import '../../../core/widgets/common_spacing.dart';
 import '../models/detail_model.dart';
@@ -47,7 +48,8 @@ class _ProductDetailState extends State<ProductDetail> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return SingleChildScrollView(
+      child: Column(
       children: [
         // 店铺信息卡片
         ShopInfoCard(
@@ -61,20 +63,16 @@ class _ProductDetailState extends State<ProductDetail> {
         ),
 
         CommonSpacing.medium,
-        
-        // 使用 AnimatedSwitcher 提供平滑左右切换动画
-        // 懒加载：只加载用户选中的星期，Provider 会缓存已加载的数据
+
+        // 商品列表
         AnimatedSwitcher(
           duration: const Duration(milliseconds: 350),
           switchInCurve: Curves.easeOutCubic,
           switchOutCurve: Curves.easeInCubic,
           transitionBuilder: (Widget child, Animation<double> animation) {
-            // 根据切换方向决定滑动方向
-            // 向右（前进）：新内容从右侧滑入，旧内容向左侧滑出
-            // 向左（后退）：新内容从左侧滑入，旧内容向右侧滑出
             final offset = _isForward 
-                ? const Offset(1.0, 0.0)  // 从右侧滑入
-                : const Offset(-1.0, 0.0); // 从左侧滑入
+                ? const Offset(1.0, 0.0)
+                : const Offset(-1.0, 0.0); 
             
             return SlideTransition(
               position: Tween<Offset>(
@@ -93,7 +91,12 @@ class _ProductDetailState extends State<ProductDetail> {
             saleWeekDay: _currentWeekday,
           ),
         ),
+
+        // 底部留出购物车的空间，避免内容被遮挡
+        SizedBox(height: 80.h),
+        
       ],
+    )
     );
   }
 }

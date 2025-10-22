@@ -77,6 +77,9 @@ abstract class AppLocalizations {
   String get dailyMenu;
   String get getCoupon;
   String get selectSpecification;
+  String get estimatedDeliveryFee;
+  String get totalPrice;
+  String get orderNow;
   
   // ============== 业务文案 - 语言设置 ==============
   String get languageSettings;

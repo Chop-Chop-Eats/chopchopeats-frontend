@@ -113,6 +113,12 @@ class AppLocalizationsEn implements AppLocalizations {
   String get getCoupon => 'Get Coupon';
   @override
   String get selectSpecification => 'Select Specification';
+  @override
+  String get estimatedDeliveryFee => 'Estimated Delivery Fee';
+  @override
+  String get totalPrice => 'Total Price';
+  @override
+  String get orderNow => 'Order Now';
 
   // ============== 业务文案 - 语言设置 ==============
   @override

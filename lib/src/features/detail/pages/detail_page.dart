@@ -13,6 +13,7 @@ import '../models/detail_model.dart';
 import '../providers/detail_provider.dart';
 import '../widgets/carousel_background.dart';
 import '../widgets/product_detail.dart';
+import '../widgets/shop_cart.dart';
 
 class DetailPage extends ConsumerStatefulWidget {
   final String id;
@@ -171,30 +172,44 @@ class _DetailPageState extends ConsumerState<DetailPage> {
 
     // 展示店铺详情
     return Scaffold(
-      body: SmartRefresher(
-        controller: _refreshController,
-        enablePullDown: true,
-        enablePullUp: false, // 详情页不需要上拉加载
-        onRefresh: _onRefresh,
-        header: CustomHeader(
-          builder: (context, mode) => Container(
-            color: Colors.black,
-            padding: EdgeInsets.symmetric(vertical: 16.w),
-            child: CommonIndicator(size: 16.w), // 使用 CommonIndicator
-          ),
-        ),
-        child: Stack(
-          children: [
-            CarouselBackground(shop: shop, logoHeight: logoHeight),
-            Positioned(
-              top: 0,
-              left: 0,
-              right: 0,
-              child: _buildAppBar(shop, context),
+      body: Stack(
+        children: [
+          // 可滚动内容区域
+          SmartRefresher(
+            controller: _refreshController,
+            enablePullDown: true,
+            enablePullUp: false, // 详情页不需要上拉加载
+            onRefresh: _onRefresh,
+            header: CustomHeader(
+              builder: (context, mode) => Container(
+                color: Colors.black,
+                padding: EdgeInsets.symmetric(vertical: 16.w),
+                child: CommonIndicator(size: 16.w), // 使用 CommonIndicator
+              ),
             ),
-            ProductDetail(shop: shop, logoHeight: logoHeight),
-          ],
-        ),
+            child: Stack(
+              children: [
+                CarouselBackground(shop: shop, logoHeight: logoHeight),
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  child: _buildAppBar(shop, context),
+                ),
+                
+                ProductDetail(shop: shop, logoHeight: logoHeight),
+              ],
+            ),
+          ),
+          
+          // 固定在底部的购物车（不随内容滚动）
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: const ShopCart(),
+          ),
+        ],
       ),
     );
   }
