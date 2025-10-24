@@ -127,7 +127,7 @@ class AppLocalizationsZh implements AppLocalizations {
   @override
   String get languageChinese => '中文';
   @override
-  String get languageEnglish => 'English';
+  String get languageEnglish => 'Englist';
   
   // ============== Splash 启动页 ==============
   @override

@@ -26,7 +26,19 @@ class AppSettings extends ChangeNotifier {
   ThemeMode get themeMode => _themeMode;
   // 访问语言模式
   LanguageMode get languageMode => _languageMode;
-  
+
+  // 访问语言模式名称
+  String get languageModeName {
+    switch (_languageMode) {
+      case LanguageMode.zh:
+        return '中文';
+      case LanguageMode.en:
+        return 'English';
+      case LanguageMode.system:
+        return '系统';
+    }
+  }
+
   // 获取实际的 Locale（根据语言模式）
   Locale? get locale {
     switch (_languageMode) {

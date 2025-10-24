@@ -20,6 +20,13 @@ class _UserinfoCardState extends State<UserinfoCard> {
       decoration: BoxDecoration(
         border: Border.all(color: Colors.white, width: 2.w),
         borderRadius: BorderRadius.circular(24.w),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.shade400,
+            blurRadius: 2.w,
+            offset: Offset(0, 1.w),
+          ),
+        ],
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -28,13 +35,13 @@ class _UserinfoCardState extends State<UserinfoCard> {
             width: double.infinity,
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(24.w),
+              borderRadius: BorderRadius.only(topLeft: Radius.circular(24.w), topRight: Radius.circular(24.w)),
               image: DecorationImage(
                 image: AssetImage("assets/images/appbar_bg.png"),
                 fit: BoxFit.cover,
               ),
             ),
-            padding: EdgeInsets.symmetric(vertical: 24.h),
+            padding: EdgeInsets.symmetric(vertical: 16.h),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -47,18 +54,26 @@ class _UserinfoCardState extends State<UserinfoCard> {
               ],
             ),
           ),
-          Row(
-            children: [
-              Expanded(child: _buildItem(title: l10n.wallet, value: "9999元", tip: l10n.recharge, onTap: () {})),
-              Container(
-                width: 1.w,
-                height: 32.h,
-                color: Colors.grey.shade400,
-              ),
-              Expanded(child: _buildItem(title: l10n.coupons, value: "2张", onTap: () {})),
-            ],
-          )
-          
+          Container(
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.only(bottomLeft: Radius.circular(24.w), bottomRight: Radius.circular(24.w)),
+              gradient: LinearGradient(colors: [Color(0xFFEAEFF5), Color(0xFFFBFDFF)]),
+            ),
+            padding: EdgeInsets.all(6.w),
+            child: Row(
+              children: [
+                Expanded(child: _buildItem(title: l10n.wallet, value: "9999元", tip: l10n.recharge, onTap: () {})),
+                Container(
+                  width: 1.w,
+                  height: 48.h,
+                  color: Colors.grey.shade400,
+                ),
+                Expanded(child: _buildItem(title: l10n.coupons, value: "2张", onTap: () {})),
+              ],
+            ),
+          ),
         ],
       ),
     );

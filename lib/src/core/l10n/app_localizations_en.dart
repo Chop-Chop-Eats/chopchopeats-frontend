@@ -126,7 +126,7 @@ class AppLocalizationsEn implements AppLocalizations {
   @override
   String get languageSystem => 'Follow System';
   @override
-  String get languageChinese => '中文';
+  String get languageChinese => 'Chinese';
   @override
   String get languageEnglish => 'English';
   

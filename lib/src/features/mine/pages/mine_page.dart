@@ -2,11 +2,13 @@ import 'package:chop_user/src/core/config/app_services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:unified_popups/unified_popups.dart';
 
 import '../../../core/enums/language_mode.dart';
 import '../../../core/utils/logger/logger.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../../../core/widgets/common_spacing.dart';
+import '../widgets/language_sheet.dart';
 import '../widgets/setting_item.dart';
 import '../widgets/shop_enter.dart';
 import '../widgets/userinfo_card.dart';
@@ -31,7 +33,7 @@ class _MinePageState extends ConsumerState<MinePage> {
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topCenter,
-              end: Alignment.bottomCenter, // 到大概0.4 就停止渐变
+              end: Alignment.bottomCenter, 
               stops: [0.0, 0.5],
               colors: [Color(0xFFDAE4F0), Color(0xFFFFFFFF)],
             ),
@@ -89,9 +91,14 @@ class _MinePageState extends ConsumerState<MinePage> {
       {
         'title': l10n.language,
         'icon': 'assets/images/setting_5.png',
-        'onTap': () {
+        'tip': AppServices.appSettings.languageModeName,
+        'onTap': () async {
           Logger.info('MinePage', '点击语言设置');
-          _showLanguageDialog();
+          await Pop.sheet(
+            childBuilder: (dismiss) => LanguageSheet(dismiss: dismiss),
+            title: l10n.selectLanguage,
+            titlePadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+          );
         },
       },
       {
@@ -130,43 +137,13 @@ class _MinePageState extends ConsumerState<MinePage> {
               key: ValueKey('setting_$index'),
               title: data['title'] as String,
               icon: data['icon'] as String,
+              tip: data['tip'] as String?,
               onTap: data['onTap'] as VoidCallback,
             ),
             if (index < settingsData.length - 1) CommonSpacing.medium,
           ],
         );
       }).toList(),
-    );
-  }
-
-  void _showLanguageDialog() {
-    final l10n = AppLocalizations.of(context)!;
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.selectLanguage),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              title: Text(l10n.languageChinese),
-              onTap: () async {
-                Navigator.pop(context);
-                await AppServices.appSettings.updateLanguageMode(LanguageMode.zh);
-                // TODO: 切换语言
-              },
-            ),
-            ListTile(
-              title: Text(l10n.languageEnglish),
-              onTap: () async {
-                Navigator.pop(context);
-                await AppServices.appSettings.updateLanguageMode(LanguageMode.en);
-                // TODO: 切换语言
-              },
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
