@@ -150,7 +150,6 @@ class _ProductListState extends ConsumerState<ProductList> {
   }) {
     final isSku = product.skuSetting == 1; 
     final firstSku = product.skus.isNotEmpty ? product.skus.first : null;
-
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -188,7 +187,7 @@ class _ProductListState extends ConsumerState<ProductList> {
             children: [
               Text(
                 firstSku != null
-                    ? isSku? '\$${firstSku.price.toStringAsFixed(2)}' : '\$${firstSku.price.toStringAsFixed(2)}+'
+                    ? !isSku? '\$${firstSku.price.toStringAsFixed(2)}' : '\$${firstSku.price.toStringAsFixed(2)}+'
                     : '\$0.00',
                 style: TextStyle(
                   color: Colors.black,
@@ -201,11 +200,11 @@ class _ProductListState extends ConsumerState<ProductList> {
               // 操作按钮
               Container(
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(isSku ? 12.r : 10.r),
+                  borderRadius: BorderRadius.circular(isSku ? 10.r : 12.r),
                   border: Border.all(color: AppTheme.primaryOrange, width: 1.w),
-                  color: isSku ? Colors.white : AppTheme.primaryOrange,
+                  color: isSku ? AppTheme.primaryOrange : Colors.white,
                 ),
-                child: isSku? _buildSkuCounter(firstSku): _buildSelectButton(selectSpecification),
+                child: isSku? _buildSelectButton(selectSpecification): _buildSkuCounter(firstSku),
               ),
             ],
           ),
@@ -227,7 +226,7 @@ class _ProductListState extends ConsumerState<ProductList> {
             Logger.info("ProductList", "点击减少数量");
           },
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 5.h),
+            padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
             child: Icon(Icons.remove, size: 16.w, color: Colors.black),
           ),
         ),

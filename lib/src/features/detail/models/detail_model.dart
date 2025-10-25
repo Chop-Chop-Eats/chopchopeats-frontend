@@ -481,14 +481,14 @@ class SaleProductSku {
   final int status;
 
   ///库存数量
-  final int stock;
+  final int? stock;
 
   SaleProductSku({
     this.id,
     required this.price,
     this.skuName,
     required this.status,
-    required this.stock,
+    this.stock,
   });
 
   factory SaleProductSku.fromJson(Map<String, dynamic> json) {

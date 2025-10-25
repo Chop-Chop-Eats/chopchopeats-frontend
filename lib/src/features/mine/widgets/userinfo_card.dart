@@ -32,7 +32,7 @@ class _UserinfoCardState extends ConsumerState<UserinfoCard> {
           borderRadius: BorderRadius.circular(24.w),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.shade400,
+              color: Colors.grey.shade200,
               blurRadius: 2.w,
               offset: Offset(0, 1.w),
             ),
@@ -40,7 +40,7 @@ class _UserinfoCardState extends ConsumerState<UserinfoCard> {
         ),
         child: Padding(
           padding: EdgeInsets.all(32.w),
-          child: const CommonIndicator(),
+          child: const CommonIndicator(color: Colors.white,),
         ),
       );
     }
