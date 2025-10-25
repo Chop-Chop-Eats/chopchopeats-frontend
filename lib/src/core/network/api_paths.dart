@@ -64,4 +64,8 @@ class ApiPaths {
 
   // 获取我的收藏
   static const String getFavoriteApi = "/app-api/merchant/shop-favorite/page";
+
+  // [我的模块]
+  // 获取用户基本信息
+  static const String getUserInfoApi = "/app-api/member/user/get";
 }

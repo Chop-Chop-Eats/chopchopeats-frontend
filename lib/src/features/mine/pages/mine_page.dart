@@ -4,10 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:unified_popups/unified_popups.dart';
 
-import '../../../core/enums/language_mode.dart';
 import '../../../core/utils/logger/logger.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../../../core/widgets/common_spacing.dart';
+import '../providers/mine_provider.dart';
 import '../widgets/language_sheet.dart';
 import '../widgets/setting_item.dart';
 import '../widgets/shop_enter.dart';
@@ -22,9 +22,18 @@ class MinePage extends ConsumerStatefulWidget {
 
 class _MinePageState extends ConsumerState<MinePage> {
   @override
+  void initState() {
+    super.initState();
+    // 加载用户信息
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(userInfoProvider.notifier).loadUserInfo();
+    });
+  }
+
+
+  @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-
     return Scaffold(
       appBar: null,
       body: SingleChildScrollView(
@@ -33,7 +42,7 @@ class _MinePageState extends ConsumerState<MinePage> {
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topCenter,
-              end: Alignment.bottomCenter, 
+              end: Alignment.bottomCenter,
               stops: [0.0, 0.5],
               colors: [Color(0xFFDAE4F0), Color(0xFFFFFFFF)],
             ),
@@ -46,7 +55,8 @@ class _MinePageState extends ConsumerState<MinePage> {
                 CommonSpacing.large,
                 ShopEnter(),
                 CommonSpacing.large,
-                _buildSettingsList(l10n),              ],
+                _buildSettingsList(l10n),
+              ],
             ),
           ),
         ),
@@ -97,7 +107,10 @@ class _MinePageState extends ConsumerState<MinePage> {
           await Pop.sheet(
             childBuilder: (dismiss) => LanguageSheet(dismiss: dismiss),
             title: l10n.selectLanguage,
-            titlePadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+            titlePadding: EdgeInsets.symmetric(
+              horizontal: 16.w,
+              vertical: 16.h,
+            ),
           );
         },
       },
@@ -127,10 +140,9 @@ class _MinePageState extends ConsumerState<MinePage> {
     ];
 
     return Column(
-      children: settingsData.asMap().entries.map((entry) {
+      children:settingsData.asMap().entries.map((entry) {
         final index = entry.key;
         final data = entry.value;
-        
         return Column(
           children: [
             SettingItem(
