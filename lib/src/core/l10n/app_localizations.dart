@@ -116,6 +116,7 @@ abstract class AppLocalizations {
   String get comments;
   String get shopNotExist;
   
+  
   // 星期相关
   String get today;
   String get monday;
@@ -144,6 +145,15 @@ abstract class AppLocalizations {
   String get wallet; // 钱包
   String get coupons; // 优惠券
   String get recharge; // 去充值
+
+
+  // ============== 业务文案 - 个人资料页 ==============
+  String get avatar; // 头像
+  String get nickname; // 昵称
+  String get phone; // 手机号
+  String get email; // 邮箱
+  
+
   
   // ============== 通用文案 ==============
   String get loadingFailedWithError;

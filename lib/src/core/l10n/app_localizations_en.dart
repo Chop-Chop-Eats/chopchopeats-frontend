@@ -231,6 +231,18 @@ class AppLocalizationsEn implements AppLocalizations {
   String get coupons => 'Coupons';
   @override
   String get recharge => 'Recharge';
+
+
+  // ============== 业务文案 - 个人资料页 ==============
+  @override
+  String get avatar => 'Avatar';
+  @override
+  String get nickname => 'Nickname';
+  @override
+  String get phone => 'Phone';
+  @override
+  String get email => 'Email';
+
   
   // ============== 通用文案 ==============
   @override

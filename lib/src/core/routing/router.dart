@@ -8,6 +8,7 @@ import '../../features/detail/pages/detail_page.dart';
 import '../../features/error_page.dart';
 import '../../features/auth/pages/login_page.dart';
 import '../../features/main_screen.dart';
+import '../../features/mine/pages/profile_page.dart';
 import '../../features/search/pages/search_page.dart';
 import '../../features/splash/pages/splash_page.dart';
 import 'routes.dart';
@@ -59,6 +60,7 @@ class AppRouter {
       }
       return const ErrorPage(message: "参数错误或缺失");
     },
+    Routes.profile: (settings) => const ProfilePage(),
   };
 
   /// 创建路由方法

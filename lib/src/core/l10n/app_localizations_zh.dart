@@ -230,6 +230,17 @@ class AppLocalizationsZh implements AppLocalizations {
   String get coupons => '优惠券';
   @override
   String get recharge => '去充值';
+
+
+  // ============== 业务文案 - 个人资料页 ==============
+  @override
+  String get avatar => '头像';
+  @override
+  String get nickname => '昵称';
+  @override
+  String get phone => '手机号';
+  @override
+  String get email => '邮箱';
   
   // ============== 通用文案 ==============
   @override

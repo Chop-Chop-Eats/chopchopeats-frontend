@@ -155,7 +155,7 @@ class _UserinfoCardState extends ConsumerState<UserinfoCard> {
                 Expanded(child: _buildItem(
                   title: l10n.coupons, 
                   value: userInfo?.availableCouponCount != null 
-                    ? "${userInfo!.availableCouponCount}" 
+                    ? "${userInfo!.availableCouponCount} ${l10n.coupons}" 
                     : "0", 
                   onTap: () {}
                 )),

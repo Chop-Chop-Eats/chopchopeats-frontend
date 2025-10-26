@@ -10,4 +10,5 @@ class Routes {
   static const String categoryDetail = '/categoryDetail'; // 分类详情页面
   static const String search = '/search'; // 搜索页面
   static const String webview = '/webview'; // 网页视图页面
+  static const String profile = '/profile'; // 个人资料页面
 }
