@@ -152,6 +152,11 @@ abstract class AppLocalizations {
   String get nickname; // 昵称
   String get phone; // 手机号
   String get email; // 邮箱
+  String get modifyNickname; // 修改昵称
+  String get modifyPhone; // 修改手机号
+  String get modifyNicknameTips1; // 修改昵称提示1
+  String get modifyNicknameTips2; // 修改昵称提示2
+  String get modifyNicknameTips3; // 修改昵称提示3
   
 
   

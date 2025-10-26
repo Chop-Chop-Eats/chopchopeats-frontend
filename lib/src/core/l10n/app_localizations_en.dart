@@ -242,8 +242,17 @@ class AppLocalizationsEn implements AppLocalizations {
   String get phone => 'Phone';
   @override
   String get email => 'Email';
+  @override
+  String get modifyNickname => 'Modify Nickname';
+  @override
+  String get modifyPhone => 'Modify Phone';
+  @override
+  String get modifyNicknameTips1 => 'Normative Suggestions:';
+  @override
+  String get modifyNicknameTips2 => 'Nickname can only contain up to 15 characters';
+  @override
+  String get modifyNicknameTips3 => 'Nickname can only contain English, numbers, and symbols';
 
-  
   // ============== 通用文案 ==============
   @override
   String get loadingFailedWithError => 'Loading failed';

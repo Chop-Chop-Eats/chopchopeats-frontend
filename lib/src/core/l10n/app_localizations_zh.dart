@@ -241,6 +241,16 @@ class AppLocalizationsZh implements AppLocalizations {
   String get phone => '手机号';
   @override
   String get email => '邮箱';
+  @override
+  String get modifyNickname => '修改昵称';
+  @override
+  String get modifyPhone => '修改手机号';
+  @override
+  String get modifyNicknameTips1 => '规范建议：';
+  @override
+  String get modifyNicknameTips2 => '昵称最多15个字符';
+  @override
+  String get modifyNicknameTips3 => '昵称可由中英文、数字及符号组成';
   
   // ============== 通用文案 ==============
   @override
