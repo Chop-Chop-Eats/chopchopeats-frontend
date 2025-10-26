@@ -1,3 +1,4 @@
+import 'package:chop_user/src/core/routing/navigate.dart';
 import 'package:chop_user/src/core/widgets/common_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -83,6 +84,10 @@ class _DetailPageState extends ConsumerState<DetailPage> {
       titleColor: Colors.white,
       iconColor: Colors.white,
       title: l10n.merchantDetail, 
+      onBackPressed: () {
+        Logger.info('DetailPage', '返回按钮被点击');
+        Navigate.pop(context);
+      },
       actions: shop != null ? [
         FavoriteIcon(
           isFavorite: shop.favorite ?? false, 
@@ -190,13 +195,6 @@ class _DetailPageState extends ConsumerState<DetailPage> {
             child: Stack(
               children: [
                 CarouselBackground(shop: shop, logoHeight: logoHeight),
-                Positioned(
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  child: _buildAppBar(shop, context),
-                ),
-                
                 ProductDetail(shop: shop, logoHeight: logoHeight),
               ],
             ),
@@ -208,6 +206,14 @@ class _DetailPageState extends ConsumerState<DetailPage> {
             left: 0,
             right: 0,
             child: const ShopCart(),
+          ),
+
+          // 固定在顶部的AppBar
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: _buildAppBar(shop, context),
           ),
         ],
       ),
