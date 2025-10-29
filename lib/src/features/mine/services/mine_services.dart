@@ -10,4 +10,14 @@ class MineServices {
     Logger.info('MineServices', 'getUserInfo response: ${response.data}');
     return UserInfoModel.fromJson(response.data);
   }
+
+  // 修改基本信息
+  Future<void> updateUserInfo(UpdateUserInfoParams params) async {
+    final response = await ApiClient().put(
+      ApiPaths.updateUserInfoApi,
+      data: params.toJson(),
+    );
+    Logger.info('MineServices', 'updateUserInfo response: ${response.data}');
+    return response.data;
+  }
 }

@@ -68,4 +68,7 @@ class ApiPaths {
   // [我的模块]
   // 获取用户基本信息
   static const String getUserInfoApi = "/app-api/member/user/get";
+
+  // 修改基本信息
+  static const String updateUserInfoApi = "/app-api/member/user/update";
 }

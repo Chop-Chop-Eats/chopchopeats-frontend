@@ -56,7 +56,7 @@ class UserInfoModel {
     return UserInfoModel(
       availableCouponCount: json['availableCouponCount'],
       avatar: json['avatar'] ?? '',
-      brokerageEnabled: json['brokerageEnabled']  ?? false,
+      brokerageEnabled: json['brokerageEnabled'] ?? false,
       email: json['email'],
       experience: json['experience'],
       id: json['id'],
@@ -95,4 +95,27 @@ class Level {
       name: json['name'],
     );
   }
+}
+
+class UpdateUserInfoParams {
+  ///头像
+  final String avatar;
+
+  ///用户邮箱
+  final String? email;
+
+  ///用户昵称
+  final String nickname;
+
+  UpdateUserInfoParams({
+    required this.avatar,
+    this.email,
+    required this.nickname,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'avatar': avatar,
+    if (email != null) 'email': email,
+    'nickname': nickname,
+  };
 }
