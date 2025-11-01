@@ -183,13 +183,14 @@ class _DetailPageState extends ConsumerState<DetailPage> {
           SmartRefresher(
             controller: _refreshController,
             enablePullDown: true,
-            enablePullUp: false, // 详情页不需要上拉加载
+            enablePullUp: false, 
             onRefresh: _onRefresh,
             header: CustomHeader(
+              // height: 120.h + MediaQuery.of(context).padding.top, // 测试ios灵动岛
               builder: (context, mode) => Container(
                 color: Colors.black,
                 padding: EdgeInsets.symmetric(vertical: 16.w),
-                child: CommonIndicator(size: 16.w), // 使用 CommonIndicator
+                child: CommonIndicator(size: 16.w),
               ),
             ),
             child: Stack(

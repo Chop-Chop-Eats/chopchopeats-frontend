@@ -231,7 +231,10 @@ class AppLocalizationsEn implements AppLocalizations {
   String get coupons => 'Coupons';
   @override
   String get recharge => 'Recharge';
-
+  @override
+  String get shopEnter => 'Shop Enter';
+  @override
+  String get shopEnterDesc => '\$0 Easy Entry';
 
   // ============== 业务文案 - 个人资料页 ==============
   @override

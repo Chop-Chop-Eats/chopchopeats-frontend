@@ -230,7 +230,10 @@ class AppLocalizationsZh implements AppLocalizations {
   String get coupons => '优惠券';
   @override
   String get recharge => '去充值';
-
+  @override
+  String get shopEnter => '商家入驻';
+  @override
+  String get shopEnterDesc => '0元轻松入驻';
 
   // ============== 业务文案 - 个人资料页 ==============
   @override

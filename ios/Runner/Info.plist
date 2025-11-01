@@ -46,6 +46,14 @@
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 	
+	<!-- 位置权限说明 -->
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>我们需要获取您的位置信息以提供附近餐厅推荐服务</string>
+	<key>NSLocationAlwaysUsageDescription</key>
+	<string>我们需要持续获取您的位置信息以提供更好的服务体验</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>我们需要获取您的位置信息以提供附近餐厅推荐服务</string>
+	
 	<!-- 网络安全配置 -->
 	<key>NSAppTransportSecurity</key>
 	<dict>
