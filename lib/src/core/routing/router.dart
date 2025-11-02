@@ -1,5 +1,6 @@
 import 'package:chop_user/src/features/auth/pages/forgot_password_page.dart';
 import 'package:flutter/material.dart';
+import '../../features/address/pages/address_page.dart';
 import '../../features/auth/pages/password_login_page.dart';
 import '../../features/auth/pages/set_new_password_page.dart';
 import '../../features/auth/pages/verification_code_page.dart';
@@ -61,6 +62,7 @@ class AppRouter {
       return const ErrorPage(message: "参数错误或缺失");
     },
     Routes.profile: (settings) => const ProfilePage(),
+    Routes.address: (settings) => const AddressPage(),
   };
 
   /// 创建路由方法

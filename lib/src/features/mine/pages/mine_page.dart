@@ -89,8 +89,7 @@ class _MinePageState extends ConsumerState<MinePage> {
         title: l10n.deliveryAddress, 
         icon: 'assets/images/setting_2.png', 
         onTap: () {
-        Logger.info('MinePage', '点击收货地址');
-          // TODO: 跳转到收货地址页面
+          Navigate.push(context, Routes.address);
         }
       ),
       SettingItemData(

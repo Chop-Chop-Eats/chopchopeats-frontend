@@ -153,7 +153,6 @@ class _VerificationCodePageState extends ConsumerState<VerificationCodePage> {
               ),
               child: Focus(
                 onKeyEvent: (node, event) {
-                  Logger.info("VerificationCodePage", "检测到按键事件: $event");
                   // 监听退格键（删除键）
                   if (event is KeyDownEvent && 
                       event.logicalKey == LogicalKeyboardKey.backspace) {

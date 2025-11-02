@@ -11,4 +11,5 @@ class Routes {
   static const String search = '/search'; // 搜索页面
   static const String webview = '/webview'; // 网页视图页面
   static const String profile = '/profile'; // 个人资料页面
+  static const String address = '/address'; // 收货地址页面
 }

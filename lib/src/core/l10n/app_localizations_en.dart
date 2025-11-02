@@ -256,6 +256,13 @@ class AppLocalizationsEn implements AppLocalizations {
   @override
   String get modifyNicknameTips3 => 'Nickname can only contain English, numbers, and symbols';
 
+  // ============== 业务文案 - 收货地址页 ==============
+  @override
+  String get address => 'Delivery Address';
+  @override
+  String get addAddress => 'Add Delivery Address';
+
+  
   // ============== 通用文案 ==============
   @override
   String get loadingFailedWithError => 'Loading failed';
