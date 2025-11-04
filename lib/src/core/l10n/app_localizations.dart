@@ -159,6 +159,8 @@ abstract class AppLocalizations {
   String get modifyNicknameTips1; // 修改昵称提示1
   String get modifyNicknameTips2; // 修改昵称提示2
   String get modifyNicknameTips3; // 修改昵称提示3
+  String get camera; // 相机
+  String get gallery; // 相册
 
   // ============== 业务文案 - 收货地址页 ==============
   String get address; // 收货地址

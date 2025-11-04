@@ -254,6 +254,10 @@ class AppLocalizationsZh implements AppLocalizations {
   String get modifyNicknameTips2 => '昵称最多15个字符';
   @override
   String get modifyNicknameTips3 => '昵称可由中英文、数字及符号组成';
+  @override
+  String get camera => '相机';
+  @override
+  String get gallery => '相册';
 
   // ============== 业务文案 - 收货地址页 ==============
   @override

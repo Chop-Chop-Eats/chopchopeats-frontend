@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -47,8 +48,9 @@ class CommonImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 判断是否为网络图片
+    // 判断图片类型
     final bool isNetworkImage = _isNetworkImage(imagePath);
+    final bool isLocalFile = _isLocalFile(imagePath);
     
     Widget imageWidget;
     
@@ -67,8 +69,19 @@ class CommonImage extends StatelessWidget {
         maxWidthDiskCache: width != null ? (width! * 2).toInt() : null,
         maxHeightDiskCache: height != null ? (height! * 2).toInt() : null,
       );
+    } else if (isLocalFile) {
+      // 本地文件路径
+      imageWidget = Image.file(
+        File(imagePath),
+        width: width,
+        height: height,
+        fit: fit,
+        errorBuilder: (context, error, stackTrace) {
+          return _buildErrorWidget();
+        },
+      );
     } else {
-      // 本地图片
+      // 本地资源图片
       imageWidget = Image.asset(
         imagePath,
         width: width,
@@ -111,6 +124,15 @@ class CommonImage extends StatelessWidget {
     return path.startsWith('http://') || 
            path.startsWith('https://') ||
            path.startsWith('//');
+  }
+
+  /// 判断是否为本地文件路径
+  bool _isLocalFile(String path) {
+    // 移除file://前缀（如果有）
+    final cleanPath = path.replaceFirst('file://', '');
+    // 判断是否为绝对路径（Unix/Mac/iOS以/开头，Windows以盘符开头）
+    return cleanPath.startsWith('/') || 
+           (cleanPath.length > 1 && cleanPath[1] == ':'); // Windows路径如 C:\
   }
 
   /// 构建占位符组件
