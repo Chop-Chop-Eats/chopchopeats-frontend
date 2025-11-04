@@ -195,7 +195,7 @@ class _SplashPageState extends ConsumerState<SplashPage> with WidgetsBindingObse
       
       // 如果没有最后已知位置，则获取当前位置
       final LocationSettings locationSettings = LocationSettings(
-        accuracy: LocationAccuracy.medium, // 改为中等精度，更快
+        accuracy: LocationAccuracy.low, // 改为中等精度，更快
         distanceFilter: 100,
         timeLimit: const Duration(seconds: 10), // 添加10秒超时
       );
