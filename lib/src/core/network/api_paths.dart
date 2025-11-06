@@ -71,4 +71,26 @@ class ApiPaths {
 
   // 修改基本信息
   static const String updateUserInfoApi = "/app-api/member/user/update";
+
+  // 获得用户配送地址列表
+  static const String getUserAddressListApi = "/app-api/member/address/list";
+
+  // 获得用户配送地址
+  static const String getUserAddressApi = "/app-api/member/address/get";
+
+  // 获得默认的用户配送地址
+  static const String getDefaultUserAddressApi = "/app-api/member/address/get-default";
+  
+  // 添加用户配送地址
+  static const String createUserAddressApi = "/app-api/member/address/create";
+
+  // 更新用户配送地址
+  static const String updateUserAddressApi = "/app-api/member/address/update";
+  
+  // 删除用户配送地址
+  static const String deleteUserAddressApi = "/app-api/member/address/delete";
+
+  // 获取州市列表
+  static const String getStateListApi = "/app-api/merchant/state-list";
+
 }
