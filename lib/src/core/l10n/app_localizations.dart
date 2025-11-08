@@ -165,6 +165,20 @@ abstract class AppLocalizations {
   // ============== 业务文案 - 收货地址页 ==============
   String get address; // 收货地址
   String get addAddress; // 添加地址
+  String get defaultAddress; // 默认地址标记
+  String get addressRecipientNameLabel; // 收货人姓名
+  String get addressPhoneNumberLabel; // 电话号码
+  String get addressStreetLabel; // 街道
+  String get addressStreetFixedValue; // 固定街道值
+  String get addressDetailLabel; // 建筑/公寓/楼层/单元
+  String get addressStateLabel; // 城市/州
+  String get addressZipCodeLabel; // 邮政编码
+  String get addressSetDefaultToggle; // 设置默认地址文案
+  String get addressSelectStateSheetTitle; // 选择城市/州标题
+  String get addressSelectStateHint; // 选择城市提示
+  String get addressSelectStateEmpty; // 无城市提示
+  String get addressFormIncomplete; // 表单未完成提示
+  String get addressCreateSuccess; // 新增成功提示
 
   
   // ============== 通用文案 ==============

@@ -257,13 +257,41 @@ class AppLocalizationsZh implements AppLocalizations {
   @override
   String get camera => '相机';
   @override
-  String get gallery => '相册';
+  String get gallery => '从相册或文件中选择';
 
   // ============== 业务文案 - 收货地址页 ==============
   @override
   String get address => '收货地址';
   @override
   String get addAddress => '新增收获地址';
+  @override
+  String get defaultAddress => '默认';
+  @override
+  String get addressRecipientNameLabel => '收货人姓名';
+  @override
+  String get addressPhoneNumberLabel => '电话号码';
+  @override
+  String get addressStreetLabel => '街道';
+  @override
+  String get addressStreetFixedValue => '1600 Amphitheatre Pkwy, Mountain View';
+  @override
+  String get addressDetailLabel => '建筑/公寓/楼层/单元（选填）';
+  @override
+  String get addressStateLabel => '城市/州';
+  @override
+  String get addressZipCodeLabel => '邮政编码';
+  @override
+  String get addressSetDefaultToggle => '设置为默认地址';
+  @override
+  String get addressSelectStateSheetTitle => '选择城市/州';
+  @override
+  String get addressSelectStateHint => '请选择城市或州';
+  @override
+  String get addressSelectStateEmpty => '暂无可选城市/州';
+  @override
+  String get addressFormIncomplete => '请完善必填信息';
+  @override
+  String get addressCreateSuccess => '地址新增成功';
   
   // ============== 通用文案 ==============
   @override

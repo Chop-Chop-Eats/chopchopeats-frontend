@@ -258,13 +258,41 @@ class AppLocalizationsEn implements AppLocalizations {
   @override
   String get camera => 'Camera';
   @override
-  String get gallery => 'Gallery';
+  String get gallery => 'Select from gallery or file';
 
   // ============== 业务文案 - 收货地址页 ==============
   @override
   String get address => 'Delivery Address';
   @override
   String get addAddress => 'Add Delivery Address';
+  @override
+  String get defaultAddress => 'Default';
+  @override
+  String get addressRecipientNameLabel => 'Recipient Name';
+  @override
+  String get addressPhoneNumberLabel => 'Phone Number';
+  @override
+  String get addressStreetLabel => 'Street';
+  @override
+  String get addressStreetFixedValue => '1600 Amphitheatre Pkwy, Mountain View';
+  @override
+  String get addressDetailLabel => 'Building / Apartment / Floor / Unit (Optional)';
+  @override
+  String get addressStateLabel => 'City / State';
+  @override
+  String get addressZipCodeLabel => 'Postal Code';
+  @override
+  String get addressSetDefaultToggle => 'Set as default address';
+  @override
+  String get addressSelectStateSheetTitle => 'Select City / State';
+  @override
+  String get addressSelectStateHint => 'Please select a city or state';
+  @override
+  String get addressSelectStateEmpty => 'No city/state options available';
+  @override
+  String get addressFormIncomplete => 'Please complete all required fields';
+  @override
+  String get addressCreateSuccess => 'Address added successfully';
 
   
   // ============== 通用文案 ==============

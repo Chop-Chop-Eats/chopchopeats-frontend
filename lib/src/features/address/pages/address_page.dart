@@ -1,166 +1,310 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:unified_popups/unified_popups.dart';
 
 import '../../../core/l10n/app_localizations.dart';
+import '../../../core/routing/navigate.dart';
+import '../../../core/routing/routes.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../core/utils/logger/logger.dart';
 import '../../../core/widgets/common_app_bar.dart';
 import '../../../core/widgets/common_image.dart';
+import '../../../core/widgets/common_indicator.dart';
 import '../../../core/widgets/common_spacing.dart';
+import '../models/address_models.dart';
+import '../providers/address_provider.dart';
 
-class AddressPage extends StatefulWidget {
+class AddressPage extends ConsumerStatefulWidget {
   const AddressPage({super.key});
 
   @override
-  State<AddressPage> createState() => _AddressPageState();
+  ConsumerState<AddressPage> createState() => _AddressPageState();
 }
 
-class _AddressPageState extends State<AddressPage> {
+class _AddressPageState extends ConsumerState<AddressPage> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(addressListProvider.notifier).loadAddresses();
+    });
+  }
+
+  Future<void> _reload() async {
+    await ref.read(addressListProvider.notifier).loadAddresses();
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    ref.listen<AddressListState>(addressListProvider, (previous, next) {
+      if (!mounted) return;
+      if (next.error != null && next.addresses.isNotEmpty) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            Pop.toast(next.error!, toastType: ToastType.error);
+          }
+        });
+      }
+    });
+    final addressState = ref.watch(addressListProvider);
+
     return Scaffold(
-      appBar: CommonAppBar(title: l10n.address , backgroundColor: Colors.transparent),
-      body: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 16.w),
-        child: Column(
-          children: [
-            // 可以滚动的地址列表
-            Expanded(
-              child: ListView.builder(
-                itemBuilder: (context, index) {
-                  // 模拟10条数据
-                  final name = "张三${index + 1}";
-                  final phone = "13800138000${index + 1}";
-                  final address = "北京市房山区${index + 1}";
-                  if (index <= 10) {
-                    return _buildAddressItem(name: name, phone: phone, address: address, isDefault: (index == 0));
-                  }
-                },
-              ),
-            ),
-    
-            // 居于屏幕底部 避开安全区域
-            GestureDetector(
-              onTap: () {
-                Logger.info("AddressPage", "添加地址");
-              },
-              child: Container(
-                padding: EdgeInsets.symmetric(vertical: 16.h),
-                margin: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryOrange,
-                  borderRadius: BorderRadius.circular(16.r),
-                ),
-                child: Center(
-                  child: Text(l10n.addAddress , style: TextStyle(fontSize: 16.sp, color: Colors.white, fontWeight: FontWeight.bold,),),
+      appBar: CommonAppBar(
+        title: l10n.address,
+        backgroundColor: Colors.transparent,
+      ),
+      body: SafeArea(
+        child: Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16.w),
+          child: Column(
+            children: [
+              Expanded(
+                child: _buildContent(
+                  context,
+                  l10n,
+                  addressState,
                 ),
               ),
-            ),
-          ],
+              CommonSpacing.large,
+              _buildAddButton(context, l10n),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildAddressItem({
-    required String name,
-    required String phone,
-    required String address,
-    bool isDefault = false,
-  }) {
+  Widget _buildContent(
+    BuildContext context,
+    AppLocalizations l10n,
+    AddressListState state,
+  ) {
+    if (state.isLoading && state.addresses.isEmpty) {
+      return const Center(child: CommonIndicator());
+    }
+
+    if (state.error != null && state.addresses.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              state.error!,
+              style: TextStyle(
+                fontSize: 14.sp,
+                color: Colors.grey.shade600,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            CommonSpacing.medium,
+            SizedBox(
+              width: 160.w,
+              child: ElevatedButton(
+                onPressed: _reload,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryOrange,
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(vertical: 12.h),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12.r),
+                  ),
+                ),
+                child: Text(
+                  l10n.tryAgainText,
+                  style: TextStyle(fontSize: 14.sp),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (state.addresses.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CommonImage(
+              imagePath: 'assets/images/empty_search.png',
+              width: 180.w,
+              height: 150.h,
+            ),
+            CommonSpacing.large,
+            Text(
+              l10n.emptyListText,
+              style: TextStyle(
+                fontSize: 16.sp,
+                fontWeight: FontWeight.w600,
+                color: Colors.black,
+              ),
+            ),
+            CommonSpacing.medium,
+            SizedBox(
+              width: 160.w,
+              child: ElevatedButton(
+                onPressed: _reload,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryOrange,
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(vertical: 12.h),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12.r),
+                  ),
+                ),
+                child: Text(
+                  l10n.tryAgainText,
+                  style: TextStyle(fontSize: 14.sp),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      color: AppTheme.primaryOrange,
+      onRefresh: _reload,
+      child: ListView.separated(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: EdgeInsets.only(
+          top: 16.h,
+          bottom: 16.h,
+        ),
+        itemBuilder: (context, index) {
+          final item = state.addresses[index];
+          return _buildAddressItem(l10n, item);
+        },
+        separatorBuilder: (_, __) => CommonSpacing.large,
+        itemCount: state.addresses.length,
+      ),
+    );
+  }
+
+  Widget _buildAddButton(BuildContext context, AppLocalizations l10n) {
+    return SafeArea(
+      top: false,
+      child: GestureDetector(
+        onTap: () {
+          Navigate.push(context, Routes.addAddress);
+        },
+        child: Container(
+          padding: EdgeInsets.symmetric(vertical: 16.h),
+          margin: EdgeInsets.only(bottom: MediaQuery.of(context).padding.bottom),
+          decoration: BoxDecoration(
+            color: AppTheme.primaryOrange,
+            borderRadius: BorderRadius.circular(16.r),
+          ),
+          child: Center(
+            child: Text(
+              l10n.addAddress,
+              style: TextStyle(
+                fontSize: 16.sp,
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAddressItem(
+    AppLocalizations l10n,
+    AddressItem item,
+  ) {
+    final detailParts = [
+      item.address,
+      if (item.detailAddress?.isNotEmpty ?? false) item.detailAddress!,
+      item.state,
+    ].where((element) => element.isNotEmpty).toList();
+
     return Container(
       padding: EdgeInsets.all(16.w),
-      margin: EdgeInsets.only(bottom: 16.h),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16.r),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          CommonImage(
-            imagePath: "assets/images/location.png",
-            width: 48.w,
-            height: 36.h,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 12.r,
+            offset: Offset(0, 6.h),
           ),
-          CommonSpacing.width(16.w),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CommonImage(
+                imagePath: 'assets/images/location.png',
+                width: 40.w,
+                height: 40.w,
+              ),
+              CommonSpacing.width(12.w),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        Text(
-                          name,
-                          style: TextStyle(
-                            fontSize: 16.sp,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.black,
+                        Expanded(
+                          child: Text(
+                            item.name,
+                            style: TextStyle(
+                              fontSize: 16.sp,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.black,
+                            ),
                           ),
                         ),
-                        if (isDefault) ...[
+                        if (item.defaultStatus)
                           Container(
                             padding: EdgeInsets.symmetric(
-                              horizontal: 4.w,
-                              vertical: 4.w,
+                              horizontal: 6.w,
+                              vertical: 4.h,
                             ),
-                            margin: EdgeInsets.only(left: 6.w),
                             decoration: BoxDecoration(
-                              color: AppTheme.primaryOrange.withValues(
-                                alpha: 0.1,
-                              ),
-                              borderRadius: BorderRadius.circular(5.r),
+                              color: AppTheme.primaryOrange.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(6.r),
                             ),
                             child: Text(
-                              "默认",
+                              l10n.defaultAddress,
                               style: TextStyle(
                                 fontSize: 12.sp,
                                 color: AppTheme.primaryOrange,
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
                           ),
-                        ],
                       ],
                     ),
-                    GestureDetector(
-                      onTap: () {
-                        Logger.info("AddressPage", "编辑地址");
-                      },
-                      child: Icon(
-                        Icons.edit,
-                        size: 16.w,
-                        color: Colors.black,
+                    CommonSpacing.small,
+                    Text(
+                      item.mobile,
+                      style: TextStyle(
+                        fontSize: 14.sp,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    CommonSpacing.small,
+                    Text(
+                      detailParts.join(' · '),
+                      style: TextStyle(
+                        fontSize: 13.sp,
+                        color: Colors.grey.shade500,
                       ),
                     ),
                   ],
                 ),
-                CommonSpacing.small,
-                // 电话
-                Text(
-                  phone,
-                  style: TextStyle(
-                    fontSize: 14.sp,
-                    color: Colors.black,
-                  ),
-                ),
-                CommonSpacing.small,
-                // 详细地址
-                Text(
-                  address,
-                  style: TextStyle(
-                    fontSize: 12.sp,
-                    color: Colors.grey.shade400,
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ],
       ),

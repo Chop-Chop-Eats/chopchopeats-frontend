@@ -47,7 +47,8 @@ dependencies:
   geolocator: ^14.0.2
   carousel_slider: ^5.0.0
   image_picker: ^1.2.0 # 图片选择
-  image_cropper: ^11.0.0 # 图片裁剪
+  flutter_img_editor: ^0.0.1 # 图片编辑
+  path_provider: ^2.1.5 # 文件路径
 
 dev_dependencies:
   flutter_test:

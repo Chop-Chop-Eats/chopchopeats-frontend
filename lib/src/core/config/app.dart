@@ -27,7 +27,8 @@ class App extends StatelessWidget {
               title: "Chop Chop",
               theme: AppTheme.lightTheme,
               darkTheme: AppTheme.darkTheme,
-              themeMode: AppServices.appSettings.themeMode,
+              // themeMode: AppServices.appSettings.themeMode,
+              themeMode: ThemeMode.light,
               locale: AppServices.appSettings.locale,
               localizationsDelegates: const [
                 AppLocalizations.delegate,

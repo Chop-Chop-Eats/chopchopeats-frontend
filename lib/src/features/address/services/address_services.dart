@@ -45,12 +45,11 @@ class AddressServices {
   }
 
   /// 创建用户配送地址
-  static Future<AddressItem> createUserAddress(AddressItem params) async {
-    final response = await ApiClient().post(
+  static Future<void> createUserAddress(AddressItem params) async {
+    await ApiClient().post(
       ApiPaths.createUserAddressApi,
       data: params.toJson(),
     );
-    return AddressItem.fromJson(response.data as Map<String, dynamic>);
   }
 
   /// 更新用户配送地址
