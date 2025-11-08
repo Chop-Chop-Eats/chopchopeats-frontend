@@ -10,7 +10,7 @@ class AddressItem {
   final String? detailAddress;
 
   ///编号
-  final int id;
+  final int? id;
 
   ///手机号
   final String mobile;
@@ -28,7 +28,7 @@ class AddressItem {
     required this.address,
     required this.defaultStatus,
     this.detailAddress,
-    required this.id,
+    this.id,
     required this.mobile,
     required this.name,
     required this.state,
@@ -52,14 +52,39 @@ class AddressItem {
     return {
       'address': address,
       'defaultStatus': defaultStatus,
-      'detailAddress': detailAddress,
-      'id': id,
+      if (detailAddress != null) 'detailAddress': detailAddress,
+      if (id != null) 'id': id,
       'mobile': mobile,
       'name': name,
       'state': state,
       'zipCode': zipCode,
     };
   }
+}
+
+enum AddressFormMode { create, edit }
+
+class AddressFormArguments {
+  AddressFormArguments({
+    this.mode = AddressFormMode.create,
+    this.initial,
+  }) : assert(
+          mode == AddressFormMode.create || initial != null,
+          '编辑模式必须提供初始地址数据',
+        );
+
+  final AddressFormMode mode;
+  final AddressItem? initial;
+
+  factory AddressFormArguments.create() => AddressFormArguments(
+        mode: AddressFormMode.create,
+      );
+
+  factory AddressFormArguments.edit(AddressItem initial) =>
+      AddressFormArguments(
+        mode: AddressFormMode.edit,
+        initial: initial,
+      );
 }
 
 // 州市列表

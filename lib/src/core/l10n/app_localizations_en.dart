@@ -42,6 +42,8 @@ class AppLocalizationsEn implements AppLocalizations {
   @override
   String get btnSearch => 'Search';
   @override
+  String get btnClose => 'Close';
+  @override
   String get btnClear => 'Clear';
   @override
   String get btnViewAll => 'View All';
@@ -266,6 +268,8 @@ class AppLocalizationsEn implements AppLocalizations {
   @override
   String get addAddress => 'Add Delivery Address';
   @override
+  String get editAddress => 'Edit Delivery Address';
+  @override
   String get defaultAddress => 'Default';
   @override
   String get addressRecipientNameLabel => 'Recipient Name';
@@ -293,6 +297,15 @@ class AppLocalizationsEn implements AppLocalizations {
   String get addressFormIncomplete => 'Please complete all required fields';
   @override
   String get addressCreateSuccess => 'Address added successfully';
+  @override
+  String get addressUpdateSuccess => 'Address updated successfully';
+  @override
+  String get addressDeleteConfirmTitle => 'Delete Address';
+  @override
+  String get addressDeleteConfirmDescription =>
+      'Are you sure you want to delete this delivery address?';
+  @override
+  String get addressDeleteSuccess => 'Address deleted successfully';
 
   
   // ============== 通用文案 ==============

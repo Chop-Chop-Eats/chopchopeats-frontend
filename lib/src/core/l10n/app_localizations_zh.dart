@@ -42,6 +42,8 @@ class AppLocalizationsZh implements AppLocalizations {
   @override
   String get btnSearch => '搜索';
   @override
+  String get btnClose => '关闭';
+  @override
   String get btnClear => '清除';
   @override
   String get btnViewAll => '查看全部';
@@ -265,6 +267,8 @@ class AppLocalizationsZh implements AppLocalizations {
   @override
   String get addAddress => '新增收获地址';
   @override
+  String get editAddress => '编辑收货地址';
+  @override
   String get defaultAddress => '默认';
   @override
   String get addressRecipientNameLabel => '收货人姓名';
@@ -292,6 +296,14 @@ class AppLocalizationsZh implements AppLocalizations {
   String get addressFormIncomplete => '请完善必填信息';
   @override
   String get addressCreateSuccess => '地址新增成功';
+  @override
+  String get addressUpdateSuccess => '地址更新成功';
+  @override
+  String get addressDeleteConfirmTitle => '删除地址';
+  @override
+  String get addressDeleteConfirmDescription => '确定要删除该收货地址吗？';
+  @override
+  String get addressDeleteSuccess => '地址删除成功';
   
   // ============== 通用文案 ==============
   @override

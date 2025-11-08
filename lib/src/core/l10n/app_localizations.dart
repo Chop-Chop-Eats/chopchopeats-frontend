@@ -36,6 +36,7 @@ abstract class AppLocalizations {
   String get btnDelete;
   String get btnEdit;
   String get btnSearch;
+  String get btnClose;
   String get btnClear;
   String get btnViewAll;
   
@@ -165,6 +166,7 @@ abstract class AppLocalizations {
   // ============== 业务文案 - 收货地址页 ==============
   String get address; // 收货地址
   String get addAddress; // 添加地址
+  String get editAddress; // 编辑地址
   String get defaultAddress; // 默认地址标记
   String get addressRecipientNameLabel; // 收货人姓名
   String get addressPhoneNumberLabel; // 电话号码
@@ -179,6 +181,10 @@ abstract class AppLocalizations {
   String get addressSelectStateEmpty; // 无城市提示
   String get addressFormIncomplete; // 表单未完成提示
   String get addressCreateSuccess; // 新增成功提示
+  String get addressUpdateSuccess; // 更新成功提示
+  String get addressDeleteConfirmTitle; // 删除确认标题
+  String get addressDeleteConfirmDescription; // 删除确认描述
+  String get addressDeleteSuccess; // 删除成功提示
 
   
   // ============== 通用文案 ==============

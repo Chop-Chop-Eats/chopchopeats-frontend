@@ -50,15 +50,14 @@ class AddressServices {
       ApiPaths.createUserAddressApi,
       data: params.toJson(),
     );
-  }
+  } 
 
   /// 更新用户配送地址
-  static Future<AddressItem> updateUserAddress(AddressItem params) async {
-    final response = await ApiClient().put(
+  static Future<void> updateUserAddress(AddressItem params) async {
+    await ApiClient().put(
       ApiPaths.updateUserAddressApi,
       data: params.toJson(),
     );
-    return AddressItem.fromJson(response.data as Map<String, dynamic>);
   }
 
   /// 删除用户配送地址

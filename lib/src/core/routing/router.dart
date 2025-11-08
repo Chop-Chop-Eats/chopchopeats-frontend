@@ -2,6 +2,7 @@ import 'package:chop_user/src/features/auth/pages/forgot_password_page.dart';
 import 'package:flutter/material.dart';
 import '../../features/address/pages/address_page.dart';
 import '../../features/address/pages/add_address_page.dart';
+import '../../features/address/models/address_models.dart';
 import '../../features/auth/pages/password_login_page.dart';
 import '../../features/auth/pages/set_new_password_page.dart';
 import '../../features/auth/pages/verification_code_page.dart';
@@ -64,7 +65,13 @@ class AppRouter {
     },
     Routes.profile: (settings) => const ProfilePage(),
     Routes.address: (settings) => const AddressPage(),
-    Routes.addAddress: (settings) => const AddAddressPage(),
+    Routes.addAddress: (settings) {
+      final arguments = settings.arguments;
+      if (arguments is AddressFormArguments) {
+        return AddAddressPage(arguments: arguments);
+      }
+      return const AddAddressPage();
+    },
   };
 
   /// 创建路由方法

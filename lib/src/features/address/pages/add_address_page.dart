@@ -15,7 +15,9 @@ import '../providers/address_provider.dart';
 import '../services/address_services.dart';
 
 class AddAddressPage extends ConsumerStatefulWidget {
-  const AddAddressPage({super.key});
+  const AddAddressPage({super.key, this.arguments});
+
+  final AddressFormArguments? arguments;
 
   @override
   ConsumerState<AddAddressPage> createState() => _AddAddressPageState();
@@ -31,11 +33,27 @@ class _AddAddressPageState extends ConsumerState<AddAddressPage> {
   final _stateController = TextEditingController();
   bool _isDefault = false;
   StateItem? _selectedState;
+  late final _AddressFormLogic _logic;
+
+  bool get _isEditing => _logic.mode == AddressFormMode.edit;
 
   @override
   void initState() {
     super.initState();
-    _streetController.text = '';
+    _logic = _resolveLogic();
+    final initial = _logic.initial;
+    if (initial != null) {
+      _nameController.text = initial.name;
+      _phoneController.text = initial.mobile;
+      _streetController.text = initial.address;
+      _detailController.text = initial.detailAddress ?? '';
+      _zipCodeController.text = initial.zipCode;
+      _stateController.text = initial.state;
+      _isDefault = initial.defaultStatus;
+      _selectedState = StateItem(id: initial.id ?? -1, state: initial.state);
+    } else {
+      _streetController.text = '';
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(stateListProvider.notifier).loadStates();
     });
@@ -45,7 +63,7 @@ class _AddAddressPageState extends ConsumerState<AddAddressPage> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     final l10n = AppLocalizations.of(context)!;
-    if (_streetController.text.isEmpty) {
+    if (!_isEditing && _streetController.text.isEmpty) {
       _streetController.text = l10n.addressStreetFixedValue;
     }
   }
@@ -59,6 +77,14 @@ class _AddAddressPageState extends ConsumerState<AddAddressPage> {
     _zipCodeController.dispose();
     _stateController.dispose();
     super.dispose();
+  }
+
+  _AddressFormLogic _resolveLogic() {
+    final args = widget.arguments;
+    if (args == null || args.mode == AddressFormMode.create) {
+      return const _CreateAddressFormLogic();
+    }
+    return _EditAddressFormLogic(args.initial!);
   }
 
   Future<void> _onSave() async {
@@ -88,19 +114,22 @@ class _AddAddressPageState extends ConsumerState<AddAddressPage> {
         address: street,
         defaultStatus: _isDefault,
         detailAddress: detail.isEmpty ? null : detail,
-        id: 0,
+        id: _logic.initial?.id,
         mobile: phone,
         name: name,
         state: state.state,
         zipCode: zipCode,
       );
 
-      await AddressServices.createUserAddress(params);
+      await _logic.submit(params: params);
       await ref.read(addressListProvider.notifier).loadAddresses();
       Pop.hideLoading(loadingId);
-      Pop.toast(l10n.addressCreateSuccess, toastType: ToastType.success);
+      Pop.toast(
+        _logic.successMessage(l10n),
+        toastType: ToastType.success,
+      );
       if (mounted) {
-        Navigate.pop(context);
+        Navigate.pop(context, true);
       }
     } catch (e) {
       Pop.hideLoading(loadingId);
@@ -249,7 +278,7 @@ class _AddAddressPageState extends ConsumerState<AddAddressPage> {
 
     return Scaffold(
       appBar: CommonAppBar(
-        title: l10n.addAddress,
+        title: _isEditing ? l10n.editAddress : l10n.addAddress,
         backgroundColor: Colors.transparent,
       ),
       body: SafeArea(
@@ -423,4 +452,51 @@ class _AddAddressPageState extends ConsumerState<AddAddressPage> {
       ),
     );
   }
+}
+
+abstract class _AddressFormLogic {
+  const _AddressFormLogic(this.mode);
+
+  final AddressFormMode mode;
+
+  AddressItem? get initial;
+
+  Future<void> submit({required AddressItem params});
+
+  String successMessage(AppLocalizations l10n);
+}
+
+class _CreateAddressFormLogic extends _AddressFormLogic {
+  const _CreateAddressFormLogic() : super(AddressFormMode.create);
+
+  @override
+  AddressItem? get initial => null;
+
+  @override
+  Future<void> submit({required AddressItem params}) {
+    return AddressServices.createUserAddress(params);
+  }
+
+  @override
+  String successMessage(AppLocalizations l10n) => l10n.addressCreateSuccess;
+}
+
+class _EditAddressFormLogic extends _AddressFormLogic {
+  const _EditAddressFormLogic(this._initial) : super(AddressFormMode.edit);
+
+  final AddressItem _initial;
+
+  @override
+  AddressItem get initial => _initial;
+
+  @override
+  Future<void> submit({required AddressItem params}) async {
+    if (_initial.id == null) {
+      throw Exception('编辑地址缺少 ID');
+    }
+    await AddressServices.updateUserAddress(params);
+  }
+
+  @override
+  String successMessage(AppLocalizations l10n) => l10n.addressUpdateSuccess;
 }
