@@ -157,9 +157,30 @@ abstract class AppLocalizations {
   String get email; // 邮箱
   String get modifyNickname; // 修改昵称
   String get modifyPhone; // 修改手机号
+  String get modifyEmail; // 修改邮箱
   String get modifyNicknameTips1; // 修改昵称提示1
   String get modifyNicknameTips2; // 修改昵称提示2
   String get modifyNicknameTips3; // 修改昵称提示3
+  String get modifyNicknameEmpty; // 昵称为空提示
+  String get modifyEmailEmpty; // 邮箱为空提示
+  String get modifyEmailInvalid; // 邮箱格式错误提示
+  String get modifyNoChange; // 未修改提示
+  String get modifySuccess; // 修改成功提示
+  String get modifyFailed; // 修改失败提示
+  String get modifyUserInfoMissing; // 用户信息缺失提示
+  String get modifyPhoneEmpty; // 手机号为空提示
+  String get modifyPhoneCodeEmpty; // 验证码为空提示
+  String get modifyPhoneNew; // 新手机号标签
+  String get modifyPhoneCodeLabel; // 验证码标签
+  String get modifyPhoneCodeHint; // 验证码提示
+  String modifyPhoneResend(int seconds); // 重新发送提示
+  String get modifyPhoneSendCode; // 发送验证码按钮
+  String get modifyPhoneFailed; // 修改手机号失败提示
+  String get smsSendSuccess; // 短信发送成功
+  String get smsSendFailed; // 短信发送失败
+  String get btnSaving; // 保存中按钮文本
+  String get avatarUploadSuccess; // 头像上传成功
+  String get avatarUploadFailed; // 头像上传失败
   String get camera; // 相机
   String get gallery; // 相册
 

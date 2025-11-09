@@ -64,15 +64,19 @@ class ApiClient {
         dynamic data,
         bool encryptBody = true, 
         Map<String, String>? queryParameters,
+        Options? options,
       }) async {
     try {
+      final extra = <String, dynamic>{
+        ...?options?.extra,
+        'encrypt_body': encryptBody,
+      };
+      final requestOptions = options?.copyWith(extra: extra) ?? Options(extra: extra);
       final response = await _dio.post(
         path,
         data: data,
         queryParameters: queryParameters,
-        options: Options(
-          extra: {'encrypt_body': encryptBody},
-        ),
+        options: requestOptions,
       );
       return response;
     } catch (e) {

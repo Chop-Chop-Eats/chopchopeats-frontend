@@ -251,11 +251,53 @@ class AppLocalizationsZh implements AppLocalizations {
   @override
   String get modifyPhone => '修改手机号';
   @override
+  String get modifyEmail => '修改邮箱';
+  @override
   String get modifyNicknameTips1 => '规范建议：';
   @override
   String get modifyNicknameTips2 => '昵称最多15个字符';
   @override
   String get modifyNicknameTips3 => '昵称可由中英文、数字及符号组成';
+  @override
+  String get modifyNicknameEmpty => '请输入昵称';
+  @override
+  String get modifyEmailEmpty => '请输入邮箱';
+  @override
+  String get modifyEmailInvalid => '邮箱格式不正确';
+  @override
+  String get modifyNoChange => '未做任何修改';
+  @override
+  String get modifySuccess => '修改成功';
+  @override
+  String get modifyFailed => '修改失败，请重试';
+  @override
+  String get modifyUserInfoMissing => '未获取到用户信息';
+  @override
+  String get modifyPhoneEmpty => '请输入手机号';
+  @override
+  String get modifyPhoneCodeEmpty => '请输入验证码';
+  @override
+  String get modifyPhoneNew => '新手机号';
+  @override
+  String get modifyPhoneCodeLabel => '验证码';
+  @override
+  String get modifyPhoneCodeHint => '请输入验证码';
+  @override
+  String modifyPhoneResend(int seconds) => '重新发送(${seconds}s)';
+  @override
+  String get modifyPhoneSendCode => '发送验证码';
+  @override
+  String get modifyPhoneFailed => '修改手机号失败，请重试';
+  @override
+  String get smsSendSuccess => '验证码已发送';
+  @override
+  String get smsSendFailed => '验证码发送失败，请稍后重试';
+  @override
+  String get btnSaving => '保存中...';
+  @override
+  String get avatarUploadSuccess => '头像上传成功';
+  @override
+  String get avatarUploadFailed => '头像上传失败，请重试';
   @override
   String get camera => '相机';
   @override

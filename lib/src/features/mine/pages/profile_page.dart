@@ -1,4 +1,5 @@
-import 'dart:io';
+import 'dart:async';
+import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
@@ -7,7 +8,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:unified_popups/unified_popups.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:flutter_img_editor/image_editor.dart';
-import 'package:path_provider/path_provider.dart';
 
 import '../../../core/l10n/app_localizations.dart';
 import '../../../core/theme/app_theme.dart';
@@ -17,6 +17,11 @@ import '../../../core/widgets/common_image.dart';
 import '../../../core/widgets/common_indicator.dart';
 import '../../../core/widgets/common_spacing.dart';
 import '../providers/mine_provider.dart';
+import '../models/mine_model.dart';
+import '../services/mine_services.dart';
+import '../../auth/models/auth_models.dart';
+import '../../auth/services/auth_services.dart';
+import '../../../core/enums/auth_enums.dart';
 
 class ProfilePage extends ConsumerStatefulWidget {
   const ProfilePage({super.key});
@@ -30,16 +35,27 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   final _nicknameController = TextEditingController();
   // 修改手机号
   final _phoneController = TextEditingController();
+  // 修改邮箱
+  final _emailController = TextEditingController();
+  // 手机验证码
+  final _smsCodeController = TextEditingController();
+  // 短信倒计时
+  Timer? _smsTimer;
+  int _smsCountdown = 0;
+  bool _isSendingSms = false;
+  bool _isUpdatingPhone = false;
   // 图片选择器
   final _imagePicker = ImagePicker();
   // 裁剪后的头像路径
-  String _avatarImage = '';
-  ui.Image? _avatarImage2;
+  ui.Image? _avatarImage;
 
   @override
   void dispose() {
+    _cancelSmsTimer();
     _nicknameController.dispose();
     _phoneController.dispose();
+    _emailController.dispose();
+    _smsCodeController.dispose();
     super.dispose();
   }
 
@@ -121,34 +137,25 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                 children: [
                   _buildRowItem(
                     title: l10n.avatar,
-                    value: _avatarImage.isNotEmpty
-                        ? _avatarImage
-                        : userInfo?.avatar ?? '',
-                    uiImage: _avatarImage2,
+                    value: userInfo?.avatar ?? '',
+                    uiImage: _avatarImage,
                     isImage: true,
                     onTap: _pickImage,
                   ),
                   _buildRowItem(
                     title: l10n.nickname,
                     value: userInfo?.nickname ?? '',
-                    onTap:
-                        () =>
-                            _modifyNickname(nickname: userInfo?.nickname ?? ''),
+                    onTap: () => _modifyNickname(userInfo?.nickname ?? ''),
                   ),
                   _buildRowItem(
                     title: l10n.phone,
                     value: userInfo?.mobile ?? '',
-                    onTap:
-                        () => _modifyNickname(
-                          isNickname: false,
-                          mobile: userInfo?.mobile ?? '',
-                        ),
+                    onTap: () => _modifyPhone(userInfo?.mobile ?? ''),
                   ),
                   _buildRowItem(
                     title: l10n.email,
                     value: userInfo?.email ?? '',
-                    isArrow: false,
-                    onTap: () {},
+                    onTap: () => _modifyEmail(userInfo?.email ?? ''),
                   ),
                 ],
               ),
@@ -187,10 +194,12 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
               children: [
                 if (isImage != null && isImage)
                   uiImage != null
-                    ? RawImage(image: uiImage, width: 48.w, height: 48.h,)
-                    : CommonImage(
+                      ? RawImage(image: uiImage, width: 48.w, height: 48.h)
+                      : CommonImage(
                         imagePath:
-                            value.isNotEmpty ? value : "assets/images/avatar.png",
+                            value.isNotEmpty
+                                ? value
+                                : "assets/images/avatar.png",
                         width: 48.w,
                         height: 48.h,
                         borderRadius: 24.w,
@@ -262,10 +271,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
 
     try {
       // 根据选择获取图片
-      final ImageSource source =
-          result == 'camera' ? ImageSource.camera : ImageSource.gallery;
-      
-  
+      final ImageSource source = result == 'camera' ? ImageSource.camera : ImageSource.gallery;
 
       final XFile? pickedFile = await _imagePicker.pickImage(
         source: source,
@@ -273,9 +279,9 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       );
 
       if (pickedFile == null || !mounted) return;
-      final popId2 = Pop.loading();
+      final popId = Pop.loading();
       final ui.Image image = await loadImageFromFile(pickedFile.path);
-      Pop.hideLoading(popId2);
+      Pop.hideLoading(popId);
       if (!mounted) return;
 
       final ui.Image? editedImage = await Navigator.of(context).push<ui.Image?>(
@@ -289,35 +295,30 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                 cancelText: l10n.btnCancel,
                 confirmText: l10n.btnConfirm,
               ),
+              compression: ImageCompressionConfig(
+                scale: 0.1,
+                enabled: true
+              ),
             ),
           ),
         ),
       );
 
-
-
       if (!mounted || editedImage == null) return;
 
+      final pid = Pop.loading();
+      final bytes = await convertUiImageToBytes(editedImage);
+      if (bytes == null) {
+        return;
+      }
+
       setState(() {
-        _avatarImage2 = editedImage;
+        _avatarImage = editedImage;
       });
-      // final popId = Pop.loading();
-      // final savedPath = await _saveEditedImage(editedImage);
-      // if (savedPath == null) {
-      //   Logger.warn('ProfilePage', '保存裁剪图片失败');
-      //   return;
-      // }
 
-      // if (!mounted) return;
+      // 上传头像接口
+      await _uploadAvatar(bytes , pid);
 
-      // setState(() {
-      //   _avatarImage = savedPath;
-      // });
-      // Pop.hideLoading(popId);
-      // Logger.info('ProfilePage', '头像裁剪完成: $savedPath');
-
-      // TODO: 调用上传图片接口
-      // await _uploadAvatar(savedPath);
     } catch (e) {
       Logger.error('ProfilePage', '选择或裁剪图片失败: $e');
       if (mounted) {
@@ -327,18 +328,30 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     }
   }
 
-  Future<String?> _saveEditedImage(ui.Image image) async {
-    final bytes = await convertUiImageToBytes(image);
-    if (bytes == null) {
-      return null;
+  Future<void> _uploadAvatar(Uint8List bytes, String popId) async {
+    final l10n = AppLocalizations.of(context)!;
+    try {
+      final avatarUrl = await MineServices().uploadAvatar(
+        bytes,
+        fileName: 'avatar_${DateTime.now().millisecondsSinceEpoch}.png',
+      );
+      if (!mounted) return;
+      await _updateUserInfo(
+        newAvatar: avatarUrl,
+        showLoading: false,
+        showSuccessToast: false,
+      );
+      if (!mounted) return;
+      Pop.toast(l10n.avatarUploadSuccess, toastType: ToastType.success);
+      Logger.info('ProfilePage', '头像上传成功');
+    } catch (e) {
+      Logger.error('ProfilePage', '上传头像失败: $e');
+      if (mounted) {
+        Pop.toast(l10n.avatarUploadFailed, toastType: ToastType.error);
+      }
+    } finally {
+      Pop.hideLoading(popId);
     }
-
-    final directory = await getTemporaryDirectory();
-    final file = File(
-      '${directory.path}/image_${DateTime.now().millisecondsSinceEpoch}.png',
-    );
-    await file.writeAsBytes(bytes, flush: true);
-    return file.path;
   }
 
   Widget _buildImageSourceOption({
@@ -349,135 +362,402 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: EdgeInsets.symmetric(vertical: 2.h),
+        padding: EdgeInsets.symmetric(vertical: 6.h),
         child: Text(
           title,
           style: TextStyle(
             fontSize: 16.sp,
             color: textColor ?? Colors.black87,
-            fontWeight: FontWeight.w500,
+            fontWeight: FontWeight.w600,
           ),
         ),
       ),
     );
   }
 
-  // 修改昵称
-  Future<void> _modifyNickname({
-    bool? isNickname = true,
-    String? nickname,
-    String? mobile,
-  }) async {
+  Future<void> _modifyNickname(String currentNickname) async {
     final l10n = AppLocalizations.of(context)!;
-    final result = await Pop.sheet<String>(
-      title:
-          isNickname != null && isNickname
-              ? l10n.modifyNickname
-              : l10n.modifyPhone,
-      childBuilder:
-          (dismiss) => Container(
-            padding: EdgeInsets.symmetric(horizontal: 24.w),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CommonSpacing.standard,
-                TextField(
-                  keyboardType:
-                      isNickname != null && isNickname
-                          ? TextInputType.text
-                          : TextInputType.phone,
-                  controller:
-                      isNickname != null && isNickname
-                          ? _nicknameController
-                          : _phoneController,
-                  decoration: InputDecoration(
-                    hintText:
-                        isNickname != null && isNickname
-                            ? nickname
-                            : mobile ?? '',
+    _nicknameController
+      ..text = currentNickname
+      ..selection = TextSelection.fromPosition(
+        TextPosition(offset: _nicknameController.text.length),
+      );
+    final result = await _showTextInputSheet(
+      title: l10n.modifyNickname,
+      controller: _nicknameController,
+      hintText: currentNickname,
+      keyboardType: TextInputType.text,
+      tips: [
+        Text(
+          l10n.modifyNicknameTips1,
+          style: TextStyle(
+            color: Colors.grey.shade400,
+            fontSize: 14.sp,
+          ),
+        ),
+        CommonSpacing.medium,
+        Text(
+          l10n.modifyNicknameTips2,
+          style: TextStyle(
+            color: Colors.grey.shade400,
+            fontSize: 14.sp,
+          ),
+        ),
+        CommonSpacing.medium,
+        Text(
+          l10n.modifyNicknameTips3,
+          style: TextStyle(
+            color: Colors.grey.shade400,
+            fontSize: 14.sp,
+          ),
+        ),
+      ],
+    );
+    if (result == null) return;
+    final trimmed = result.trim();
+    if (trimmed.isEmpty) {
+      Pop.toast(l10n.modifyNicknameEmpty, toastType: ToastType.error);
+      return;
+    }
+    if (trimmed == currentNickname) {
+      Pop.toast(l10n.modifyNoChange, toastType: ToastType.warn);
+      return;
+    }
+    await _updateUserInfo(newNickname: trimmed);
+  }
+
+  Future<void> _modifyEmail(String currentEmail) async {
+    final l10n = AppLocalizations.of(context)!;
+    _emailController
+      ..text = currentEmail
+      ..selection = TextSelection.fromPosition(
+        TextPosition(offset: _emailController.text.length),
+      );
+    final result = await _showTextInputSheet(
+      title: l10n.modifyEmail,
+      controller: _emailController,
+      hintText: currentEmail,
+      keyboardType: TextInputType.emailAddress,
+    );
+    if (result == null) return;
+    final trimmed = result.trim();
+    if (trimmed.isEmpty) {
+      Pop.toast(l10n.modifyEmailEmpty, toastType: ToastType.error);
+      return;
+    }
+    final emailReg = RegExp(r'^[\w\-.]+@[\w-]+(\.[\w-]+)+$');
+    if (!emailReg.hasMatch(trimmed)) {
+      Pop.toast(l10n.modifyEmailInvalid, toastType: ToastType.error);
+      return;
+    }
+    if (trimmed == currentEmail) {
+      Pop.toast(l10n.modifyNoChange, toastType: ToastType.warn);
+      return;
+    }
+    await _updateUserInfo(newEmail: trimmed);
+  }
+
+  Future<void> _modifyPhone(String currentMobile) async {
+    final l10n = AppLocalizations.of(context)!;
+    _phoneController
+      ..text = currentMobile
+      ..selection = TextSelection.fromPosition(
+        TextPosition(offset: _phoneController.text.length),
+      );
+    _smsCodeController.clear();
+    _resetPhoneState();
+    await Pop.sheet<bool>(
+      title: l10n.modifyPhone,
+      childBuilder: (dismiss) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            Future<void> handleSendSms() async {
+              final phone = _phoneController.text.trim();
+              if (phone.isEmpty) {
+                Pop.toast(l10n.modifyPhoneEmpty, toastType: ToastType.error);
+                return;
+              }
+              if (_isSendingSms || _smsCountdown > 0) return;
+              setModalState(() {
+                _isSendingSms = true;
+              });
+              try {
+                final params = AppAuthSmsSendParams(
+                  mobile: phone,
+                  scene: SmsSceneEnum.modifyPhone,
+                  userPlatformType: UserPlatformTypeEnum.normal,
+                );
+                await AuthServices().sendSms(params);
+                Pop.toast(l10n.smsSendSuccess, toastType: ToastType.success);
+                _startSmsCountdown(setModalState);
+              } catch (e) {
+                Logger.error('ProfilePage', '发送验证码失败: $e');
+                Pop.toast(l10n.smsSendFailed, toastType: ToastType.error);
+              } finally {
+                setModalState(() {
+                  _isSendingSms = false;
+                });
+              }
+            }
+
+            Future<void> handleSubmit() async {
+              final phone = _phoneController.text.trim();
+              final code = _smsCodeController.text.trim();
+              if (phone.isEmpty) {
+                Pop.toast(l10n.modifyPhoneEmpty, toastType: ToastType.error);
+                return;
+              }
+              if (code.isEmpty) {
+                Pop.toast(l10n.modifyPhoneCodeEmpty, toastType: ToastType.error);
+                return;
+              }
+              if (_isUpdatingPhone) return;
+              setModalState(() {
+                _isUpdatingPhone = true;
+              });
+              final popId = Pop.loading();
+              try {
+                await AuthServices().updatePhone(
+                  AppAuthUpdatePhoneParams(
+                    code: code,
+                    mobile: phone,
                   ),
-                  onChanged:
-                      (value) =>
-                          isNickname != null && isNickname
-                              ? _nicknameController.text = value
-                              : _phoneController.text = value,
-                ),
-                Divider(color: Colors.grey.shade100, height: 0.5.h),
-                CommonSpacing.large,
-                if (isNickname != null && isNickname) ...[
-                  Text(
-                    l10n.modifyNicknameTips1,
-                    style: TextStyle(
-                      color: Colors.grey.shade400,
-                      fontSize: 14.sp,
+                );
+                await ref.read(userInfoProvider.notifier).refresh();
+                Pop.toast(l10n.modifySuccess, toastType: ToastType.success);
+                dismiss(true);
+              } catch (e) {
+                Logger.error('ProfilePage', '修改手机号失败: $e');
+                Pop.toast(l10n.modifyPhoneFailed, toastType: ToastType.error);
+              } finally {
+                Pop.hideLoading(popId);
+                setModalState(() {
+                  _isUpdatingPhone = false;
+                });
+              }
+            }
+
+            return Padding(
+              padding: EdgeInsets.symmetric(horizontal: 24.w),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CommonSpacing.standard,
+                  TextField(
+                    controller: _phoneController,
+                    keyboardType: TextInputType.phone,
+                    decoration: InputDecoration(
+                      labelText: l10n.modifyPhoneNew,
+                      hintText: currentMobile,
                     ),
                   ),
                   CommonSpacing.medium,
-                  Text(
-                    l10n.modifyNicknameTips2,
-                    style: TextStyle(
-                      color: Colors.grey.shade400,
-                      fontSize: 14.sp,
-                    ),
-                  ),
-                  CommonSpacing.medium,
-                  Text(
-                    l10n.modifyNicknameTips3,
-                    style: TextStyle(
-                      color: Colors.grey.shade400,
-                      fontSize: 14.sp,
-                    ),
-                  ),
-                  CommonSpacing.medium,
-                ] else ...[
-                  Text(
-                    "验证码区域",
-                    style: TextStyle(
-                      color: Colors.grey.shade400,
-                      fontSize: 14.sp,
-                    ),
-                  ),
-                  CommonSpacing.medium,
-                ],
-                CommonSpacing.huge,
-                Center(
-                  child: GestureDetector(
-                    onTap: () {
-                      dismiss(_nicknameController.text);
-                    },
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: AppTheme.primaryOrange,
-                        borderRadius: BorderRadius.circular(12.w),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _smsCodeController,
+                          keyboardType: TextInputType.number,
+                          decoration: InputDecoration(
+                            labelText: l10n.modifyPhoneCodeLabel,
+                            hintText: l10n.modifyPhoneCodeHint,
+                          ),
+                        ),
                       ),
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 48.w,
-                        vertical: 12.h,
+                      CommonSpacing.width(12.w),
+                      GestureDetector(
+                        onTap: handleSendSms,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: (_smsCountdown > 0 || _isSendingSms)
+                                ? Colors.grey.shade300
+                                : AppTheme.primaryOrange,
+                            borderRadius: BorderRadius.circular(12.w),
+                          ),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 16.w,
+                            vertical: 10.h,
+                          ),
+                          child: Text(
+                            _smsCountdown > 0
+                                ? l10n.modifyPhoneResend(_smsCountdown)
+                                : l10n.modifyPhoneSendCode,
+                            style: TextStyle(
+                              color: (_smsCountdown > 0 || _isSendingSms)
+                                  ? Colors.grey.shade600
+                                  : Colors.white,
+                              fontSize: 12.sp,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
                       ),
-                      child: Text(
-                        l10n.btnSave,
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 14.sp,
-                          fontWeight: FontWeight.bold,
+                    ],
+                  ),
+                  CommonSpacing.huge,
+                  Center(
+                    child: GestureDetector(
+                      onTap: handleSubmit,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: AppTheme.primaryOrange,
+                          borderRadius: BorderRadius.circular(12.w),
+                        ),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 48.w,
+                          vertical: 12.h,
+                        ),
+                        child: Text(
+                          _isUpdatingPhone ? l10n.btnSaving : l10n.btnSave,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-              ],
-            ),
-          ),
+                  CommonSpacing.large,
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
-    if (result != null) {
-      Logger.info('ProfilePage', 'modifyNickname: $result');
+    _resetPhoneState();
+  }
+
+  Future<String?> _showTextInputSheet({
+    required String title,
+    required TextEditingController controller,
+    String? hintText,
+    TextInputType keyboardType = TextInputType.text,
+    List<Widget>? tips,
+  }) {
+    final l10n = AppLocalizations.of(context)!;
+    return Pop.sheet<String>(
+      title: title,
+      childBuilder: (dismiss) => Padding(
+        padding: EdgeInsets.symmetric(horizontal: 24.w),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            CommonSpacing.standard,
+            TextField(
+              controller: controller,
+              keyboardType: keyboardType,
+              decoration: InputDecoration(
+                hintText: hintText,
+              ),
+              autofocus: true,
+            ),
+            CommonSpacing.large,
+            if (tips != null) ...[
+              ...tips,
+              CommonSpacing.medium,
+            ],
+            CommonSpacing.huge,
+            Center(
+              child: GestureDetector(
+                onTap: () => dismiss(controller.text),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryOrange,
+                    borderRadius: BorderRadius.circular(12.w),
+                  ),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 48.w,
+                    vertical: 12.h,
+                  ),
+                  child: Text(
+                    l10n.btnSave,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            CommonSpacing.large,
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _updateUserInfo({
+    String? newNickname,
+    String? newEmail,
+    String? newAvatar,
+    bool showLoading = true,
+    bool showSuccessToast = true,
+  }) async {
+    final l10n = AppLocalizations.of(context)!;
+    final userInfo = ref.read(userInfoDataProvider);
+    if (userInfo == null) {
+      Pop.toast(l10n.modifyUserInfoMissing, toastType: ToastType.error);
+      return;
+    }
+    String? popId;
+    if (showLoading) {
+      popId = Pop.loading();
+    }
+    try {
+      await MineServices().updateUserInfo(
+        UpdateUserInfoParams(
+          avatar: newAvatar ?? userInfo.avatar ?? '',
+          nickname: newNickname ?? userInfo.nickname,
+          email: newEmail ?? userInfo.email,
+        ),
+      );
+      await ref.read(userInfoProvider.notifier).refresh();
+      if (showSuccessToast) {
+        Pop.toast(l10n.modifySuccess, toastType: ToastType.success);
+      }
+    } catch (e) {
+      Logger.error('ProfilePage', '更新用户信息失败: $e');
+      Pop.toast(l10n.modifyFailed, toastType: ToastType.error);
+    } finally {
+      if (popId != null) {
+        Pop.hideLoading(popId);
+      }
     }
   }
 
-  // 修改手机号
-  Future<void> _modifyPhone() async {
-    Logger.info('ProfilePage', 'modifyPhone');
+  void _startSmsCountdown(StateSetter setModalState) {
+    _smsCountdown = 60;
+    setModalState(() {});
+    _smsTimer?.cancel();
+    _smsTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_smsCountdown <= 1) {
+        _cancelSmsTimer();
+        setModalState(() {
+          _smsCountdown = 0;
+        });
+      } else {
+        setModalState(() {
+          _smsCountdown -= 1;
+        });
+      }
+    });
+  }
+
+  void _cancelSmsTimer() {
+    _smsTimer?.cancel();
+    _smsTimer = null;
+  }
+
+  void _resetPhoneState() {
+    _cancelSmsTimer();
+    _smsCountdown = 0;
+    _isSendingSms = false;
+    _isUpdatingPhone = false;
+    _smsCodeController.clear();
   }
 }

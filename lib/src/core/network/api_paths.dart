@@ -18,6 +18,9 @@ class ApiPaths {
   // 登出系统
   static const String logoutApi = "/app-api/member/auth/logout";
 
+  // 修改手机号
+  static const String updatePhoneApi = "/app-api/member/user/update-mobile";
+
 
   // [首页模块]
   // 获取甄选私厨店铺
@@ -68,6 +71,9 @@ class ApiPaths {
   // [我的模块]
   // 获取用户基本信息
   static const String getUserInfoApi = "/app-api/member/user/get";
+
+  // 上传头像
+  static const String uploadAvatarApi = "/app-api/infra/file/upload/avatar";
 
   // 修改基本信息
   static const String updateUserInfoApi = "/app-api/member/user/update";

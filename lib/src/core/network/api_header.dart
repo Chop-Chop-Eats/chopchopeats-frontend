@@ -16,7 +16,6 @@ class ApiHeader {
 
     // 组装 Headers
     final headers = <String, dynamic>{
-      'Content-Type': 'application/json',
       // 'lang': language,
     };
 

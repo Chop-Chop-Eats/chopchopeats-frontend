@@ -252,11 +252,53 @@ class AppLocalizationsEn implements AppLocalizations {
   @override
   String get modifyPhone => 'Modify Phone';
   @override
+  String get modifyEmail => 'Modify Email';
+  @override
   String get modifyNicknameTips1 => 'Normative Suggestions:';
   @override
   String get modifyNicknameTips2 => 'Nickname can only contain up to 15 characters';
   @override
   String get modifyNicknameTips3 => 'Nickname can only contain English, numbers, and symbols';
+  @override
+  String get modifyNicknameEmpty => 'Please enter a nickname';
+  @override
+  String get modifyEmailEmpty => 'Please enter an email';
+  @override
+  String get modifyEmailInvalid => 'Please enter a valid email';
+  @override
+  String get modifyNoChange => 'Nothing changed';
+  @override
+  String get modifySuccess => 'Updated successfully';
+  @override
+  String get modifyFailed => 'Update failed, please try again';
+  @override
+  String get modifyUserInfoMissing => 'Failed to get user info';
+  @override
+  String get modifyPhoneEmpty => 'Please enter a phone number';
+  @override
+  String get modifyPhoneCodeEmpty => 'Please enter the verification code';
+  @override
+  String get modifyPhoneNew => 'New Phone Number';
+  @override
+  String get modifyPhoneCodeLabel => 'Verification Code';
+  @override
+  String get modifyPhoneCodeHint => 'Enter the code';
+  @override
+  String modifyPhoneResend(int seconds) => 'Resend (${seconds}s)';
+  @override
+  String get modifyPhoneSendCode => 'Send Code';
+  @override
+  String get modifyPhoneFailed => 'Failed to update phone, please retry';
+  @override
+  String get smsSendSuccess => 'Code sent';
+  @override
+  String get smsSendFailed => 'Failed to send code, please retry';
+  @override
+  String get btnSaving => 'Saving...';
+  @override
+  String get avatarUploadSuccess => 'Avatar updated';
+  @override
+  String get avatarUploadFailed => 'Failed to upload avatar, please retry';
   @override
   String get camera => 'Camera';
   @override

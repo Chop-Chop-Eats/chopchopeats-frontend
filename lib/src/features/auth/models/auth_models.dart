@@ -147,3 +147,30 @@ class AppAuthResetPasswordParams {
     'userPlatformType': userPlatformType.index+1,
   };
 }
+
+
+// 修改手机号 params参数
+class AppAuthUpdatePhoneParams {
+  ///手机验证码
+  final String code;
+
+  ///手机号
+  final String mobile;
+
+  // 旧验证码
+  final String? oldCode;
+
+  AppAuthUpdatePhoneParams({
+    required this.code,
+    required this.mobile,
+    this.oldCode,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'code': code,
+    'mobile': mobile,
+    if (oldCode != null) 'oldCode': oldCode,
+  };
+}
+
+ 

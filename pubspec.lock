@@ -234,10 +234,10 @@ packages:
     dependency: "direct main"
     description:
       name: flutter_img_editor
-      sha256: "023669e996800b4364f7bc1a30754994a8f010bdd9739339055e7e2a714c314b"
+      sha256: "62c9488d78ae432ece56467994775a2dd31cb118ee2523fb9979d5365bbf8d2f"
       url: "https://pub.flutter-io.cn"
     source: hosted
-    version: "0.0.1"
+    version: "0.0.3"
   flutter_launcher_icons:
     dependency: "direct dev"
     description:

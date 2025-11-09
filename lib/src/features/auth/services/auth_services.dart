@@ -48,4 +48,14 @@ class AuthServices {
     return response.data;
   }
 
+  // 修改手机号
+  Future<void> updatePhone(AppAuthUpdatePhoneParams params) async {
+    final response = await ApiClient().put(
+      ApiPaths.updatePhoneApi, 
+      data: params.toJson()
+    );
+    Logger.info('AuthServices', '修改手机号: ${response.data}');
+    return response.data;
+  }
+
 }
