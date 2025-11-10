@@ -1,9 +1,10 @@
 
 import 'package:flutter/material.dart';
+
 import '../constants/app_constant.dart';
-import '../utils/logger/logger.dart';
 import '../enums/language_mode.dart';
 import '../l10n/locale_service.dart';
+import '../utils/logger/logger.dart';
 import 'app_services.dart';
 
 class AppSettings extends ChangeNotifier {
@@ -15,12 +16,16 @@ class AppSettings extends ChangeNotifier {
   // 语言模式
   late LanguageMode _languageMode;
   /// 经度
-  late double _longitude = -71.4128;
+  double _longitude = -71.4128;
+
   /// 纬度
-  late double _latitude = 41.824;
+  double _latitude = 41.824;
+
+  /// 当前选定位置的展示文案
+  String _locationLabel = 'Northwalk Rd, Toronto';
 
   /// 页面大小
-  late final int _pageSize = 10;
+  final int _pageSize = 10;
 
   // 访问主题模式
   ThemeMode get themeMode => _themeMode;
@@ -56,6 +61,8 @@ class AppSettings extends ChangeNotifier {
   double get latitude => _latitude;
   /// 访问页面大小
   int get pageSize => _pageSize;
+  /// 访问位置标题
+  String get locationLabel => _locationLabel;
 
   /// 初始化 AppSettings
   /// 从缓存中加载用户偏好，如果不存在则使用默认值
@@ -71,6 +78,21 @@ class AppSettings extends ChangeNotifier {
     final languageModeStr = await AppServices.cache.get<String>(AppConstants.languageMode);
     settings._languageMode = LanguageMode.fromString(languageModeStr); // 默认跟随系统
     
+    // 加载位置坐标
+    final cachedLongitude = await AppServices.cache.get<double>(AppConstants.longitude);
+    final cachedLatitude = await AppServices.cache.get<double>(AppConstants.latitude);
+    final cachedLabel = await AppServices.cache.get<String>(AppConstants.locationLabel);
+
+    if (cachedLongitude != null) {
+      settings._longitude = cachedLongitude;
+    }
+    if (cachedLatitude != null) {
+      settings._latitude = cachedLatitude;
+    }
+    if (cachedLabel != null && cachedLabel.isNotEmpty) {
+      settings._locationLabel = cachedLabel;
+    }
+
     // 初始化 LocaleService（使用系统默认语言或设置的语言）
     final initialLocale = settings.locale ?? const Locale('zh'); // 如果跟随系统，先用中文初始化
     LocaleService.updateLocale(initialLocale);
@@ -110,13 +132,48 @@ class AppSettings extends ChangeNotifier {
     await AppServices.cache.set<String>(AppConstants.languageMode, _languageMode.name);
   }
 
-   /// 更新经度
-  Future<void> setLongitude(double longitude) async {
+  Future<void> updateLocation({
+    required double latitude,
+    required double longitude,
+    String? label,
+  }) async {
+    final labelValue = label?.trim();
+    var hasLabelUpdate = false;
+    if (labelValue != null && labelValue.isNotEmpty && labelValue != _locationLabel) {
+      _locationLabel = labelValue;
+      hasLabelUpdate = true;
+    }
+
+    final hasPositionUpdate = _latitude != latitude || _longitude != longitude;
+    _latitude = latitude;
     _longitude = longitude;
+
+    if (hasPositionUpdate || hasLabelUpdate) {
+      notifyListeners();
+    }
+
+    await AppServices.cache.set<double>(AppConstants.latitude, _latitude);
+    await AppServices.cache.set<double>(AppConstants.longitude, _longitude);
+    if (hasLabelUpdate) {
+      await AppServices.cache.set<String>(AppConstants.locationLabel, _locationLabel);
+    }
+  }
+
+  Future<void> updateLocationLabel(String label) async {
+    final value = label.trim();
+    if (value.isEmpty || value == _locationLabel) return;
+    _locationLabel = value;
+    notifyListeners();
+    await AppServices.cache.set<String>(AppConstants.locationLabel, _locationLabel);
+  }
+
+  /// 更新经度
+  Future<void> setLongitude(double longitude) {
+    return updateLocation(latitude: _latitude, longitude: longitude);
   }
 
   /// 更新纬度
-  Future<void> setLatitude(double latitude) async {
-    _latitude = latitude;
+  Future<void> setLatitude(double latitude) {
+    return updateLocation(latitude: latitude, longitude: _longitude);
   }
 }

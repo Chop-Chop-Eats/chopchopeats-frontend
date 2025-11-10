@@ -13,4 +13,5 @@ class Routes {
   static const String profile = '/profile'; // 个人资料页面
   static const String address = '/address'; // 收货地址页面
   static const String addAddress = '/address/add'; // 新增收货地址页面
+  static const String mapPicker = '/map-picker'; // 地图选址页面
 }

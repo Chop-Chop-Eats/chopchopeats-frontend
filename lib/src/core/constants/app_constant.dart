@@ -21,5 +21,11 @@ class AppConstants {
   static const String userId = "USER_ID";
   // 搜索历史
   static const String searchHistory = "SEARCH_HISTORY";
+  // 全局经度
+  static const String longitude = "APP_LONGITUDE";
+  // 全局纬度
+  static const String latitude = "APP_LATITUDE";
+  // 全局位置名称
+  static const String locationLabel = "APP_LOCATION_LABEL";
 
 }

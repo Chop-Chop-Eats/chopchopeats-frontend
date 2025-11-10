@@ -14,6 +14,7 @@ import '../../features/main_screen.dart';
 import '../../features/mine/pages/profile_page.dart';
 import '../../features/search/pages/search_page.dart';
 import '../../features/splash/pages/splash_page.dart';
+import '../maps/map_picker_page.dart';
 import 'routes.dart';
 
 class AppRouter {
@@ -72,12 +73,27 @@ class AppRouter {
       }
       return const AddAddressPage();
     },
+    Routes.mapPicker: (settings) {
+      final arguments = settings.arguments;
+      if (arguments is MapPickerArguments) {
+        return MapPickerPage(arguments: arguments);
+      }
+      return const ErrorPage(message: "地图参数错误或缺失");
+    },
   };
 
   /// 创建路由方法
   static Route<dynamic> generateRoute(RouteSettings settings) {
     // 查找与路由名称匹配的处理程序
     final handler = _routeHandlers[settings.name];
+
+    if (settings.name == Routes.mapPicker) {
+      final widget = handler?.call(settings) ?? const ErrorPage(message: "地图参数错误或缺失");
+      return MaterialPageRoute<MapPickerResult?>(
+        builder: (_) => widget,
+        settings: settings,
+      );
+    }
 
     Widget page;
     if (handler != null) {

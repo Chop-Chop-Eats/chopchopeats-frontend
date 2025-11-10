@@ -58,9 +58,11 @@ class _SplashPageState extends ConsumerState<SplashPage> with WidgetsBindingObse
   }
 
   /// 保存位置信息到全局配置
-  void _saveLocationToSettings(Position position) {
-    AppServices.appSettings.setLongitude(position.longitude);
-    AppServices.appSettings.setLatitude(position.latitude);
+  Future<void> _saveLocationToSettings(Position position) async {
+    await AppServices.appSettings.updateLocation(
+      latitude: position.latitude,
+      longitude: position.longitude,
+    );
     Logger.info('SplashPage', '✅ 已保存经纬度 - 经度=${AppServices.appSettings.longitude}, 纬度=${AppServices.appSettings.latitude}');
   }
 
@@ -84,7 +86,7 @@ class _SplashPageState extends ConsumerState<SplashPage> with WidgetsBindingObse
         final position = await _getPositionWithoutRequest();
         if (position != null && mounted) {
           // 保存经纬度到全局配置
-          _saveLocationToSettings(position);
+          await _saveLocationToSettings(position);
           setState(() {
             _isLocationPermission = true;
           });
@@ -232,7 +234,7 @@ class _SplashPageState extends ConsumerState<SplashPage> with WidgetsBindingObse
       if (position != null) {
         Logger.info('SplashPage', '✅ 定位成功: 纬度=${position.latitude}, 经度=${position.longitude}');
         // 保存经纬度到全局配置
-        _saveLocationToSettings(position);
+        await _saveLocationToSettings(position);
         
         setState(() {
           _isLocationPermission = true;

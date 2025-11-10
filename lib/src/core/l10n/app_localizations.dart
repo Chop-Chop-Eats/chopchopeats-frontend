@@ -106,6 +106,21 @@ abstract class AppLocalizations {
   String get noBannerData;
   String get noRestaurantData;
   
+  // ============== 地图选址 ==============
+  String get mapSelectLocationTitle;
+  String get mapConfirmLocation;
+  String get mapSearchHint;
+  String get mapResolvingAddress;
+  String get mapNoAddress;
+  String get mapUseMyLocation;
+  String get mapLocationServicesDisabled;
+  String get mapLocationPermissionDenied;
+  String get mapLocationFetchFailed;
+  String get mapPlaceDetailFailed;
+  String get mapSearchFailed;
+  String get mapSelectedLocationLabel;
+  String mapCoordinateLabel(double latitude, double longitude);
+
   // ============== Search 搜索页 ==============
   String get searchContentHint;
   String get guessYouLike;

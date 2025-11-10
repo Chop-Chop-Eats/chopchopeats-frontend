@@ -197,6 +197,21 @@ chop_user/
 - **国际化**: flutter_localizations
 - **日志系统**: dart:developer
 
+## 🗺️ 地图与位置服务配置
+
+本应用引入了 Google Maps/Places 能力，为首页位置选择与地址表单提供地图服务。配置流程如下：
+
+1. 在 [Google Cloud Console](https://console.cloud.google.com/) 中启用 **Maps SDK for Android**、**Maps SDK for iOS**、**Places API**，并创建受限的 API Key。
+2. 按平台写入密钥：
+   - **Android**：在 `android/app/src/main/AndroidManifest.xml` 的 `<application>` 内添加  
+     `<meta-data android:name="com.google.android.geo.API_KEY" android:value="YOUR_API_KEY" />`
+   - **iOS**：在 `ios/Runner/AppDelegate.swift` 中调用  
+     `GMSServices.provideAPIKey("YOUR_API_KEY")`
+3. 在 Flutter 层统一维护密钥：`lib/src/core/maps/maps_config.dart` 的 `MapsConfig.apiKey`。如需多环境管理，建议改用运行时注入或本地配置文件。
+4. **切记不要** 将生产环境密钥提交到公共仓库，必要时可在 CI/CD 中动态写入。
+
+完成上述配置后，即可使用 `MapPickerPage`、`MapsService` 等适配层组件，实现地图选点、自动补全与反向地理编码功能。
+
 ## 📱 支持平台
 
 - ✅ Android

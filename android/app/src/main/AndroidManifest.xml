@@ -18,6 +18,9 @@
         android:icon="@mipmap/ic_launcher"
         android:usesCleartextTraffic="true"
         android:networkSecurityConfig="@xml/network_security_config">
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyAjvcQ-m3FCQCO1Zc0DnJ0HaFiPoCA_3zc" />
         <activity
             android:name=".MainActivity"
             android:exported="true"

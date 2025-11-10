@@ -164,6 +164,35 @@ class AppLocalizationsEn implements AppLocalizations {
   @override
   String get noRestaurantData => 'No restaurants available';
   
+  // ============== 地图选址 ==============
+  @override
+  String get mapSelectLocationTitle => 'Choose Location';
+  @override
+  String get mapConfirmLocation => 'Confirm Location';
+  @override
+  String get mapSearchHint => 'Search places or address';
+  @override
+  String get mapResolvingAddress => 'Resolving address...';
+  @override
+  String get mapNoAddress => 'No detailed address found, please adjust the pin';
+  @override
+  String get mapUseMyLocation => 'Use current location';
+  @override
+  String get mapLocationServicesDisabled => 'Location services are disabled, please enable them first';
+  @override
+  String get mapLocationPermissionDenied => 'Location permission denied, please enable it in system settings';
+  @override
+  String get mapLocationFetchFailed => 'Failed to get current location, please try again later';
+  @override
+  String get mapPlaceDetailFailed => 'Failed to parse place, please try again later';
+  @override
+  String get mapSearchFailed => 'Search failed, please check your network';
+  @override
+  String get mapSelectedLocationLabel => 'Selected Location';
+  @override
+  String mapCoordinateLabel(double latitude, double longitude) =>
+      'Latitude: ${latitude.toStringAsFixed(6)}\nLongitude: ${longitude.toStringAsFixed(6)}';
+
   // ============== Search 搜索页 ==============
   @override
   String get searchContentHint => 'Search content';

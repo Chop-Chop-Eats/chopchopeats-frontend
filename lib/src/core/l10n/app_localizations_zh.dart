@@ -162,6 +162,35 @@ class AppLocalizationsZh implements AppLocalizations {
   String get noBannerData => '暂无Banner数据';
   @override
   String get noRestaurantData => '暂无甄选私厨数据';
+
+  // ============== 地图选址 ==============
+  @override
+  String get mapSelectLocationTitle => '选择位置';
+  @override
+  String get mapConfirmLocation => '确定位置';
+  @override
+  String get mapSearchHint => '搜索地点或地址';
+  @override
+  String get mapResolvingAddress => '正在解析地址...';
+  @override
+  String get mapNoAddress => '未找到准确地址，请调整图钉位置';
+  @override
+  String get mapUseMyLocation => '使用当前位置';
+  @override
+  String get mapLocationServicesDisabled => '定位服务未开启，请先打开设备定位';
+  @override
+  String get mapLocationPermissionDenied => '定位权限被拒绝，请前往系统设置开启权限';
+  @override
+  String get mapLocationFetchFailed => '无法获取当前位置，请稍后再试';
+  @override
+  String get mapPlaceDetailFailed => '解析地点失败，请稍后重试';
+  @override
+  String get mapSearchFailed => '搜索失败，请检查网络后重试';
+  @override
+  String get mapSelectedLocationLabel => '选定位置';
+  @override
+  String mapCoordinateLabel(double latitude, double longitude) =>
+      '纬度: ${latitude.toStringAsFixed(6)}\n经度: ${longitude.toStringAsFixed(6)}';
   
   // ============== Search 搜索页 ==============
   @override

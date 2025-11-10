@@ -1,23 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+
 import '../../../core/config/app_services.dart';
-import '../../../core/utils/logger/logger.dart';
-import '../../../core/widgets/common_indicator.dart';
-import '../../../core/widgets/custom_sliver_app_bar.dart';
-import '../../../core/widgets/common_image.dart';
+import '../../../core/config/app_setting.dart';
+import '../../../core/l10n/app_localizations.dart';
+import '../../../core/maps/map_picker_page.dart';
+import '../../../core/providers/favorite_provider.dart';
 import '../../../core/routing/navigate.dart';
 import '../../../core/routing/routes.dart';
-import '../../../core/providers/favorite_provider.dart';
-import '../../../core/l10n/app_localizations.dart';
-import '../providers/home_provider.dart';
+import '../../../core/utils/logger/logger.dart';
+import '../../../core/widgets/common_image.dart';
+import '../../../core/widgets/common_indicator.dart';
+import '../../../core/widgets/custom_sliver_app_bar.dart';
+import '../../../core/widgets/restaurant/restaurant_list.dart';
 import '../models/home_models.dart';
+import '../providers/home_provider.dart';
+import '../widgets/banner_carousel.dart';
+import '../widgets/category_grid.dart';
 import '../widgets/location_bar.dart';
 import '../widgets/search_bar.dart';
-import '../widgets/category_grid.dart';
-import '../widgets/banner_carousel.dart';
 import '../widgets/section_header.dart';
-import '../../../core/widgets/restaurant/restaurant_list.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key});
@@ -27,21 +31,33 @@ class HomePage extends ConsumerStatefulWidget {
 }
 
 class _HomePageState extends ConsumerState<HomePage> {
-  final _latitude = AppServices.appSettings.latitude;
-  final _longitude = AppServices.appSettings.longitude;
+  late final AppSettings _appSettings = AppServices.appSettings;
+
+  void _onAppSettingsChanged() {
+    if (!mounted) return;
+    setState(() {});
+  }
 
   @override
   void initState() {
     super.initState();
+    _appSettings.addListener(_onAppSettingsChanged);
     // 加载分类数据和甄选私厨数据
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      final settings = AppServices.appSettings;
       ref.read(categoryProvider.notifier).loadCategories();
       ref.read(selectedChefProvider.notifier).loadSelectedChef(
-        latitude: _latitude,
-        longitude: _longitude,
+        latitude: settings.latitude,
+        longitude: settings.longitude,
       );
       ref.read(bannerProvider.notifier).loadBannerList();
     });
+  }
+
+  @override
+  void dispose() {
+    _appSettings.removeListener(_onAppSettingsChanged);
+    super.dispose();
   }
 
   @override
@@ -73,10 +89,8 @@ class _HomePageState extends ConsumerState<HomePage> {
       backgroundColor: const Color.fromARGB(255, 246, 247, 253),
       expandedHeight: 120.h,
       locationWidget: LocationBar(
-        location: 'Northwalk Rd, Toronto',
-        onLocationTap: () {
-          Logger.info('HomePage', '点击位置');
-        },
+        location: _appSettings.locationLabel,
+        onLocationTap: _handleChangeLocation,
       ),
       contentPadding: EdgeInsets.only(left: 16.w, right: 16.w, top: 32.h),
       backgroundWidget: CommonImage(imagePath: "assets/images/appbar_bg.png"),
@@ -269,8 +283,8 @@ class _HomePageState extends ConsumerState<HomePage> {
               onPressed: () {
                 Logger.info('HomePage', '用户点击甄选私厨重试按钮');
                 ref.read(selectedChefProvider.notifier).refresh(
-                  latitude: _latitude,
-                  longitude: _longitude,
+                  latitude: _appSettings.latitude,
+                  longitude: _appSettings.longitude,
                 );
               },
               child: Text(l10n.tryAgainText),
@@ -299,6 +313,49 @@ class _HomePageState extends ConsumerState<HomePage> {
 
 
   // 事件处理方法
+  Future<void> _handleChangeLocation() async {
+    Logger.info('HomePage', '点击位置');
+    final settings = _appSettings;
+    final l10n = AppLocalizations.of(context);
+
+    final result = await Navigate.push<MapPickerResult>(
+      context,
+      Routes.mapPicker,
+      arguments: MapPickerArguments(
+        initialPosition: LatLng(settings.latitude, settings.longitude),
+        initialAddress: settings.locationLabel,
+        title: l10n?.mapSelectLocationTitle,
+        confirmText: l10n?.mapConfirmLocation,
+        searchHint: l10n?.mapSearchHint ?? l10n?.searchHintHome,
+      ),
+    );
+
+    if (result == null) {
+      Logger.info('HomePage', '用户取消位置选择');
+      return;
+    }
+
+    final lat = result.position.latitude;
+    final lng = result.position.longitude;
+    final trimmedAddress = result.address?.trim() ?? '';
+    final displayLabel = trimmedAddress.isNotEmpty
+        ? trimmedAddress
+        : '(${lat.toStringAsFixed(4)}, ${lng.toStringAsFixed(4)})';
+
+    await _appSettings.updateLocation(
+      latitude: lat,
+      longitude: lng,
+      label: displayLabel,
+    );
+
+    Logger.info('HomePage', '位置更新为: $displayLabel (lat: $lat, lng: $lng)');
+
+    await ref.read(selectedChefProvider.notifier).refresh(
+      latitude: lat,
+      longitude: lng,
+    );
+  }
+
   void _onCategoryTap(CategoryListItem category) {
     Logger.info('HomePage', '点击分类: ${category.localizedCategoryName} (ID: ${category.id})');
     // 跳转到分类详情页面

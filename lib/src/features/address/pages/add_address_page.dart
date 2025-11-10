@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:unified_popups/unified_popups.dart';
 
+import '../../../core/config/app_services.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../../../core/routing/navigate.dart';
+import '../../../core/routing/routes.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/logger/logger.dart';
+import '../../../core/maps/map_picker_page.dart';
 import '../../../core/widgets/common_app_bar.dart';
 import '../../../core/widgets/common_indicator.dart';
 import '../../../core/widgets/common_spacing.dart';
@@ -31,6 +35,8 @@ class _AddAddressPageState extends ConsumerState<AddAddressPage> {
   final _detailController = TextEditingController();
   final _zipCodeController = TextEditingController();
   final _stateController = TextEditingController();
+  LatLng? _streetLatLng;
+  String? _streetFromMap;
   bool _isDefault = false;
   StateItem? _selectedState;
   late final _AddressFormLogic _logic;
@@ -41,6 +47,7 @@ class _AddAddressPageState extends ConsumerState<AddAddressPage> {
   void initState() {
     super.initState();
     _logic = _resolveLogic();
+    _streetController.addListener(_handleStreetChanged);
     final initial = _logic.initial;
     if (initial != null) {
       _nameController.text = initial.name;
@@ -70,6 +77,7 @@ class _AddAddressPageState extends ConsumerState<AddAddressPage> {
 
   @override
   void dispose() {
+    _streetController.removeListener(_handleStreetChanged);
     _nameController.dispose();
     _phoneController.dispose();
     _streetController.dispose();
@@ -77,6 +85,19 @@ class _AddAddressPageState extends ConsumerState<AddAddressPage> {
     _zipCodeController.dispose();
     _stateController.dispose();
     super.dispose();
+  }
+
+  void _handleStreetChanged() {
+    if (_streetLatLng == null) return;
+    final current = _streetController.text.trim();
+    final original = _streetFromMap?.trim();
+    if (original == null || current != original) {
+      if (!mounted) return;
+      setState(() {
+        _streetLatLng = null;
+        _streetFromMap = null;
+      });
+    }
   }
 
   _AddressFormLogic _resolveLogic() {
@@ -135,6 +156,53 @@ class _AddAddressPageState extends ConsumerState<AddAddressPage> {
       Pop.hideLoading(loadingId);
       Logger.error("AddAddressPage", "Error: $e");
       Pop.toast(e.toString(), toastType: ToastType.error);
+    }
+  }
+
+  Future<void> _pickStreetOnMap() async {
+    FocusScope.of(context).unfocus();
+    final l10n = AppLocalizations.of(context);
+    final settings = AppServices.appSettings;
+    final initialPosition = _streetLatLng ??
+        LatLng(settings.latitude, settings.longitude);
+    final currentAddress = _streetController.text.trim();
+
+    try {
+      final result = await Navigate.push<MapPickerResult>(
+        context,
+        Routes.mapPicker,
+        arguments: MapPickerArguments(
+          initialPosition: initialPosition,
+          initialAddress: currentAddress.isNotEmpty ? currentAddress : settings.locationLabel,
+          title: l10n?.mapSelectLocationTitle,
+          confirmText: l10n?.mapConfirmLocation,
+          searchHint: l10n?.mapSearchHint,
+        ),
+      );
+
+      if (result == null) {
+        Logger.info('AddAddressPage', '用户取消地图选点');
+        return;
+      }
+
+      final latLng = result.position;
+      final formattedAddress = (result.address?.trim().isNotEmpty ?? false)
+          ? result.address!.trim()
+          : (l10n?.mapCoordinateLabel(latLng.latitude, latLng.longitude) ??
+              '${latLng.latitude.toStringAsFixed(6)}, ${latLng.longitude.toStringAsFixed(6)}');
+
+      setState(() {
+        _streetLatLng = latLng;
+        _streetFromMap = formattedAddress;
+      });
+      _streetController.text = formattedAddress;
+      Logger.info('AddAddressPage', '地图选点成功: $formattedAddress (${latLng.latitude}, ${latLng.longitude})');
+    } catch (e, stack) {
+      Logger.error('AddAddressPage', '地图选点失败: $e\n$stack');
+      Pop.toast(
+        l10n?.mapPlaceDetailFailed ?? '解析地点失败，请稍后重试',
+        toastType: ToastType.error,
+      );
     }
   }
 
@@ -315,17 +383,55 @@ class _AddAddressPageState extends ConsumerState<AddAddressPage> {
                   CommonSpacing.small,
                   TextFormField(
                     controller: _streetController,
-                    readOnly: true,
+                    textInputAction: TextInputAction.next,
                     decoration: _inputDecoration(
                       l10n.addressStreetLabel,
-                    ).copyWith(
-                      suffixIcon: Icon(
-                        Icons.arrow_forward_ios,
-                        size: 16.w,
-                        color: Colors.grey.shade400,
+                    ),
+                  ),
+                  CommonSpacing.small,
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton.icon(
+                      onPressed: _pickStreetOnMap,
+                      style: TextButton.styleFrom(
+                        foregroundColor: AppTheme.primaryOrange,
+                        padding: EdgeInsets.zero,
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      icon: Icon(Icons.map_outlined, size: 18.w),
+                      label: Text(
+                        l10n.mapSelectLocationTitle,
+                        style: TextStyle(fontSize: 14.sp),
                       ),
                     ),
                   ),
+                  if (_streetLatLng != null) ...[
+                    CommonSpacing.small,
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          Icons.location_on_outlined,
+                          size: 16.w,
+                          color: AppTheme.primaryOrange,
+                        ),
+                        CommonSpacing.width(8),
+                        Expanded(
+                          child: Text(
+                            l10n.mapCoordinateLabel(
+                              _streetLatLng!.latitude,
+                              _streetLatLng!.longitude,
+                            ),
+                            style: TextStyle(
+                              fontSize: 12.sp,
+                              color: Colors.grey.shade500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                   CommonSpacing.standard,
                   _buildLabel(l10n.addressDetailLabel),
                   CommonSpacing.small,

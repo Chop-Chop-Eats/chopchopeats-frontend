@@ -22,7 +22,15 @@ class LocationBar extends StatelessWidget {
         children: [
           Icon(Icons.location_on, color: Colors.black, size: 20.sp),
           CommonSpacing.width(8),
-          Text(location, style: TextStyle(fontSize: 16.sp)),
+          Expanded(
+            child: Text(
+              location,
+              style: TextStyle(fontSize: 16.sp),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          CommonSpacing.width(4),
           Icon(Icons.keyboard_arrow_down, color: Colors.black, size: 20.sp),
         ],
       ),

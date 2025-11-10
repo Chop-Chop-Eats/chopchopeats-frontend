@@ -53,6 +53,8 @@
 	<string>我们需要持续获取您的位置信息以提供更好的服务体验</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>我们需要获取您的位置信息以提供附近餐厅推荐服务</string>
+	<key>io.flutter.embedded_views_preview</key>
+	<true/>
 	
 	<!-- 相机和相册权限说明 -->
 	<key>NSCameraUsageDescription</key>

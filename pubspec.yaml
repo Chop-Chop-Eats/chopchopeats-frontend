@@ -49,6 +49,8 @@ dependencies:
   image_picker: ^1.2.0 # 图片选择
   flutter_img_editor: ^0.0.3 # 图片编辑
   path_provider: ^2.1.5 # 文件路径
+  google_maps_flutter: ^2.14.0
+  http: ^1.2.2
 
 dev_dependencies:
   flutter_test:
