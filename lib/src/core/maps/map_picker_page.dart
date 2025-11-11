@@ -6,6 +6,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 
 import '../l10n/app_localizations.dart';
+import '../widgets/common_app_bar.dart';
 import '../widgets/common_indicator.dart';
 import '../widgets/common_spacing.dart';
 import '../utils/logger/logger.dart';
@@ -293,9 +294,12 @@ class _MapPickerPageState extends State<MapPickerPage> {
     final confirmText = widget.arguments.confirmText ?? l10n?.mapConfirmLocation ?? '确定位置';
     final searchHint = widget.arguments.searchHint ?? l10n?.mapSearchHint ?? '搜索地点或地址';
     final myLocationTooltip = l10n?.mapUseMyLocation ?? '使用当前位置';
+
+    // 顶部是搜素框和返回按钮 右侧是 confirm∂ position  底部是搜索结果 用sheet展示 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(resolvedTitle),
+      appBar: CommonAppBar(
+        title: resolvedTitle,
+        backgroundColor: Colors.transparent,
         actions: [
           IconButton(
             icon: const Icon(Icons.my_location_outlined),
@@ -306,6 +310,7 @@ class _MapPickerPageState extends State<MapPickerPage> {
       ),
       body: Stack(
         children: [
+
           GoogleMap(
             key: _mapViewKey,
             initialCameraPosition: CameraPosition(
@@ -341,17 +346,17 @@ class _MapPickerPageState extends State<MapPickerPage> {
           ),
         ],
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 16.w),
-        child: SizedBox(
-          width: double.infinity,
-          child: ElevatedButton(
-            onPressed: _onConfirm,
-            child: Text(confirmText),
-          ),
-        ),
-      ),
+      // floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      // floatingActionButton: Padding(
+      //   padding: EdgeInsets.symmetric(horizontal: 16.w),
+      //   child: SizedBox(
+      //     width: double.infinity,
+      //     child: ElevatedButton(
+      //       onPressed: _onConfirm,
+      //       child: Text(confirmText),
+      //     ),
+      //   ),
+      // ),
     );
   }
 
@@ -403,6 +408,7 @@ class _MapPickerPageState extends State<MapPickerPage> {
     );
   }
 
+  // 搜索结果 用pop.sheet 实现
   Widget _buildSuggestionList(ThemeData theme) {
     if (_suggestions.isEmpty) return const SizedBox.shrink();
     return Positioned(
@@ -450,10 +456,22 @@ class _MapPickerPageState extends State<MapPickerPage> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              l10n?.mapSelectedLocationLabel ?? '选定位置',
-              style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+            GestureDetector(
+              onTap: _onConfirm,
+              child: Container(
+                width: double.infinity,
+                alignment: Alignment.center,
+                child: Text(
+                  l10n?.mapSelectedLocationLabel ?? '选定位置',
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.w600,
+                  )
+                  ),
+              ),
             ),
+          
             CommonSpacing.small,
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,

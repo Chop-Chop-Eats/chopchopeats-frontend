@@ -17,7 +17,7 @@ class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
   final double? titleSpacing;
   final TextStyle? titleStyle;
 
-  const CommonAppBar({
+  const  CommonAppBar({
     super.key,
     required this.title,
     this.showBackButton = true,
