@@ -228,6 +228,7 @@ class _AddAddressPageState extends ConsumerState<AddAddressPage> {
     }
 
     final result = await Pop.sheet<StateItem>(
+      maxHeight: SheetDimension.fraction(0.6),
       title: l10n.addressSelectStateSheetTitle,
       childBuilder: (dismiss) {
         final currentState = ref.read(stateListProvider);

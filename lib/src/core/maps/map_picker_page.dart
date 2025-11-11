@@ -1,12 +1,14 @@
 import 'dart:async';
 
+import 'package:chop_user/src/core/utils/pop/toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:unified_popups/unified_popups.dart';
 
 import '../l10n/app_localizations.dart';
-import '../widgets/common_app_bar.dart';
+import '../routing/navigate.dart';
 import '../widgets/common_indicator.dart';
 import '../widgets/common_spacing.dart';
 import '../utils/logger/logger.dart';
@@ -148,13 +150,7 @@ class _MapPickerPageState extends State<MapPickerPage> {
     } catch (e, stack) {
       Logger.error('MapPickerPage', '获取地点详情失败: $e\n$stack');
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            AppLocalizations.of(context)?.mapPlaceDetailFailed ?? '解析地点失败，请稍后重试',
-          ),
-        ),
-      );
+      toast.warn(AppLocalizations.of(context)?.mapPlaceDetailFailed ?? '解析地点失败，请稍后重试');
     } finally {
       if (mounted) {
         _isSearching.value = false;
@@ -183,16 +179,48 @@ class _MapPickerPageState extends State<MapPickerPage> {
             ..clear()
             ..addAll(items);
         });
+        await Pop.sheet<void>(
+          maxHeight: SheetDimension.fraction(0.6),
+          childBuilder: (dismiss) {
+            return ListView.separated(
+              shrinkWrap: true,
+              padding: EdgeInsets.symmetric(vertical: 8.h),
+              itemBuilder: (_, index) {
+                final item = _suggestions[index];
+                return GestureDetector(
+                  onTap: () {
+                    dismiss();
+                    _onSuggestionSelected(item);
+                  },
+                  child: Container(
+                    margin: EdgeInsets.symmetric(vertical: 12.h),
+                    child: Row(
+                      children:[
+                        Icon(Icons.place_outlined, size: 20.w),
+  
+                        CommonSpacing.width(8.w),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(item.primaryText, style: TextStyle(fontSize: 15.sp, color: Colors.black, fontWeight: FontWeight.w500)),
+                            CommonSpacing.small,
+                            Text(item.secondaryText, style: TextStyle(fontSize: 13.sp, color: Colors.grey[500], fontWeight: FontWeight.w400)),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+              separatorBuilder: (_, __) => const Divider(height: 0.5),
+              itemCount: _suggestions.length,
+            );
+          },
+        );
       } catch (e, stack) {
         Logger.error('MapPickerPage', '搜索建议失败: $e\n$stack');
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              AppLocalizations.of(context)?.mapSearchFailed ?? '搜索失败，请检查网络后重试',
-            ),
-          ),
-        );
+        toast.warn(AppLocalizations.of(context)?.mapSearchFailed ?? '搜索失败，请检查网络后重试');
       } finally {
         if (mounted) {
           _isSearching.value = false;
@@ -295,22 +323,11 @@ class _MapPickerPageState extends State<MapPickerPage> {
     final searchHint = widget.arguments.searchHint ?? l10n?.mapSearchHint ?? '搜索地点或地址';
     final myLocationTooltip = l10n?.mapUseMyLocation ?? '使用当前位置';
 
-    // 顶部是搜素框和返回按钮 右侧是 confirm∂ position  底部是搜索结果 用sheet展示 
+    // 顶部是搜素框和返回按钮 右侧是 confirm position  底部是搜索结果 用pop.sheet展示 
     return Scaffold(
-      appBar: CommonAppBar(
-        title: resolvedTitle,
-        backgroundColor: Colors.transparent,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.my_location_outlined),
-            onPressed: _useMyLocation,
-            tooltip: myLocationTooltip,
-          ),
-        ],
-      ),
+      appBar: null,
       body: Stack(
         children: [
-
           GoogleMap(
             key: _mapViewKey,
             initialCameraPosition: CameraPosition(
@@ -334,48 +351,94 @@ class _MapPickerPageState extends State<MapPickerPage> {
           Positioned(
             left: 16.w,
             right: 16.w,
-            top: 16.h,
-            child: _buildSearchField(theme, searchHint),
+            top: 32.h,
+            child: Column(
+              children: [
+                _buildHeader(searchHint , confirmText),
+                CommonSpacing.small,
+                _buildSearchField(searchHint),
+              ],
+            ),
           ),
-          _buildSuggestionList(theme),
-          Positioned(
-            left: 16.w,
-            right: 16.w,
-            bottom: 32.h,
-            child: _buildAddressCard(theme, l10n),
-          ),
+          // Positioned(
+          //   left: 16.w,
+          //   right: 16.w,
+          //   bottom: 32.h,
+          //   child: _buildAddressCard(theme, l10n),
+          // ),
         ],
       ),
-      // floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      // floatingActionButton: Padding(
-      //   padding: EdgeInsets.symmetric(horizontal: 16.w),
-      //   child: SizedBox(
-      //     width: double.infinity,
-      //     child: ElevatedButton(
-      //       onPressed: _onConfirm,
-      //       child: Text(confirmText),
-      //     ),
-      //   ),
-      // ),
     );
   }
 
-  Widget _buildSearchField(ThemeData theme, String hintText) {
-    return Material(
-      elevation: 2,
-      borderRadius: BorderRadius.circular(12.r),
+
+  Widget _buildHeader(String searchHint,  String confirmText ) {
+    return Row(
+      children: [
+        GestureDetector(
+          onTap: () => Navigate.pop(context),
+          child: CircleAvatar(
+            radius: 18.r,
+            backgroundColor: Colors.white,
+            child: Center(
+              child: Icon(Icons.arrow_back_ios_new, size: 18.w, color: Colors.black),
+            ),
+          ),
+        ),
+
+        Expanded(
+          // child: _buildSearchField(searchHint), 
+          child: Text(
+            _currentAddress ?? '',
+            style: TextStyle(fontSize: 14.sp, color: Colors.black, fontWeight: FontWeight.w600),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+          ),
+        ),
+
+        GestureDetector(
+          onTap: _onConfirm,
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(48.r),
+            ),
+            child: Text(confirmText , style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w600)),
+          ),
+        )
+      ],
+    );
+  }
+
+
+
+
+  Widget _buildSearchField(String hintText) {
+    return Container(
+      // margin: EdgeInsets.symmetric(horizontal: 8.w),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(48.r),
+      ),
       child: TextField(
         controller: _searchController,
         focusNode: _searchFocusNode,
         onChanged: _onSearchChanged,
+        style: TextStyle(fontSize: 14.sp, color: Colors.black, fontWeight: FontWeight.w600),
         decoration: InputDecoration(
-          prefixIcon: const Icon(Icons.search),
+          isDense: true,
+          prefixIcon: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 12.w),
+            child: Icon(Icons.search, size: 20.w),
+          ),
+          prefixIconConstraints: BoxConstraints(minWidth: 0, minHeight: 0),
           suffixIcon: ValueListenableBuilder<bool>(
             valueListenable: _isSearching,
             builder: (_, value, __) {
               if (value) {
                 return Padding(
-                  padding: EdgeInsets.all(12.w),
+                  padding: EdgeInsets.all(6.w),
                   child: const SizedBox(
                     width: 16,
                     height: 16,
@@ -396,54 +459,22 @@ class _MapPickerPageState extends State<MapPickerPage> {
             },
           ),
           hintText: hintText,
+          hintStyle: TextStyle(fontSize: 14.sp, color: Colors.grey[500], fontWeight: FontWeight.w400),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12.r),
+            borderRadius: BorderRadius.circular(48.r),
             borderSide: BorderSide.none,
           ),
           filled: true,
           fillColor: Colors.white,
-          contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+          contentPadding: EdgeInsets.symmetric(horizontal: 0.w, vertical: 0.h),
         ),
       ),
     );
   }
 
-  // 搜索结果 用pop.sheet 实现
-  Widget _buildSuggestionList(ThemeData theme) {
-    if (_suggestions.isEmpty) return const SizedBox.shrink();
-    return Positioned(
-      left: 16.w,
-      right: 16.w,
-      top: 76.h,
-      child: Material(
-        elevation: 4,
-        borderRadius: BorderRadius.circular(12.r),
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            maxHeight: 260.h,
-          ),
-          child: ListView.separated(
-            shrinkWrap: true,
-            padding: EdgeInsets.symmetric(vertical: 8.h),
-            itemBuilder: (_, index) {
-              final item = _suggestions[index];
-              return ListTile(
-                leading: const Icon(Icons.place_outlined),
-                title: Text(
-                  item.primaryText,
-                  style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600),
-                ),
-                subtitle: item.secondaryText.isEmpty ? null : Text(item.secondaryText),
-                onTap: () => _onSuggestionSelected(item),
-              );
-            },
-            separatorBuilder: (_, __) => const Divider(height: 1),
-            itemCount: _suggestions.length,
-          ),
-        ),
-      ),
-    );
-  }
+
+
+
 
   Widget _buildAddressCard(ThemeData theme, AppLocalizations? l10n) {
     return Material(
