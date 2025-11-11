@@ -66,6 +66,7 @@ class _MapPickerPageState extends State<MapPickerPage> {
   final ValueNotifier<bool> _isSearching = ValueNotifier<bool>(false);
   final ValueNotifier<bool> _isResolvingAddress = ValueNotifier<bool>(false);
   final List<PlaceSuggestion> _suggestions = <PlaceSuggestion>[];
+  late final UniqueKey _mapViewKey;
 
   GoogleMapController? _mapController;
   late LatLng _currentPosition;
@@ -78,6 +79,7 @@ class _MapPickerPageState extends State<MapPickerPage> {
     super.initState();
     _currentPosition = widget.arguments.initialPosition;
     _currentAddress = widget.arguments.initialAddress;
+    _mapViewKey = UniqueKey();
   }
 
   @override
@@ -305,6 +307,7 @@ class _MapPickerPageState extends State<MapPickerPage> {
       body: Stack(
         children: [
           GoogleMap(
+            key: _mapViewKey,
             initialCameraPosition: CameraPosition(
               target: _currentPosition,
               zoom: MapsConfig.defaultZoom,
