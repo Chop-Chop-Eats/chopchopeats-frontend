@@ -9,6 +9,7 @@ import 'package:unified_popups/unified_popups.dart';
 
 import '../l10n/app_localizations.dart';
 import '../routing/navigate.dart';
+import '../theme/app_theme.dart';
 import '../widgets/common_indicator.dart';
 import '../widgets/common_spacing.dart';
 import '../utils/logger/logger.dart';
@@ -69,6 +70,8 @@ class _MapPickerPageState extends State<MapPickerPage> {
   final ValueNotifier<bool> _isSearching = ValueNotifier<bool>(false);
   final ValueNotifier<bool> _isResolvingAddress = ValueNotifier<bool>(false);
   final List<PlaceSuggestion> _suggestions = <PlaceSuggestion>[];
+  final ValueNotifier<List<PlaceSuggestion>> _nearbyPlaces =
+      ValueNotifier<List<PlaceSuggestion>>(<PlaceSuggestion>[]);
   late final UniqueKey _mapViewKey;
 
   GoogleMapController? _mapController;
@@ -76,6 +79,7 @@ class _MapPickerPageState extends State<MapPickerPage> {
   String? _currentAddress;
   Timer? _debounce;
   bool _isCameraMoving = false;
+  bool _hasShownSheet = false;
 
   @override
   void initState() {
@@ -83,6 +87,10 @@ class _MapPickerPageState extends State<MapPickerPage> {
     _currentPosition = widget.arguments.initialPosition;
     _currentAddress = widget.arguments.initialAddress;
     _mapViewKey = UniqueKey();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _refreshNearbyPlaces();
+      _showSheetOnce();
+    });
   }
 
   @override
@@ -93,28 +101,35 @@ class _MapPickerPageState extends State<MapPickerPage> {
     _searchFocusNode.dispose();
     _isSearching.dispose();
     _isResolvingAddress.dispose();
+    _nearbyPlaces.dispose();
     super.dispose();
   }
 
   Future<void> _handleCameraIdle() async {
-    if (!_isCameraMoving || !widget.arguments.enableReverseGeocode) {
+    if (!_isCameraMoving) {
       return;
     }
     _isCameraMoving = false;
-    _isResolvingAddress.value = true;
-    try {
-      final address = await mapsService.reverseGeocode(_currentPosition);
-      if (!mounted) return;
-      setState(() {
-        _currentAddress = address;
-      });
-    } catch (e, stack) {
-      Logger.error('MapPickerPage', '反向地理编码失败: $e\n$stack');
-    } finally {
-      if (mounted) {
-        _isResolvingAddress.value = false;
+
+    if (widget.arguments.enableReverseGeocode) {
+      _isResolvingAddress.value = true;
+      try {
+        final address = await mapsService.reverseGeocode(_currentPosition);
+        if (!mounted) return;
+        setState(() {
+          _currentAddress = address;
+        });
+      } catch (e, stack) {
+        Logger.error('MapPickerPage', '反向地理编码失败: $e\n$stack');
+      } finally {
+        if (mounted) {
+          _isResolvingAddress.value = false;
+        }
       }
     }
+
+    if (!mounted) return;
+    await _refreshNearbyPlaces();
   }
 
   void _onCameraMove(CameraPosition position) {
@@ -133,6 +148,16 @@ class _MapPickerPageState extends State<MapPickerPage> {
     );
   }
 
+  Future<void> _refreshNearbyPlaces() async {
+    try {
+      final places = await mapsService.fetchNearbyPlaces(_currentPosition);
+      if (!mounted) return;
+      _nearbyPlaces.value = places;
+    } catch (e, stack) {
+      Logger.error('MapPickerPage', '获取周边地点失败: $e\n$stack');
+    }
+  }
+
   Future<void> _onSuggestionSelected(PlaceSuggestion suggestion) async {
     _isSearching.value = true;
     try {
@@ -144,6 +169,7 @@ class _MapPickerPageState extends State<MapPickerPage> {
         _currentPosition = details.position;
         _currentAddress = details.formattedAddress ?? suggestion.description;
       });
+      await _refreshNearbyPlaces();
       _searchController.text = suggestion.description;
       _clearSuggestions();
       _searchFocusNode.unfocus();
@@ -168,6 +194,9 @@ class _MapPickerPageState extends State<MapPickerPage> {
         return;
       }
       _isSearching.value = true;
+      
+      //  _searchFocusNode.unfocus(); // 收起键盘
+
       try {
         final items = await mapsService.fetchAutocomplete(
           keyword,
@@ -179,44 +208,6 @@ class _MapPickerPageState extends State<MapPickerPage> {
             ..clear()
             ..addAll(items);
         });
-        await Pop.sheet<void>(
-          maxHeight: SheetDimension.fraction(0.6),
-          childBuilder: (dismiss) {
-            return ListView.separated(
-              shrinkWrap: true,
-              padding: EdgeInsets.symmetric(vertical: 8.h),
-              itemBuilder: (_, index) {
-                final item = _suggestions[index];
-                return GestureDetector(
-                  onTap: () {
-                    dismiss();
-                    _onSuggestionSelected(item);
-                  },
-                  child: Container(
-                    margin: EdgeInsets.symmetric(vertical: 12.h),
-                    child: Row(
-                      children:[
-                        Icon(Icons.place_outlined, size: 20.w),
-  
-                        CommonSpacing.width(8.w),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(item.primaryText, style: TextStyle(fontSize: 15.sp, color: Colors.black, fontWeight: FontWeight.w500)),
-                            CommonSpacing.small,
-                            Text(item.secondaryText, style: TextStyle(fontSize: 13.sp, color: Colors.grey[500], fontWeight: FontWeight.w400)),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-              separatorBuilder: (_, __) => const Divider(height: 0.5),
-              itemCount: _suggestions.length,
-            );
-          },
-        );
       } catch (e, stack) {
         Logger.error('MapPickerPage', '搜索建议失败: $e\n$stack');
         if (!mounted) return;
@@ -229,6 +220,122 @@ class _MapPickerPageState extends State<MapPickerPage> {
     });
   }
 
+
+  Future<void> _showSheetOnce() async {
+    if (_hasShownSheet) {
+      return;
+    }
+    _hasShownSheet = true;
+    await Pop.sheet<void>(
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 24.h),
+      maxHeight: SheetDimension.fraction(0.4),
+      showBarrier: false,
+      childBuilder: (dismiss) {
+        return ValueListenableBuilder<List<PlaceSuggestion>>(
+          valueListenable: _nearbyPlaces,
+          builder: (_, places, __) {
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: ValueListenableBuilder<bool>(
+                        valueListenable: _isResolvingAddress,
+                        builder: (_, resolving, __) {
+                          if (resolving) {
+                            return Row(
+                              children: [
+                                const SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CommonIndicator(size: 16),
+                                ),
+                                CommonSpacing.width(8),
+                                Expanded(
+                                  child: Text(
+                                    AppLocalizations.of(context)?.mapResolvingAddress ?? '正在解析位置...',
+                                    style: TextStyle(fontSize: 11.sp, fontWeight: FontWeight.w600),
+                                  ),
+                                ),
+                              ],
+                            );
+                          }
+                          return Text(
+                            _currentAddress ?? '',
+                            style: TextStyle(fontSize: 11.sp, fontWeight: FontWeight.w600),
+                          );
+                        },
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () {
+                        dismiss();
+                        _onConfirmPosition();
+                      },
+                      child: Container(
+                        padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
+                        child: Text(
+                          widget.arguments.confirmText ?? '确定位置',
+                          style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w600, color: AppTheme.primaryOrange),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                CommonSpacing.small,
+                if (places.isEmpty)
+                  Padding(
+                    padding: EdgeInsets.symmetric(vertical: 24.h),
+                    child: Text(
+                      AppLocalizations.of(context)?.emptyListText ?? '暂无周边地点',
+                      style: TextStyle(fontSize: 13.sp, color: Colors.grey[500]),
+                    ),
+                  )
+                else
+                  ConstrainedBox(
+                    constraints: BoxConstraints(maxHeight: 240.h),
+                    child: ListView.separated(
+                      shrinkWrap: true,
+                      physics: const ClampingScrollPhysics(),
+                      itemBuilder: (_, index) {
+                        final item = places[index];
+                        return GestureDetector(
+                          onTap: () {
+                            _onSuggestionSelected(item);
+                          },
+                          child: Container(
+                            margin: EdgeInsets.symmetric(vertical: 12.h),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  item.primaryText,
+                                  style: TextStyle(fontSize: 15.sp, color: Colors.black, fontWeight: FontWeight.w500),
+                                ),
+                                CommonSpacing.small,
+                                Text(
+                                  item.secondaryText,
+                                  style: TextStyle(fontSize: 13.sp, color: Colors.grey[500], fontWeight: FontWeight.w400),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                      separatorBuilder: (_, __) => const Divider(height: 0.5),
+                      itemCount: places.length,
+                    ),
+                  ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
+
   void _clearSuggestions() {
     setState(() {
       _suggestions.clear();
@@ -240,13 +347,7 @@ class _MapPickerPageState extends State<MapPickerPage> {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            l10n?.mapLocationServicesDisabled ?? '定位服务未开启，请先打开设备定位',
-          ),
-        ),
-      );
+      toast.warn(l10n?.mapLocationServicesDisabled ?? '定位服务未开启，请先打开设备定位');
       return;
     }
 
@@ -257,13 +358,7 @@ class _MapPickerPageState extends State<MapPickerPage> {
       }
       if (permission == LocationPermission.deniedForever || permission == LocationPermission.denied) {
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              l10n?.mapLocationPermissionDenied ?? '定位权限被拒绝，请前往系统设置开启权限',
-            ),
-          ),
-        );
+        toast.warn(l10n?.mapLocationPermissionDenied ?? '定位权限被拒绝，请前往系统设置开启权限');
         return;
       }
 
@@ -292,20 +387,15 @@ class _MapPickerPageState extends State<MapPickerPage> {
           }
         }
       }
+      await _refreshNearbyPlaces();
     } catch (e, stack) {
       Logger.error('MapPickerPage', '定位失败: $e\n$stack');
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            l10n?.mapLocationFetchFailed ?? '无法获取当前位置，请稍后再试',
-          ),
-        ),
-      );
+      toast.warn(l10n?.mapLocationFetchFailed ?? '无法获取当前位置，请稍后再试');
     }
   }
 
-  void _onConfirm() {
+  void _onConfirmPosition() {
     Navigator.of(context).pop<MapPickerResult>(
       MapPickerResult(
         position: _currentPosition,
@@ -316,10 +406,7 @@ class _MapPickerPageState extends State<MapPickerPage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final l10n = AppLocalizations.of(context);
-    final resolvedTitle = widget.arguments.title ?? l10n?.mapSelectLocationTitle ?? '选择位置';
-    final confirmText = widget.arguments.confirmText ?? l10n?.mapConfirmLocation ?? '确定位置';
     final searchHint = widget.arguments.searchHint ?? l10n?.mapSearchHint ?? '搜索地点或地址';
     final myLocationTooltip = l10n?.mapUseMyLocation ?? '使用当前位置';
 
@@ -351,28 +438,26 @@ class _MapPickerPageState extends State<MapPickerPage> {
           Positioned(
             left: 16.w,
             right: 16.w,
-            top: 32.h,
+            top: MediaQuery.of(context).padding.top + 4.h, // 安全区域距离
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                _buildHeader(searchHint , confirmText),
-                CommonSpacing.small,
-                _buildSearchField(searchHint),
+                _buildHeader(searchHint),
+                _buildSuggestionsList(),
               ],
             ),
           ),
-          // Positioned(
-          //   left: 16.w,
-          //   right: 16.w,
-          //   bottom: 32.h,
-          //   child: _buildAddressCard(theme, l10n),
-          // ),
+          Positioned(
+            right: 16.w,
+            bottom: 24.h,
+            child: _buildMyLocationButton(myLocationTooltip),
+          ),
         ],
       ),
     );
   }
 
-
-  Widget _buildHeader(String searchHint,  String confirmText ) {
+  Widget _buildHeader(String searchHint) {
     return Row(
       children: [
         GestureDetector(
@@ -385,38 +470,95 @@ class _MapPickerPageState extends State<MapPickerPage> {
             ),
           ),
         ),
-
         Expanded(
-          // child: _buildSearchField(searchHint), 
-          child: Text(
-            _currentAddress ?? '',
-            style: TextStyle(fontSize: 14.sp, color: Colors.black, fontWeight: FontWeight.w600),
-            overflow: TextOverflow.ellipsis,
-            maxLines: 1,
-          ),
+          child: _buildSearchField(searchHint), 
         ),
-
-        GestureDetector(
-          onTap: _onConfirm,
-          child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(48.r),
-            ),
-            child: Text(confirmText , style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w600)),
-          ),
-        )
       ],
     );
   }
 
+  Widget _buildSuggestionsList() {
+    if (_suggestions.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    return Container(
+      width: double.infinity,
+      margin: EdgeInsets.only(top: 8.h),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16.r),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxHeight: 240.h),
+        child: ListView.separated(
+          shrinkWrap: true,
+          physics: const ClampingScrollPhysics(),
+          padding: EdgeInsets.symmetric(vertical: 6.h),
+          itemBuilder: (_, index) {
+            final item = _suggestions[index];
+            return GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: () => _onSuggestionSelected(item),
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      item.primaryText,
+                      style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.w600, color: Colors.black),
+                    ),
+                    CommonSpacing.small,
+                    Text(
+                      item.secondaryText,
+                      style: TextStyle(fontSize: 13.sp, fontWeight: FontWeight.w400, color: Colors.grey[500]),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+          separatorBuilder: (_, __) => Divider(height: 1.h, color: Colors.grey[200]),
+          itemCount: _suggestions.length,
+        ),
+      ),
+    );
+  }
 
-
+  Widget _buildMyLocationButton(String tooltip) {
+    return Tooltip(
+      message: tooltip,
+      child: Material(
+        color: Colors.white,
+        shape: const CircleBorder(),
+        elevation: 4,
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: _useMyLocation,
+          child: SizedBox(
+            width: 48.w,
+            height: 48.w,
+            child: Icon(
+              Icons.my_location,
+              color: AppTheme.primaryOrange,
+              size: 24.w,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 
   Widget _buildSearchField(String hintText) {
     return Container(
-      // margin: EdgeInsets.symmetric(horizontal: 8.w),
+      margin: EdgeInsets.only(left: 8.w),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(48.r),
@@ -472,83 +614,5 @@ class _MapPickerPageState extends State<MapPickerPage> {
     );
   }
 
-
-
-
-
-  Widget _buildAddressCard(ThemeData theme, AppLocalizations? l10n) {
-    return Material(
-      elevation: 2,
-      borderRadius: BorderRadius.circular(16.r),
-      color: Colors.white,
-      child: Padding(
-        padding: EdgeInsets.all(16.w),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            GestureDetector(
-              onTap: _onConfirm,
-              child: Container(
-                width: double.infinity,
-                alignment: Alignment.center,
-                child: Text(
-                  l10n?.mapSelectedLocationLabel ?? '选定位置',
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.w600,
-                  )
-                  ),
-              ),
-            ),
-          
-            CommonSpacing.small,
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Icon(Icons.location_on_outlined),
-                CommonSpacing.width(8.w),
-                Expanded(
-                  child: ValueListenableBuilder<bool>(
-                    valueListenable: _isResolvingAddress,
-                    builder: (_, value, __) {
-                      if (value) {
-                        return Row(
-                          children: [
-                            const SizedBox(
-                              width: 16,
-                              height: 16,
-                              child: CommonIndicator(size: 16),
-                            ),
-                            CommonSpacing.width(8.w),
-                            Text(l10n?.mapResolvingAddress ?? '正在解析地址...'),
-                          ],
-                        );
-                      }
-                      final address = _currentAddress;
-                      if (address == null || address.isEmpty) {
-                        return Text(l10n?.mapNoAddress ?? '未找到准确地址，请调整图钉位置');
-                      }
-                      return Text(address);
-                    },
-                  ),
-                ),
-              ],
-            ),
-            CommonSpacing.small,
-            Text(
-              l10n?.mapCoordinateLabel(
-                    _currentPosition.latitude,
-                    _currentPosition.longitude,
-                  ) ??
-                  '纬度: ${_currentPosition.latitude.toStringAsFixed(6)}\n经度: ${_currentPosition.longitude.toStringAsFixed(6)}',
-              style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
 

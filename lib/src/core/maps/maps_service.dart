@@ -156,6 +156,55 @@ class MapsService {
     final first = results.first as Map<String, dynamic>;
     return first['formatted_address'] as String?;
   }
+
+  Future<List<PlaceSuggestion>> fetchNearbyPlaces(
+    LatLng location, {
+    int radius = 1000,
+    String language = 'zh-CN',
+  }) async {
+    final uri = Uri.https(
+      'maps.googleapis.com',
+      '/maps/api/place/nearbysearch/json',
+      {
+        'location': '${location.latitude},${location.longitude}',
+        'radius': radius.toString(),
+        'key': MapsConfig.apiKey,
+        'language': language,
+        'type': 'geocode',
+      },
+    );
+
+    final response = await _client.get(uri);
+    if (response.statusCode != 200) {
+      throw Exception('Nearby Places 请求失败: ${response.statusCode}');
+    }
+
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    final status = data['status'] as String? ?? 'UNKNOWN_ERROR';
+    if (status != 'OK') {
+      if (status == 'ZERO_RESULTS') {
+        return const [];
+      }
+      final errorMessage = data['error_message'] as String? ?? status;
+      throw Exception('Nearby Places 错误: $errorMessage');
+    }
+
+    final results = data['results'] as List<dynamic>? ?? const [];
+    return results
+        .map((raw) {
+          final map = raw as Map<String, dynamic>;
+          final name = map['name'] as String? ?? '';
+          final vicinity = map['vicinity'] as String? ?? '';
+          final placeId = map['place_id'] as String? ?? '';
+          return PlaceSuggestion(
+            placeId: placeId,
+            primaryText: name,
+            secondaryText: vicinity,
+          );
+        })
+        .where((item) => item.placeId.isNotEmpty && item.primaryText.isNotEmpty)
+        .toList();
+  }
 }
 
 final MapsService mapsService = MapsService();
