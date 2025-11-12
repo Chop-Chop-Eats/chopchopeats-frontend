@@ -267,6 +267,21 @@ class AppLocalizationsEn implements AppLocalizations {
   @override
   String get shopEnterDesc => '\$0 Easy Entry';
 
+  // ============== Help Page ==============
+  @override
+  String get helpShareFeedbackTitle => 'Share Your Feedback';
+  @override
+  String get helpShareFeedbackDescription =>
+      'Thank you for sharing ideas, reporting issues, or expressing appreciation. You can reach our support team using the contact options below.';
+  @override
+  String get helpSupportEmailLabel => 'Support Email';
+  @override
+  String get helpSupportPhoneLabel => 'Support Phone';
+  @override
+  String get helpEmailCopiedToast => 'Support email copied to clipboard';
+  @override
+  String get helpDialerLaunchFailedToast => 'Unable to open dialer. Please try again later.';
+
   // ============== 业务文案 - 个人资料页 ==============
   @override
   String get avatar => 'Avatar';

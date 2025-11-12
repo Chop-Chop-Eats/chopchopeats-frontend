@@ -97,7 +97,7 @@ class _MinePageState extends ConsumerState<MinePage> {
         icon: 'assets/images/setting_3.png', 
         onTap: () {
           Logger.info('MinePage', '点击获取帮助');
-          // TODO: 跳转到帮助页面
+          Navigate.push(context, Routes.help);
         }
       ),
       SettingItemData(

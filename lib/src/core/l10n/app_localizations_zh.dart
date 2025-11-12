@@ -266,6 +266,20 @@ class AppLocalizationsZh implements AppLocalizations {
   @override
   String get shopEnterDesc => '0元轻松入驻';
 
+  // ============== 帮助页面 ==============
+  @override
+  String get helpShareFeedbackTitle => '分享你的反馈';
+  @override
+  String get helpShareFeedbackDescription => '感谢您分享想法、提出问题或表达谢意。您可以通过以下方式联系到我们的用户支持团队。';
+  @override
+  String get helpSupportEmailLabel => '客服邮箱';
+  @override
+  String get helpSupportPhoneLabel => '客服电话';
+  @override
+  String get helpEmailCopiedToast => '客服邮箱已复制';
+  @override
+  String get helpDialerLaunchFailedToast => '无法打开拨号键盘，请稍后再试';
+
   // ============== 业务文案 - 个人资料页 ==============
   @override
   String get avatar => '头像';

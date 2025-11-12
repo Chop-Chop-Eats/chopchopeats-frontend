@@ -164,6 +164,14 @@ abstract class AppLocalizations {
   String get shopEnter; // 商家入驻
   String get shopEnterDesc; // 0元轻松入驻
 
+  // ============== Help 帮助页面 ==============
+  String get helpShareFeedbackTitle; // 分享你的反馈
+  String get helpShareFeedbackDescription; // 感谢文案
+  String get helpSupportEmailLabel; // 客服邮箱
+  String get helpSupportPhoneLabel; // 客服电话
+  String get helpEmailCopiedToast; // 邮箱复制提示
+  String get helpDialerLaunchFailedToast; // 拨号失败提示
+
 
   // ============== 业务文案 - 个人资料页 ==============
   String get avatar; // 头像

@@ -10,6 +10,7 @@ import '../../features/category/pages/category_detail_page.dart';
 import '../../features/detail/pages/detail_page.dart';
 import '../../features/error_page.dart';
 import '../../features/auth/pages/login_page.dart';
+import '../../features/help/pages/help_page.dart';
 import '../../features/main_screen.dart';
 import '../../features/mine/pages/profile_page.dart';
 import '../../features/search/pages/search_page.dart';
@@ -73,6 +74,7 @@ class AppRouter {
       }
       return const AddAddressPage();
     },
+    Routes.help: (settings) => const HelpPage(),
     Routes.mapPicker: (settings) {
       final arguments = settings.arguments;
       if (arguments is MapPickerArguments) {
