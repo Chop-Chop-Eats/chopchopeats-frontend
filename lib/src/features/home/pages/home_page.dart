@@ -324,6 +324,7 @@ class _HomePageState extends ConsumerState<HomePage> {
       arguments: MapPickerArguments(
         initialPosition: LatLng(settings.latitude, settings.longitude),
         initialAddress: settings.locationLabel,
+        initialLabel: settings.locationLabel,
         title: l10n?.mapSelectLocationTitle,
         confirmText: l10n?.mapConfirmLocation,
         searchHint: l10n?.mapSearchHint ?? l10n?.searchHintHome,
@@ -338,9 +339,12 @@ class _HomePageState extends ConsumerState<HomePage> {
     final lat = result.position.latitude;
     final lng = result.position.longitude;
     final trimmedAddress = result.address?.trim() ?? '';
-    final displayLabel = trimmedAddress.isNotEmpty
-        ? trimmedAddress
-        : '(${lat.toStringAsFixed(4)}, ${lng.toStringAsFixed(4)})';
+    final trimmedLabel = result.label?.trim() ?? '';
+    final displayLabel = trimmedLabel.isNotEmpty
+        ? trimmedLabel
+        : trimmedAddress.isNotEmpty
+            ? trimmedAddress
+            : '(${lat.toStringAsFixed(4)}, ${lng.toStringAsFixed(4)})';
 
     await _appSettings.updateLocation(
       latitude: lat,

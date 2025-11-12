@@ -174,6 +174,7 @@ class _AddAddressPageState extends ConsumerState<AddAddressPage> {
         arguments: MapPickerArguments(
           initialPosition: initialPosition,
           initialAddress: currentAddress.isNotEmpty ? currentAddress : settings.locationLabel,
+          initialLabel: currentAddress.isNotEmpty ? currentAddress : settings.locationLabel,
           title: l10n?.mapSelectLocationTitle,
           confirmText: l10n?.mapConfirmLocation,
           searchHint: l10n?.mapSearchHint,
@@ -186,10 +187,14 @@ class _AddAddressPageState extends ConsumerState<AddAddressPage> {
       }
 
       final latLng = result.position;
-      final formattedAddress = (result.address?.trim().isNotEmpty ?? false)
-          ? result.address!.trim()
-          : (l10n?.mapCoordinateLabel(latLng.latitude, latLng.longitude) ??
-              '${latLng.latitude.toStringAsFixed(6)}, ${latLng.longitude.toStringAsFixed(6)}');
+      final trimmedAddress = result.address?.trim() ?? '';
+      final trimmedLabel = result.label?.trim() ?? '';
+      final formattedAddress = trimmedAddress.isNotEmpty
+          ? trimmedAddress
+          : trimmedLabel.isNotEmpty
+              ? trimmedLabel
+              : (l10n?.mapCoordinateLabel(latLng.latitude, latLng.longitude) ??
+                  '${latLng.latitude.toStringAsFixed(6)}, ${latLng.longitude.toStringAsFixed(6)}');
 
       setState(() {
         _streetLatLng = latLng;

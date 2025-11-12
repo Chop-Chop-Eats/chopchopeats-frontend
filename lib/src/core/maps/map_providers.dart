@@ -10,6 +10,7 @@ class MapPickerState {
   const MapPickerState({
     this.currentPosition,
     this.currentAddress,
+    this.currentLabel,
     this.isSearching = false,
     this.isResolvingAddress = false,
     this.isNearbyLoading = false,
@@ -22,6 +23,7 @@ class MapPickerState {
 
   final LatLng? currentPosition;
   final String? currentAddress;
+  final String? currentLabel;
   final bool isSearching;
   final bool isResolvingAddress;
   final bool isNearbyLoading;
@@ -42,12 +44,16 @@ class MapPickerState {
     List<PlaceSuggestion>? nearbyPlaces,
     Object? lastKnownPlace = _sentinel,
     Object? selectedPlaceId = _sentinel,
+    Object? currentLabel = _sentinel,
   }) {
     return MapPickerState(
       currentPosition: currentPosition ?? this.currentPosition,
       currentAddress: identical(currentAddress, _sentinel)
           ? this.currentAddress
           : currentAddress as String?,
+      currentLabel: identical(currentLabel, _sentinel)
+          ? this.currentLabel
+          : currentLabel as String?,
       isSearching: isSearching ?? this.isSearching,
       isResolvingAddress: isResolvingAddress ?? this.isResolvingAddress,
       isNearbyLoading: isNearbyLoading ?? this.isNearbyLoading,
@@ -74,12 +80,14 @@ class MapPickerNotifier extends StateNotifier<MapPickerState> {
   void initialize({
     required LatLng position,
     String? address,
+    String? label,
   }) {
     state = state.copyWith(
       currentPosition: position,
       selectedPlaceId: 'current_position',
+      currentLabel: label ?? address,
     );
-    setAddress(address, markAsCurrent: true);
+    setAddress(address, label: label, markAsCurrent: true);
     loadNearbyPlaces(position);
     if (address == null) {
       resolveAddress(position);
@@ -94,7 +102,11 @@ class MapPickerNotifier extends StateNotifier<MapPickerState> {
     state = state.copyWith(isResolvingAddress: true);
     try {
       final address = await mapsService.reverseGeocode(position);
-      setAddress(address, markAsCurrent: true);
+      setAddress(
+        address,
+        label: address,
+        markAsCurrent: true,
+      );
     } catch (e, stack) {
       Logger.error('MapPickerNotifier', '解析地址失败: $e', stackTrace: stack);
     } finally {
@@ -121,8 +133,32 @@ class MapPickerNotifier extends StateNotifier<MapPickerState> {
     }
   }
 
-  void setSelectedPlace(String placeId) {
-    state = state.copyWith(selectedPlaceId: placeId);
+  void setSelectedPlace({
+    required PlaceSuggestion suggestion,
+    LatLng? position,
+    String? address,
+    String? label,
+  }) {
+    final targetPosition = position ?? state.currentPosition;
+    final resolvedAddress = address ?? suggestion.primaryText;
+    final resolvedLabel = label ?? suggestion.primaryText;
+    final coordinateText = targetPosition != null
+        ? '${targetPosition.latitude.toStringAsFixed(6)}, ${targetPosition.longitude.toStringAsFixed(6)}'
+        : suggestion.secondaryText;
+
+    final placeForDisplay = PlaceSuggestion(
+      placeId: suggestion.placeId,
+      primaryText: resolvedAddress,
+      secondaryText: coordinateText,
+    );
+
+    state = state.copyWith(
+      selectedPlaceId: suggestion.placeId,
+      currentPosition: targetPosition ?? state.currentPosition,
+      currentAddress: resolvedAddress,
+      currentLabel: resolvedLabel,
+      lastKnownPlace: placeForDisplay,
+    );
   }
 
   Future<void> searchSuggestions(String keyword, {LatLng? bias}) async {
@@ -148,7 +184,11 @@ class MapPickerNotifier extends StateNotifier<MapPickerState> {
     state = state.copyWith(suggestions: const []);
   }
 
-  void setAddress(String? address, {bool markAsCurrent = true}) {
+  void setAddress(
+    String? address, {
+    String? label,
+    bool markAsCurrent = true,
+  }) {
     final position = state.currentPosition;
     final place = (address != null && position != null)
         ? PlaceSuggestion(
@@ -161,6 +201,7 @@ class MapPickerNotifier extends StateNotifier<MapPickerState> {
     state = state.copyWith(
       currentAddress: address,
       lastKnownPlace: place,
+      currentLabel: label ?? state.currentLabel,
       selectedPlaceId: markAsCurrent ? 'current_position' : state.selectedPlaceId,
     );
   }

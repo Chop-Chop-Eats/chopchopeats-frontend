@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -13,15 +15,11 @@ class MapNearbySheet extends ConsumerWidget {
   const MapNearbySheet({
     super.key,
     required this.dismiss,
-    required this.onConfirm,
     required this.onSelectPlace,
-    this.confirmText,
   });
 
   final VoidCallback dismiss;
-  final VoidCallback onConfirm;
-  final void Function(PlaceSuggestion suggestion) onSelectPlace;
-  final String? confirmText;
+  final Future<void> Function(PlaceSuggestion suggestion) onSelectPlace;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -32,143 +30,62 @@ class MapNearbySheet extends ConsumerWidget {
       if (state.lastKnownPlace != null) state.lastKnownPlace!,
       ...state.nearbyPlaces.where((item) => item.placeId != 'current_position'),
     ];
+
     final isLoading = state.isNearbyLoading && displayPlaces.isEmpty;
     final isUpdating = state.isNearbyUpdating && displayPlaces.isNotEmpty;
+    final selectedId = state.selectedPlaceId;
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _Header(
-          state: state,
-          confirmText: confirmText ?? l10n?.mapConfirmLocation,
-          onConfirm: () {
-            dismiss();
-            onConfirm();
-          },
+    if (isLoading) {
+      return Padding(
+        padding: EdgeInsets.symmetric(vertical: 24.h),
+        child: const Center(child: CommonIndicator(size: 24)),
+      );
+    }
+
+    if (displayPlaces.isEmpty) {
+      return Padding(
+        padding: EdgeInsets.symmetric(vertical: 24.h),
+        child: Text(
+          l10n?.emptyListText ?? '暂无周边地点',
+          style: TextStyle(fontSize: 13.sp, color: Colors.grey[500]),
         ),
-        CommonSpacing.small,
-        if (isLoading)
-          Padding(
-            padding: EdgeInsets.symmetric(vertical: 24.h),
-            child: const Center(child: CommonIndicator(size: 24)),
-          )
-        else
-          Flexible(
-            child: Stack(
-              children: [
-                if (displayPlaces.isEmpty)
-                  Center(
-                    child: Text(
-                      l10n?.emptyListText ?? '暂无周边地点',
-                      style: TextStyle(fontSize: 13.sp, color: Colors.grey[500]),
-                    ),
-                  )
-                else
-                  ListView.builder(
-                    padding: EdgeInsets.symmetric(vertical: 6.h),
-                    physics: const ClampingScrollPhysics(),
-                    itemCount: displayPlaces.length,
-                    itemBuilder: (_, index) {
-                      final item = displayPlaces[index];
-                      final isSelected = item.placeId == state.selectedPlaceId;
-                      return _NearbyItem(
-                        suggestion: item,
-                        isSelected: isSelected,
-                        onTap: () => onSelectPlace(item),
-                      );
-                    }
-                  ),
-                if (isUpdating)
-                  Positioned.fill(
-                    child: IgnorePointer(
-                      ignoring: true,
-                      child: Container(
-                        color: Colors.white.withValues(alpha: 0.6),
-                        alignment: Alignment.center,
-                        child: const CommonIndicator(size: 20),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
+      );
+    }
+
+    return Flexible(
+  
+      child: Stack(
+        children: [
+          ListView.builder(
+            padding: EdgeInsets.symmetric(vertical: 6.h),
+            physics: const ClampingScrollPhysics(),
+            itemCount: displayPlaces.length,
+            itemBuilder: (_, index) {
+              final item = displayPlaces[index];
+              final isSelected = item.placeId == selectedId;
+              return _NearbyItem(
+                suggestion: item,
+                isSelected: isSelected,
+                onTap: () {
+                  dismiss();
+                  unawaited(onSelectPlace(item));
+                },
+              );
+            },
           ),
-      ],
-    );
-  }
-}
-
-class _Header extends StatelessWidget {
-  const _Header({
-    required this.state,
-    required this.confirmText,
-    required this.onConfirm,
-  });
-
-  final MapPickerState state;
-  final String? confirmText;
-  final VoidCallback onConfirm;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final address = state.currentAddress ?? l10n?.mapNoAddress ?? '暂无地址';
-    final position = state.currentPosition;
-    final coordinateText = position == null
-        ? '--'
-        : '${position.latitude.toStringAsFixed(6)}, ${position.longitude.toStringAsFixed(6)}';
-
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (state.isResolvingAddress)
-                    Padding(
-                      padding: EdgeInsets.only(left: 8.w),
-                      child: const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CommonIndicator(size: 16),
-                      ),
-                    ),
-                ],
-              ),
-              CommonSpacing.small,
-              Text(
-                address,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w600),
-              ),
-              CommonSpacing.small,
-              Text(
-                coordinateText,
-                style: TextStyle(fontSize: 11.sp, color: Colors.grey[600]),
-              ),
-            ],
-          ),
-        ),
-        GestureDetector(
-          onTap: onConfirm,
-          child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
-            child: Text(
-              confirmText ?? '确定位置',
-              style: TextStyle(
-                fontSize: 12.sp,
-                fontWeight: FontWeight.w600,
-                color: AppTheme.primaryOrange,
+          if (isUpdating)
+            Positioned.fill(
+              child: IgnorePointer(
+                ignoring: true,
+                child: Container(
+                  color: Colors.white.withValues(alpha: 0.6),
+                  alignment: Alignment.center,
+                  child: const CommonIndicator(size: 20),
+                ),
               ),
             ),
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
@@ -196,7 +113,9 @@ class _NearbyItem extends StatelessWidget {
         margin: EdgeInsets.symmetric(vertical: 6.h),
         padding: EdgeInsets.symmetric(vertical: 8.h, horizontal: 12.w),
         decoration: BoxDecoration(
-          color: isSelected? AppTheme.primaryOrange.withValues(alpha: 0.12): Colors.transparent,
+          color: isSelected
+              ? AppTheme.primaryOrange.withValues(alpha: 0.12)
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(12.r),
         ),
         child: Column(

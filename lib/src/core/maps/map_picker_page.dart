@@ -23,6 +23,7 @@ class MapPickerArguments {
   MapPickerArguments({
     required this.initialPosition,
     this.initialAddress,
+    this.initialLabel,
     this.title,
     this.confirmText,
     this.searchHint,
@@ -31,6 +32,7 @@ class MapPickerArguments {
 
   final LatLng initialPosition;
   final String? initialAddress;
+  final String? initialLabel;
   final String? title;
   final String? confirmText;
   final String? searchHint;
@@ -41,10 +43,12 @@ class MapPickerResult {
   MapPickerResult({
     required this.position,
     this.address,
+    this.label,
   });
 
   final LatLng position;
   final String? address;
+  final String? label;
 }
 
 class MapPickerPage extends ConsumerStatefulWidget {
@@ -88,6 +92,7 @@ class _MapPickerPageState extends ConsumerState<MapPickerPage> {
       notifier.initialize(
         position: widget.arguments.initialPosition,
         address: widget.arguments.initialAddress,
+      label: widget.arguments.initialLabel ?? widget.arguments.initialAddress,
       );
       _showSheetOnce();
     });
@@ -137,26 +142,86 @@ class _MapPickerPageState extends ConsumerState<MapPickerPage> {
     );
   }
 
-  Future<void> _onSuggestionSelected(PlaceSuggestion suggestion) async {
+  Future<void> _onSuggestionSelected(
+    PlaceSuggestion suggestion, {
+    bool closePicker = false,
+  }) async {
     final notifier = ref.read(mapPickerProvider.notifier);
-    notifier.setSelectedPlace(suggestion.placeId);
+    LatLng? targetPosition;
+    String targetAddress = suggestion.description;
+    String targetLabel = suggestion.description;
+    Logger.info('MapPickerPage', 'onSuggestionSelected: ${suggestion.description}, closePicker: $closePicker');
     if (suggestion.placeId == 'current_position') {
-      _searchController.text = suggestion.primaryText;
+      final mapState = ref.read(mapPickerProvider);
+      targetPosition = mapState.currentPosition;
+      targetAddress = (mapState.currentAddress ?? suggestion.primaryText).trim();
+      final currentLabel = mapState.currentLabel?.trim();
+      if (currentLabel != null && currentLabel.isNotEmpty) {
+        targetLabel = currentLabel;
+      } else if (targetLabel.trim().isEmpty && targetAddress.isNotEmpty) {
+        targetLabel = targetAddress;
+      }
+      if (targetAddress.isEmpty) {
+        targetAddress = targetLabel;
+      }
+      notifier.setSelectedPlace(
+        suggestion: suggestion,
+        position: targetPosition,
+        address: targetAddress,
+        label: targetLabel,
+      );
+      if (targetPosition == null) {
+        toast.warn(AppLocalizations.of(context)?.mapNoAddress ?? '暂无可用位置');
+        return;
+      }
+      Logger.info('MapPickerPage', 'targetPosition: $targetPosition, targetAddress: $targetAddress');
+      if (closePicker) {
+        Navigator.of(context).pop<MapPickerResult>(
+          MapPickerResult(
+            position: targetPosition,
+            address: targetAddress,
+            label: targetLabel,
+          ),
+        );
+      } else {
+        _searchController.text = targetLabel.isNotEmpty ? targetLabel : targetAddress;
+      }
       return;
     }
+
     try {
       final details = await mapsService.fetchPlaceDetails(suggestion.placeId);
       if (details == null) return;
       await _moveCamera(details.position);
-      notifier.updatePosition(details.position);
-      notifier.setAddress(
-        details.formattedAddress ?? suggestion.description,
-        markAsCurrent: false,
+      targetPosition = details.position;
+      targetAddress = (details.formattedAddress ?? suggestion.description).trim();
+      if (targetLabel.trim().isEmpty && targetAddress.isNotEmpty) {
+        targetLabel = targetAddress;
+      }
+      if (targetAddress.isEmpty) {
+        targetAddress = targetLabel;
+      }
+      notifier.updatePosition(targetPosition);
+      notifier.setSelectedPlace(
+        suggestion: suggestion,
+        position: targetPosition,
+        address: targetAddress,
+        label: targetLabel,
       );
       await notifier.loadNearbyPlaces(details.position);
-      _searchController.text = suggestion.description;
-      _clearSuggestions();
+      _searchController.text = targetLabel.isNotEmpty ? targetLabel : targetAddress;
       _searchFocusNode.unfocus();
+      if (closePicker) {
+        if (!mounted) return;
+        Logger.info('MapPickerPage', '(position: $targetPosition, address: $targetAddress, label: $targetLabel))');
+        Navigator.of(context).pop<MapPickerResult>(
+          MapPickerResult(
+            position: targetPosition,
+            address: targetAddress,
+            label: targetLabel,
+          ),
+        );
+      }
     } catch (e, stack) {
       Logger.error('MapPickerPage', '获取地点详情失败: $e\n$stack');
       if (!mounted) return;
@@ -200,9 +265,8 @@ class _MapPickerPageState extends ConsumerState<MapPickerPage> {
       showBarrier: false,
       childBuilder: (dismiss) => MapNearbySheet(
         dismiss: dismiss,
-        confirmText: widget.arguments.confirmText ?? l10n?.mapConfirmLocation,
-        onConfirm: _onConfirmPosition,
-        onSelectPlace: _onSuggestionSelected,
+        onSelectPlace: (suggestion) =>
+            _onSuggestionSelected(suggestion, closePicker: true),
       ),
     );
   }
@@ -252,21 +316,6 @@ class _MapPickerPageState extends ConsumerState<MapPickerPage> {
     }
   }
 
-  void _onConfirmPosition() {
-    final mapState = ref.read(mapPickerProvider);
-    final position = mapState.currentPosition;
-    if (position == null) {
-      toast.warn(AppLocalizations.of(context)?.mapNoAddress ?? '暂无可用位置');
-      return;
-    }
-    Navigator.of(context).pop<MapPickerResult>(
-      MapPickerResult(
-        position: position,
-        address: mapState.currentAddress,
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final mapState = ref.watch(mapPickerProvider);
@@ -313,7 +362,7 @@ class _MapPickerPageState extends ConsumerState<MapPickerPage> {
           ),
           Positioned(
             right: 16.w,
-            bottom: MediaQuery.of(context).padding.bottom + 24.h,
+            bottom: MediaQuery.of(context).size.height * 0.48  + 24.h,
             child: _buildMyLocationButton(myLocationTooltip),
           ),
         ],
