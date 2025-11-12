@@ -1,9 +1,8 @@
-import 'dart:convert';
-
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:http/http.dart' as http;
 
 import 'maps_config.dart';
+import 'maps_api_client.dart';
+import '../utils/logger/logger.dart';
 
 class PlaceSuggestion {
   PlaceSuggestion({
@@ -30,9 +29,30 @@ class PlaceDetails {
 }
 
 class MapsService {
-  MapsService({http.Client? client}) : _client = client ?? http.Client();
+  MapsService({MapsApiClient? client}) : _client = client ?? MapsApiClient();
 
-  final http.Client _client;
+  final MapsApiClient _client;
+
+  Future<Map<String, dynamic>> _get(
+    String path, {
+    required Map<String, String> params,
+  }) async {
+    final response = await _client.get<dynamic>(
+      path,
+      queryParameters: params,
+    );
+    final data = response.data;
+    if (data == null) {
+      throw Exception('Maps API 响应为空');
+    }
+    if (data is Map<String, dynamic>) {
+      return data;
+    }
+    if (data is Map) {
+      return Map<String, dynamic>.from(data);
+    }
+    throw Exception('Maps API 响应格式不正确: ${data.runtimeType}');
+  }
 
   Future<List<PlaceSuggestion>> fetchAutocomplete(
     String input, {
@@ -52,18 +72,11 @@ class MapsService {
       params['radius'] = '50000';
     }
 
-    final uri = Uri.https(
-      'maps.googleapis.com',
+    final data = await _get(
       '/maps/api/place/autocomplete/json',
-      params,
+      params: params,
     );
 
-    final response = await _client.get(uri);
-    if (response.statusCode != 200) {
-      throw Exception('Places Autocomplete 请求失败: ${response.statusCode}');
-    }
-
-    final data = jsonDecode(response.body) as Map<String, dynamic>;
     final status = data['status'] as String? ?? 'UNKNOWN_ERROR';
     if (status != 'OK') {
       if (status == 'ZERO_RESULTS') {
@@ -87,10 +100,9 @@ class MapsService {
 
   Future<PlaceDetails?> fetchPlaceDetails(String placeId) async {
     if (placeId.isEmpty) return null;
-    final uri = Uri.https(
-      'maps.googleapis.com',
+    final data = await _get(
       '/maps/api/place/details/json',
-      {
+      params: <String, String>{
         'place_id': placeId,
         'fields': 'geometry/location,formatted_address',
         'language': 'zh-CN',
@@ -98,12 +110,6 @@ class MapsService {
       },
     );
 
-    final response = await _client.get(uri);
-    if (response.statusCode != 200) {
-      throw Exception('Places Details 请求失败: ${response.statusCode}');
-    }
-
-    final data = jsonDecode(response.body) as Map<String, dynamic>;
     final status = data['status'] as String? ?? 'UNKNOWN_ERROR';
     if (status != 'OK') {
       final errorMessage = data['error_message'] as String? ?? status;
@@ -126,22 +132,15 @@ class MapsService {
   }
 
   Future<String?> reverseGeocode(LatLng position) async {
-    final uri = Uri.https(
-      'maps.googleapis.com',
+    final data = await _get(
       '/maps/api/geocode/json',
-      {
+      params: <String, String>{
         'latlng': '${position.latitude},${position.longitude}',
         'language': 'zh-CN',
         'key': MapsConfig.apiKey,
       },
     );
 
-    final response = await _client.get(uri);
-    if (response.statusCode != 200) {
-      throw Exception('地理编码请求失败: ${response.statusCode}');
-    }
-
-    final data = jsonDecode(response.body) as Map<String, dynamic>;
     final status = data['status'] as String? ?? 'UNKNOWN_ERROR';
     if (status != 'OK') {
       if (status == 'ZERO_RESULTS') {
@@ -162,24 +161,17 @@ class MapsService {
     int radius = 1000,
     String language = 'zh-CN',
   }) async {
-    final uri = Uri.https(
-      'maps.googleapis.com',
+    final data = await _get(
       '/maps/api/place/nearbysearch/json',
-      {
+      params: <String, String>{
         'location': '${location.latitude},${location.longitude}',
         'radius': radius.toString(),
         'key': MapsConfig.apiKey,
         'language': language,
-        'type': 'geocode',
+        // 'type': 'geocode',
       },
     );
 
-    final response = await _client.get(uri);
-    if (response.statusCode != 200) {
-      throw Exception('Nearby Places 请求失败: ${response.statusCode}');
-    }
-
-    final data = jsonDecode(response.body) as Map<String, dynamic>;
     final status = data['status'] as String? ?? 'UNKNOWN_ERROR';
     if (status != 'OK') {
       if (status == 'ZERO_RESULTS') {
@@ -190,20 +182,33 @@ class MapsService {
     }
 
     final results = data['results'] as List<dynamic>? ?? const [];
-    return results
-        .map((raw) {
-          final map = raw as Map<String, dynamic>;
-          final name = map['name'] as String? ?? '';
-          final vicinity = map['vicinity'] as String? ?? '';
-          final placeId = map['place_id'] as String? ?? '';
-          return PlaceSuggestion(
-            placeId: placeId,
-            primaryText: name,
-            secondaryText: vicinity,
-          );
-        })
-        .where((item) => item.placeId.isNotEmpty && item.primaryText.isNotEmpty)
-        .toList();
+    final suggestions = results.map((raw) {
+      final map = raw as Map<String, dynamic>;
+      final placeId = (map['place_id'] as String? ?? '').trim();
+      final name = (map['name'] as String? ?? '').trim();
+      final vicinity = (map['vicinity'] as String? ?? '').trim();
+      final formattedAddress = (map['formatted_address'] as String? ?? '').trim();
+
+      final primaryText = name.isNotEmpty
+          ? name
+          : (formattedAddress.isNotEmpty ? formattedAddress : vicinity);
+      final secondaryText = vicinity.isNotEmpty
+          ? vicinity
+          : (formattedAddress.isNotEmpty ? formattedAddress : name);
+
+      if (placeId.isEmpty || primaryText.isEmpty) {
+        return null;
+      }
+
+      return PlaceSuggestion(
+        placeId: placeId,
+        primaryText: primaryText,
+        secondaryText: secondaryText,
+      );
+    }).whereType<PlaceSuggestion>().toList();
+
+    Logger.info('MapsService', 'Nearby places count: ${suggestions.length}');
+    return suggestions;
   }
 }
 

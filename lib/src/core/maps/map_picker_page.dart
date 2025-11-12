@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:chop_user/src/core/utils/pop/toast.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
@@ -15,6 +16,8 @@ import '../widgets/common_spacing.dart';
 import '../utils/logger/logger.dart';
 import 'maps_config.dart';
 import 'maps_service.dart';
+import 'map_providers.dart';
+import 'widgets/map_nearby_sheet.dart';
 
 class MapPickerArguments {
   MapPickerArguments({
@@ -44,7 +47,7 @@ class MapPickerResult {
   final String? address;
 }
 
-class MapPickerPage extends StatefulWidget {
+class MapPickerPage extends ConsumerStatefulWidget {
   const MapPickerPage({super.key, required this.arguments});
 
   final MapPickerArguments arguments;
@@ -61,22 +64,16 @@ class MapPickerPage extends StatefulWidget {
   }
 
   @override
-  State<MapPickerPage> createState() => _MapPickerPageState();
+  @override
+  ConsumerState<MapPickerPage> createState() => _MapPickerPageState();
 }
 
-class _MapPickerPageState extends State<MapPickerPage> {
+class _MapPickerPageState extends ConsumerState<MapPickerPage> {
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
-  final ValueNotifier<bool> _isSearching = ValueNotifier<bool>(false);
-  final ValueNotifier<bool> _isResolvingAddress = ValueNotifier<bool>(false);
-  final List<PlaceSuggestion> _suggestions = <PlaceSuggestion>[];
-  final ValueNotifier<List<PlaceSuggestion>> _nearbyPlaces =
-      ValueNotifier<List<PlaceSuggestion>>(<PlaceSuggestion>[]);
   late final UniqueKey _mapViewKey;
 
   GoogleMapController? _mapController;
-  late LatLng _currentPosition;
-  String? _currentAddress;
   Timer? _debounce;
   bool _isCameraMoving = false;
   bool _hasShownSheet = false;
@@ -84,11 +81,14 @@ class _MapPickerPageState extends State<MapPickerPage> {
   @override
   void initState() {
     super.initState();
-    _currentPosition = widget.arguments.initialPosition;
-    _currentAddress = widget.arguments.initialAddress;
     _mapViewKey = UniqueKey();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _refreshNearbyPlaces();
+      final notifier = ref.read(mapPickerProvider.notifier);
+      notifier.reset();
+      notifier.initialize(
+        position: widget.arguments.initialPosition,
+        address: widget.arguments.initialAddress,
+      );
       _showSheetOnce();
     });
   }
@@ -99,9 +99,6 @@ class _MapPickerPageState extends State<MapPickerPage> {
     _mapController?.dispose();
     _searchController.dispose();
     _searchFocusNode.dispose();
-    _isSearching.dispose();
-    _isResolvingAddress.dispose();
-    _nearbyPlaces.dispose();
     super.dispose();
   }
 
@@ -111,30 +108,22 @@ class _MapPickerPageState extends State<MapPickerPage> {
     }
     _isCameraMoving = false;
 
-    if (widget.arguments.enableReverseGeocode) {
-      _isResolvingAddress.value = true;
-      try {
-        final address = await mapsService.reverseGeocode(_currentPosition);
-        if (!mounted) return;
-        setState(() {
-          _currentAddress = address;
-        });
-      } catch (e, stack) {
-        Logger.error('MapPickerPage', '反向地理编码失败: $e\n$stack');
-      } finally {
-        if (mounted) {
-          _isResolvingAddress.value = false;
-        }
-      }
+    final notifier = ref.read(mapPickerProvider.notifier);
+    final position = ref.read(mapPickerProvider).currentPosition;
+    if (position == null) {
+      return;
     }
 
-    if (!mounted) return;
-    await _refreshNearbyPlaces();
+    if (widget.arguments.enableReverseGeocode) {
+      await notifier.resolveAddress(position);
+    }
+
+    await notifier.loadNearbyPlaces(position);
   }
 
   void _onCameraMove(CameraPosition position) {
     _isCameraMoving = true;
-    _currentPosition = position.target;
+    ref.read(mapPickerProvider.notifier).updatePosition(position.target);
   }
 
   Future<void> _moveCamera(LatLng target) async {
@@ -148,28 +137,23 @@ class _MapPickerPageState extends State<MapPickerPage> {
     );
   }
 
-  Future<void> _refreshNearbyPlaces() async {
-    try {
-      final places = await mapsService.fetchNearbyPlaces(_currentPosition);
-      if (!mounted) return;
-      _nearbyPlaces.value = places;
-    } catch (e, stack) {
-      Logger.error('MapPickerPage', '获取周边地点失败: $e\n$stack');
-    }
-  }
-
   Future<void> _onSuggestionSelected(PlaceSuggestion suggestion) async {
-    _isSearching.value = true;
+    final notifier = ref.read(mapPickerProvider.notifier);
+    notifier.setSelectedPlace(suggestion.placeId);
+    if (suggestion.placeId == 'current_position') {
+      _searchController.text = suggestion.primaryText;
+      return;
+    }
     try {
       final details = await mapsService.fetchPlaceDetails(suggestion.placeId);
       if (details == null) return;
       await _moveCamera(details.position);
-      if (!mounted) return;
-      setState(() {
-        _currentPosition = details.position;
-        _currentAddress = details.formattedAddress ?? suggestion.description;
-      });
-      await _refreshNearbyPlaces();
+      notifier.updatePosition(details.position);
+      notifier.setAddress(
+        details.formattedAddress ?? suggestion.description,
+        markAsCurrent: false,
+      );
+      await notifier.loadNearbyPlaces(details.position);
       _searchController.text = suggestion.description;
       _clearSuggestions();
       _searchFocusNode.unfocus();
@@ -177,10 +161,6 @@ class _MapPickerPageState extends State<MapPickerPage> {
       Logger.error('MapPickerPage', '获取地点详情失败: $e\n$stack');
       if (!mounted) return;
       toast.warn(AppLocalizations.of(context)?.mapPlaceDetailFailed ?? '解析地点失败，请稍后重试');
-    } finally {
-      if (mounted) {
-        _isSearching.value = false;
-      }
     }
   }
 
@@ -193,29 +173,15 @@ class _MapPickerPageState extends State<MapPickerPage> {
         _clearSuggestions();
         return;
       }
-      _isSearching.value = true;
-      
-      //  _searchFocusNode.unfocus(); // 收起键盘
+      _searchFocusNode.unfocus(); // 收起键盘
 
       try {
-        final items = await mapsService.fetchAutocomplete(
-          keyword,
-          biasLocation: _currentPosition,
-        );
-        if (!mounted) return;
-        setState(() {
-          _suggestions
-            ..clear()
-            ..addAll(items);
-        });
+        final position = ref.read(mapPickerProvider).currentPosition;
+        await ref.read(mapPickerProvider.notifier).searchSuggestions(keyword, bias: position);
       } catch (e, stack) {
         Logger.error('MapPickerPage', '搜索建议失败: $e\n$stack');
         if (!mounted) return;
         toast.warn(AppLocalizations.of(context)?.mapSearchFailed ?? '搜索失败，请检查网络后重试');
-      } finally {
-        if (mounted) {
-          _isSearching.value = false;
-        }
       }
     });
   }
@@ -226,120 +192,24 @@ class _MapPickerPageState extends State<MapPickerPage> {
       return;
     }
     _hasShownSheet = true;
+    final l10n = AppLocalizations.of(context);
     await Pop.sheet<void>(
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 24.h),
-      maxHeight: SheetDimension.fraction(0.4),
+      height: SheetDimension.fraction(0.48),
+      maxHeight: SheetDimension.fraction(0.48),
+      title: widget.arguments.title ?? l10n?.mapSelectLocationTitle ?? '选择位置',
       showBarrier: false,
-      childBuilder: (dismiss) {
-        return ValueListenableBuilder<List<PlaceSuggestion>>(
-          valueListenable: _nearbyPlaces,
-          builder: (_, places, __) {
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: ValueListenableBuilder<bool>(
-                        valueListenable: _isResolvingAddress,
-                        builder: (_, resolving, __) {
-                          if (resolving) {
-                            return Row(
-                              children: [
-                                const SizedBox(
-                                  width: 16,
-                                  height: 16,
-                                  child: CommonIndicator(size: 16),
-                                ),
-                                CommonSpacing.width(8),
-                                Expanded(
-                                  child: Text(
-                                    AppLocalizations.of(context)?.mapResolvingAddress ?? '正在解析位置...',
-                                    style: TextStyle(fontSize: 11.sp, fontWeight: FontWeight.w600),
-                                  ),
-                                ),
-                              ],
-                            );
-                          }
-                          return Text(
-                            _currentAddress ?? '',
-                            style: TextStyle(fontSize: 11.sp, fontWeight: FontWeight.w600),
-                          );
-                        },
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        dismiss();
-                        _onConfirmPosition();
-                      },
-                      child: Container(
-                        padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
-                        child: Text(
-                          widget.arguments.confirmText ?? '确定位置',
-                          style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w600, color: AppTheme.primaryOrange),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                CommonSpacing.small,
-                if (places.isEmpty)
-                  Padding(
-                    padding: EdgeInsets.symmetric(vertical: 24.h),
-                    child: Text(
-                      AppLocalizations.of(context)?.emptyListText ?? '暂无周边地点',
-                      style: TextStyle(fontSize: 13.sp, color: Colors.grey[500]),
-                    ),
-                  )
-                else
-                  ConstrainedBox(
-                    constraints: BoxConstraints(maxHeight: 240.h),
-                    child: ListView.separated(
-                      shrinkWrap: true,
-                      physics: const ClampingScrollPhysics(),
-                      itemBuilder: (_, index) {
-                        final item = places[index];
-                        return GestureDetector(
-                          onTap: () {
-                            _onSuggestionSelected(item);
-                          },
-                          child: Container(
-                            margin: EdgeInsets.symmetric(vertical: 12.h),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  item.primaryText,
-                                  style: TextStyle(fontSize: 15.sp, color: Colors.black, fontWeight: FontWeight.w500),
-                                ),
-                                CommonSpacing.small,
-                                Text(
-                                  item.secondaryText,
-                                  style: TextStyle(fontSize: 13.sp, color: Colors.grey[500], fontWeight: FontWeight.w400),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                      separatorBuilder: (_, __) => const Divider(height: 0.5),
-                      itemCount: places.length,
-                    ),
-                  ),
-              ],
-            );
-          },
-        );
-      },
+      childBuilder: (dismiss) => MapNearbySheet(
+        dismiss: dismiss,
+        confirmText: widget.arguments.confirmText ?? l10n?.mapConfirmLocation,
+        onConfirm: _onConfirmPosition,
+        onSelectPlace: _onSuggestionSelected,
+      ),
     );
   }
 
 
   void _clearSuggestions() {
-    setState(() {
-      _suggestions.clear();
-    });
+    ref.read(mapPickerProvider.notifier).clearSuggestions();
   }
 
   Future<void> _useMyLocation() async {
@@ -368,26 +238,13 @@ class _MapPickerPageState extends State<MapPickerPage> {
       final target = LatLng(current.latitude, current.longitude);
       await _moveCamera(target);
       if (!mounted) return;
-      setState(() {
-        _currentPosition = target;
-      });
+      final notifier = ref.read(mapPickerProvider.notifier);
+      notifier.updatePosition(target);
 
       if (widget.arguments.enableReverseGeocode) {
-        _isResolvingAddress.value = true;
-        try {
-          final address = await mapsService.reverseGeocode(target);
-          if (mounted) {
-            setState(() {
-              _currentAddress = address;
-            });
-          }
-        } finally {
-          if (mounted) {
-            _isResolvingAddress.value = false;
-          }
-        }
+        await notifier.resolveAddress(target);
       }
-      await _refreshNearbyPlaces();
+      await notifier.loadNearbyPlaces(target);
     } catch (e, stack) {
       Logger.error('MapPickerPage', '定位失败: $e\n$stack');
       if (!mounted) return;
@@ -396,21 +253,28 @@ class _MapPickerPageState extends State<MapPickerPage> {
   }
 
   void _onConfirmPosition() {
+    final mapState = ref.read(mapPickerProvider);
+    final position = mapState.currentPosition;
+    if (position == null) {
+      toast.warn(AppLocalizations.of(context)?.mapNoAddress ?? '暂无可用位置');
+      return;
+    }
     Navigator.of(context).pop<MapPickerResult>(
       MapPickerResult(
-        position: _currentPosition,
-        address: _currentAddress,
+        position: position,
+        address: mapState.currentAddress,
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final mapState = ref.watch(mapPickerProvider);
     final l10n = AppLocalizations.of(context);
     final searchHint = widget.arguments.searchHint ?? l10n?.mapSearchHint ?? '搜索地点或地址';
     final myLocationTooltip = l10n?.mapUseMyLocation ?? '使用当前位置';
+    final currentPosition = mapState.currentPosition ?? widget.arguments.initialPosition;
 
-    // 顶部是搜素框和返回按钮 右侧是 confirm position  底部是搜索结果 用pop.sheet展示 
     return Scaffold(
       appBar: null,
       body: Stack(
@@ -418,7 +282,7 @@ class _MapPickerPageState extends State<MapPickerPage> {
           GoogleMap(
             key: _mapViewKey,
             initialCameraPosition: CameraPosition(
-              target: _currentPosition,
+              target: currentPosition,
               zoom: MapsConfig.defaultZoom,
             ),
             myLocationButtonEnabled: false,
@@ -430,7 +294,7 @@ class _MapPickerPageState extends State<MapPickerPage> {
             markers: {
               Marker(
                 markerId: const MarkerId('selected_location'),
-                position: _currentPosition,
+                position: currentPosition,
                 draggable: false,
               ),
             },
@@ -442,14 +306,14 @@ class _MapPickerPageState extends State<MapPickerPage> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                _buildHeader(searchHint),
-                _buildSuggestionsList(),
+                _buildHeader(searchHint, mapState),
+                _buildSuggestionsList(mapState),
               ],
             ),
           ),
           Positioned(
             right: 16.w,
-            bottom: 24.h,
+            bottom: MediaQuery.of(context).padding.bottom + 24.h,
             child: _buildMyLocationButton(myLocationTooltip),
           ),
         ],
@@ -457,11 +321,18 @@ class _MapPickerPageState extends State<MapPickerPage> {
     );
   }
 
-  Widget _buildHeader(String searchHint) {
+  Widget _buildHeader(String searchHint, MapPickerState state) {
     return Row(
       children: [
         GestureDetector(
-          onTap: () => Navigate.pop(context),
+          onTap: () {
+            // 检查是否有
+            Logger.info('MapPickerPage', '检查是否有非Toast弹窗: ${PopupManager.hasNonToastPopup}');
+            if (PopupManager.hasNonToastPopup) {
+              PopupManager.hideLastNonToast();
+            }
+            Navigate.pop(context);
+          },
           child: CircleAvatar(
             radius: 18.r,
             backgroundColor: Colors.white,
@@ -471,14 +342,15 @@ class _MapPickerPageState extends State<MapPickerPage> {
           ),
         ),
         Expanded(
-          child: _buildSearchField(searchHint), 
+          child: _buildSearchField(searchHint, state), 
         ),
       ],
     );
   }
 
-  Widget _buildSuggestionsList() {
-    if (_suggestions.isEmpty) {
+  Widget _buildSuggestionsList(MapPickerState state) {
+    final suggestions = state.suggestions;
+    if (suggestions.isEmpty) {
       return const SizedBox.shrink();
     }
     return Container(
@@ -502,7 +374,7 @@ class _MapPickerPageState extends State<MapPickerPage> {
           physics: const ClampingScrollPhysics(),
           padding: EdgeInsets.symmetric(vertical: 6.h),
           itemBuilder: (_, index) {
-            final item = _suggestions[index];
+            final item = suggestions[index];
             return GestureDetector(
               behavior: HitTestBehavior.opaque,
               onTap: () => _onSuggestionSelected(item),
@@ -526,7 +398,7 @@ class _MapPickerPageState extends State<MapPickerPage> {
             );
           },
           separatorBuilder: (_, __) => Divider(height: 1.h, color: Colors.grey[200]),
-          itemCount: _suggestions.length,
+          itemCount: suggestions.length,
         ),
       ),
     );
@@ -556,7 +428,7 @@ class _MapPickerPageState extends State<MapPickerPage> {
     );
   }
 
-  Widget _buildSearchField(String hintText) {
+  Widget _buildSearchField(String hintText, MapPickerState state) {
     return Container(
       margin: EdgeInsets.only(left: 8.w),
       decoration: BoxDecoration(
@@ -575,10 +447,10 @@ class _MapPickerPageState extends State<MapPickerPage> {
             child: Icon(Icons.search, size: 20.w),
           ),
           prefixIconConstraints: BoxConstraints(minWidth: 0, minHeight: 0),
-          suffixIcon: ValueListenableBuilder<bool>(
-            valueListenable: _isSearching,
+          suffixIcon: ValueListenableBuilder<TextEditingValue>(
+            valueListenable: _searchController,
             builder: (_, value, __) {
-              if (value) {
+              if (state.isSearching) {
                 return Padding(
                   padding: EdgeInsets.all(6.w),
                   child: const SizedBox(
@@ -588,7 +460,7 @@ class _MapPickerPageState extends State<MapPickerPage> {
                   ),
                 );
               }
-              if (_searchController.text.isEmpty) {
+              if (value.text.isEmpty) {
                 return const SizedBox.shrink();
               }
               return IconButton(
