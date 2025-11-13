@@ -13,6 +13,7 @@ import '../../features/auth/pages/login_page.dart';
 import '../../features/help/pages/help_page.dart';
 import '../../features/main_screen.dart';
 import '../../features/mine/pages/profile_page.dart';
+import '../../features/mine/pages/shop_enter_page.dart';
 import '../../features/search/pages/search_page.dart';
 import '../../features/splash/pages/splash_page.dart';
 import '../maps/map_picker_page.dart';
@@ -82,6 +83,7 @@ class AppRouter {
       }
       return const ErrorPage(message: "地图参数错误或缺失");
     },
+    Routes.shopEnter: (settings) => const ShopEnterPage(),
   };
 
   /// 创建路由方法

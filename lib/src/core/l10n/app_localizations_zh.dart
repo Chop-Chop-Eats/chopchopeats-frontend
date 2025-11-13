@@ -280,6 +280,25 @@ class AppLocalizationsZh implements AppLocalizations {
   @override
   String get helpDialerLaunchFailedToast => '无法打开拨号键盘，请稍后再试';
 
+  // ============== ShopEnter 商家入驻页面 ==============
+  @override
+  String get shopEnterTitle => '入驻私厨商家';
+  @override
+  String get shopEnterProcess => '入驻流程';
+  @override
+  String get shopEnterDownloadApp => '下载商家端 App';
+  @override
+  String get shopEnterButtonDescription => 'App Store/Google Play下载 ChopChop Cooks';
+  @override
+  String get shopEnterRegisterAccount => '注册账号';
+  @override
+  String get shopEnterRegisterAccountDescription => '用手机号注册，填写基本信息';
+  @override
+  String get shopEnterApplyExam => '考证&申请';
+  @override
+  String get shopEnterApplyExamDescription => '考取私厨证书，完成申请流程考取 food handler\'s certificate后在App内提交入驻申请';
+  @override
+  String get shopEnterDownloadButton => '下载 Chopchop Cooks';
   // ============== 业务文案 - 个人资料页 ==============
   @override
   String get avatar => '头像';

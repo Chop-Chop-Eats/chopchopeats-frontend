@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../core/l10n/app_localizations.dart';
-import '../../../core/utils/logger/logger.dart';
+import '../../../core/routing/routes.dart';
 import '../../../core/widgets/common_spacing.dart';
 
 class ShopEnter extends StatelessWidget {
@@ -14,7 +14,7 @@ class ShopEnter extends StatelessWidget {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () {
-        Logger.info('ShopEnter', '商家入驻');
+        Navigator.pushNamed(context, Routes.shopEnter);
       },
       child: Container(
         width: double.infinity,

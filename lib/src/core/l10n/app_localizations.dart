@@ -172,6 +172,17 @@ abstract class AppLocalizations {
   String get helpEmailCopiedToast; // 邮箱复制提示
   String get helpDialerLaunchFailedToast; // 拨号失败提示
 
+  // ============== ShopEnter 商家入驻页面 ==============
+  String get shopEnterTitle; // 商家入驻
+  String get shopEnterProcess; // 入驻流程
+  String get shopEnterDownloadApp; // 下载商家端 App
+  String get shopEnterButtonDescription; // 描述1
+  String get shopEnterRegisterAccount; // 注册账号
+  String get shopEnterRegisterAccountDescription; // 注册账号描述
+  String get shopEnterApplyExam; // 考证&申请
+  String get shopEnterApplyExamDescription; // 考证&申请描述
+  String get shopEnterDownloadButton; // 下载按钮
+
 
   // ============== 业务文案 - 个人资料页 ==============
   String get avatar; // 头像

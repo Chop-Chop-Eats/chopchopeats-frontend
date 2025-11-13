@@ -282,6 +282,26 @@ class AppLocalizationsEn implements AppLocalizations {
   @override
   String get helpDialerLaunchFailedToast => 'Unable to open dialer. Please try again later.';
 
+
+  // ============== ShopEnter 商家入驻页面 ==============
+  @override
+  String get shopEnterTitle => 'Shop Enter';
+  @override
+  String get shopEnterProcess => 'Shop Enter Process';
+  @override
+  String get shopEnterDownloadApp => 'Download Shop App';
+  @override
+  String get shopEnterButtonDescription => 'App Store/Google Play download ChopChop Cooks';
+  @override
+  String get shopEnterRegisterAccount => 'Register Account';
+  @override
+  String get shopEnterRegisterAccountDescription => 'Register with your phone number and fill in basic information';
+  @override
+  String get shopEnterApplyExam => 'Apply for Exam';
+  @override
+  String get shopEnterApplyExamDescription => 'Apply for food handler\'s certificate, complete the application process after obtaining the certificate';
+  @override
+  String get shopEnterDownloadButton => 'Download Chopchop Cooks';
   // ============== 业务文案 - 个人资料页 ==============
   @override
   String get avatar => 'Avatar';

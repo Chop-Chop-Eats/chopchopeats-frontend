@@ -8,7 +8,6 @@ import '../../../core/widgets/common_spacing.dart';
 import '../../../core/widgets/common_indicator.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../providers/mine_provider.dart';
-import '../models/mine_model.dart';
 
 class UserinfoCard extends ConsumerStatefulWidget {
   const UserinfoCard({super.key});
