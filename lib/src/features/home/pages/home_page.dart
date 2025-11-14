@@ -87,7 +87,7 @@ class _HomePageState extends ConsumerState<HomePage> {
   Widget _buildSliverAppBar() {
     return CustomSliverAppBar(
       backgroundColor: const Color.fromARGB(255, 246, 247, 253),
-      expandedHeight: 120.h,
+      expandedHeight: 130.h,
       locationWidget: LocationBar(
         location: _appSettings.locationLabel,
         onLocationTap: _handleChangeLocation,
@@ -316,7 +316,6 @@ class _HomePageState extends ConsumerState<HomePage> {
   Future<void> _handleChangeLocation() async {
     Logger.info('HomePage', '点击位置');
     final settings = _appSettings;
-    final l10n = AppLocalizations.of(context);
 
     final result = await Navigate.push<MapPickerResult>(
       context,
@@ -325,9 +324,6 @@ class _HomePageState extends ConsumerState<HomePage> {
         initialPosition: LatLng(settings.latitude, settings.longitude),
         initialAddress: settings.locationLabel,
         initialLabel: settings.locationLabel,
-        title: l10n?.mapSelectLocationTitle,
-        confirmText: l10n?.mapConfirmLocation,
-        searchHint: l10n?.mapSearchHint ?? l10n?.searchHintHome,
       ),
     );
 
@@ -338,21 +334,28 @@ class _HomePageState extends ConsumerState<HomePage> {
 
     final lat = result.position.latitude;
     final lng = result.position.longitude;
-    final trimmedAddress = result.address?.trim() ?? '';
-    final trimmedLabel = result.label?.trim() ?? '';
-    final displayLabel = trimmedLabel.isNotEmpty
-        ? trimmedLabel
-        : trimmedAddress.isNotEmpty
-            ? trimmedAddress
-            : '(${lat.toStringAsFixed(4)}, ${lng.toStringAsFixed(4)})';
+    
+    // 构建 locationLabel，格式为 "primaryText · secondaryText"
+    String locationLabel;
+    if (result.primaryText != null && result.secondaryText != null) {
+      locationLabel = '${result.primaryText} · ${result.secondaryText}';
+    } else {
+      final trimmedAddress = result.address?.trim() ?? '';
+      final trimmedLabel = result.label?.trim() ?? '';
+      locationLabel = trimmedLabel.isNotEmpty
+          ? trimmedLabel
+          : trimmedAddress.isNotEmpty
+              ? trimmedAddress
+              : '(${lat.toStringAsFixed(4)}, ${lng.toStringAsFixed(4)})';
+    }
 
     await _appSettings.updateLocation(
       latitude: lat,
       longitude: lng,
-      label: displayLabel,
+      label: locationLabel,
     );
 
-    Logger.info('HomePage', '位置更新为: $displayLabel (lat: $lat, lng: $lng)');
+    Logger.info('HomePage', '位置更新为: $locationLabel (lat: $lat, lng: $lng)');
 
     await ref.read(selectedChefProvider.notifier).refresh(
       latitude: lat,

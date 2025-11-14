@@ -16,19 +16,44 @@ class LocationBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 解析 locationLabel，格式为 "primaryText · secondaryText"
+    final parts = location.split(' · ');
+    final primaryText = parts.isNotEmpty ? parts[0] : location;
+    final secondaryText = parts.length > 1 ? parts[1] : null;
+
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: onLocationTap,
       child: Row(
         children: [
           Icon(Icons.location_on, color: Colors.black, size: 20.sp),
           CommonSpacing.width(8),
           Expanded(
-            child: Text(
-              location,
-              style: TextStyle(fontSize: 16.sp),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
+            child: secondaryText != null
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        primaryText,
+                        style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w500),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Text(
+                        secondaryText,
+                        style: TextStyle(fontSize: 13.sp, color: Colors.grey[600]),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  )
+                : Text(
+                    location,
+                    style: TextStyle(fontSize: 16.sp),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
           ),
           CommonSpacing.width(4),
           Icon(Icons.keyboard_arrow_down, color: Colors.black, size: 20.sp),

@@ -7,6 +7,18 @@ import 'maps_service.dart';
 const _sentinel = Object();
 
 class MapPickerState {
+  /// 构造函数  
+  /// [currentPosition] 当前位置
+  /// [currentAddress] 当前地址
+  /// [currentLabel] 当前标签
+  /// [isSearching] 是否正在搜索
+  /// [isResolvingAddress] 是否正在解析地址
+  /// [isNearbyLoading] 是否正在加载附近地点
+  /// [isNearbyUpdating] 是否正在更新附近地点
+  /// [suggestions] 搜索建议
+  /// [nearbyPlaces] 附近地点
+  /// [lastKnownPlace] 最后一次已知地点
+  /// [selectedPlaceId] 选中的地点ID
   const MapPickerState({
     this.currentPosition,
     this.currentAddress,
@@ -87,9 +99,37 @@ class MapPickerNotifier extends StateNotifier<MapPickerState> {
       selectedPlaceId: 'current_position',
       currentLabel: label ?? address,
     );
-    setAddress(address, label: label, markAsCurrent: true);
+    
+    // 如果label是"primaryText · secondaryText"格式，解析它来创建lastKnownPlace
+    String? primaryText;
+    String? secondaryText;
+    if (label != null && label.contains(' · ')) {
+      final parts = label.split(' · ');
+      primaryText = parts.isNotEmpty ? parts[0].trim() : null;
+      secondaryText = parts.length > 1 ? parts[1].trim() : null;
+    } else if (address != null) {
+      // 如果没有label，使用address作为primaryText
+      primaryText = address;
+    }
+    
+    // 创建lastKnownPlace
+    if (primaryText != null) {
+      final placeForDisplay = PlaceSuggestion(
+        placeId: 'current_position',
+        primaryText: primaryText,
+        secondaryText: secondaryText ?? '${position.latitude.toStringAsFixed(6)}, ${position.longitude.toStringAsFixed(6)}',
+      );
+      state = state.copyWith(
+        lastKnownPlace: placeForDisplay,
+        currentAddress: address,
+        selectedPlaceId: 'current_position',
+      );
+    } else {
+      setAddress(address, label: label, markAsCurrent: true);
+    }
+    
     loadNearbyPlaces(position);
-    if (address == null) {
+    if (address == null && primaryText == null) {
       resolveAddress(position);
     }
   }
@@ -138,18 +178,18 @@ class MapPickerNotifier extends StateNotifier<MapPickerState> {
     LatLng? position,
     String? address,
     String? label,
+    String? street,
   }) {
     final targetPosition = position ?? state.currentPosition;
     final resolvedAddress = address ?? suggestion.primaryText;
     final resolvedLabel = label ?? suggestion.primaryText;
-    final coordinateText = targetPosition != null
-        ? '${targetPosition.latitude.toStringAsFixed(6)}, ${targetPosition.longitude.toStringAsFixed(6)}'
-        : suggestion.secondaryText;
 
+    // 使用原始suggestion的primaryText和secondaryText，不要使用格式化地址和坐标
     final placeForDisplay = PlaceSuggestion(
       placeId: suggestion.placeId,
-      primaryText: resolvedAddress,
-      secondaryText: coordinateText,
+      primaryText: suggestion.primaryText,
+      secondaryText: suggestion.secondaryText,
+      street: street ?? suggestion.street,
     );
 
     state = state.copyWith(

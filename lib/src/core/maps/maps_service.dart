@@ -9,11 +9,13 @@ class PlaceSuggestion {
     required this.placeId,
     required this.primaryText,
     required this.secondaryText,
+    this.street,
   });
 
   final String placeId;
   final String primaryText;
   final String secondaryText;
+  final String? street;
 
   String get description => [primaryText, secondaryText].where((e) => e.isNotEmpty).join(' · ');
 }
@@ -33,6 +35,9 @@ class MapsService {
 
   final MapsApiClient _client;
 
+  /// 获取地图API响应
+  /// [path] 路径
+  /// [params] 参数
   Future<Map<String, dynamic>> _get(
     String path, {
     required Map<String, String> params,
@@ -54,6 +59,10 @@ class MapsService {
     throw Exception('Maps API 响应格式不正确: ${data.runtimeType}');
   }
 
+
+  /// 获取地点自动补全
+  /// [input] 输入
+  /// [biasLocation] 偏置位置
   Future<List<PlaceSuggestion>> fetchAutocomplete(
     String input, {
     LatLng? biasLocation,
@@ -98,6 +107,8 @@ class MapsService {
     }).where((item) => item.placeId.isNotEmpty).toList();
   }
 
+  /// 获取地点详情
+  /// [placeId] 地点ID
   Future<PlaceDetails?> fetchPlaceDetails(String placeId) async {
     if (placeId.isEmpty) return null;
     final data = await _get(
@@ -156,6 +167,10 @@ class MapsService {
     return first['formatted_address'] as String?;
   }
 
+  /// 获取附近地点
+  /// [location] 位置
+  /// [radius] 半径
+  /// [language] 语言
   Future<List<PlaceSuggestion>> fetchNearbyPlaces(
     LatLng location, {
     int radius = 1000,
@@ -168,7 +183,6 @@ class MapsService {
         'radius': radius.toString(),
         'key': MapsConfig.apiKey,
         'language': language,
-        // 'type': 'geocode',
       },
     );
 
@@ -209,6 +223,21 @@ class MapsService {
 
     Logger.info('MapsService', 'Nearby places count: ${suggestions.length}');
     return suggestions;
+  }
+
+  /// 从完整地址中提取街道部分
+  /// [formattedAddress] 完整格式化地址
+  /// 返回街道部分（通常是第一个逗号之前的内容）
+  static String extractStreetFromAddress(String? formattedAddress) {
+    if (formattedAddress == null || formattedAddress.trim().isEmpty) {
+      return '';
+    }
+    final trimmed = formattedAddress.trim();
+    final commaIndex = trimmed.indexOf(',');
+    if (commaIndex > 0) {
+      return trimmed.substring(0, commaIndex).trim();
+    }
+    return trimmed;
   }
 }
 

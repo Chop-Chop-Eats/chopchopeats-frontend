@@ -175,9 +175,6 @@ class _AddAddressPageState extends ConsumerState<AddAddressPage> {
           initialPosition: initialPosition,
           initialAddress: currentAddress.isNotEmpty ? currentAddress : settings.locationLabel,
           initialLabel: currentAddress.isNotEmpty ? currentAddress : settings.locationLabel,
-          title: l10n?.mapSelectLocationTitle,
-          confirmText: l10n?.mapConfirmLocation,
-          searchHint: l10n?.mapSearchHint,
         ),
       );
 
