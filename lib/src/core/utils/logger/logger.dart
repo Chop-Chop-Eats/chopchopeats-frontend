@@ -1,18 +1,21 @@
 // lib/utils/logger/logger.dart
 import 'package:flutter/foundation.dart';
 import 'package:logger/logger.dart' as external_logger;
+import 'chunked_console_output.dart';
 import 'log_types.dart';
 import 'simple_log_printer.dart';
 
-
 class Logger {
   Logger._();
-  
+
   // 创建全局日志实例
   static final external_logger.Logger _logger = external_logger.Logger(
-    printer: SimpleLogPrinter(), 
-    level: kDebugMode ? external_logger.Level.debug : external_logger.Level.warning,
-    output: external_logger.ConsoleOutput(), // 输出到控制台
+    printer: SimpleLogPrinter(),
+    level:
+        kDebugMode
+            ? external_logger.Level.debug
+            : external_logger.Level.warning,
+    output: ChunkedConsoleOutput(), // 输出到控制台且不会被系统截断
   );
 
   /// 初始化全局错误监听器，将 Flutter 和平台错误重定向到本 Logger。
@@ -77,16 +80,27 @@ class Logger {
   }
 
   /// Error 级别日志
-  static void error(String? tag, dynamic message, {dynamic error, StackTrace? stackTrace}) {
+  static void error(
+    String? tag,
+    dynamic message, {
+    dynamic error,
+    StackTrace? stackTrace,
+  }) {
     _log(LogLevel.error, tag, message, error: error, stackTrace: stackTrace);
   }
 
   /// 内部日志方法
-  static void _log(LogLevel level, String? tag, dynamic message, {dynamic error, StackTrace? stackTrace}) {
+  static void _log(
+    LogLevel level,
+    String? tag,
+    dynamic message, {
+    dynamic error,
+    StackTrace? stackTrace,
+  }) {
     // 保持原有的 Tag 拼接逻辑，这样最灵活
     final tagStr = tag != null ? "[$tag]" : "";
     final logMessage = "$tagStr $message";
-    
+
     // 根据日志级别调用对应的logger方法
     // 注意：我们将 LogLevel 映射到 external_logger.Level
     switch (level) {

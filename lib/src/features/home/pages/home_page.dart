@@ -6,7 +6,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../../core/config/app_services.dart';
 import '../../../core/config/app_setting.dart';
 import '../../../core/l10n/app_localizations.dart';
-import '../../../core/maps/map_picker_page.dart';
+import '../../../core/maps/pages/map_picker_page.dart';
 import '../../../core/providers/favorite_provider.dart';
 import '../../../core/routing/navigate.dart';
 import '../../../core/routing/routes.dart';

@@ -1,12 +1,7 @@
 // lib/utils/logger/log_types.dart
 
 /// 日志等级
-enum LogLevel {
-  debug,
-  info,
-  warn,
-  error,
-}
+enum LogLevel { debug, info, warn, error }
 
 /// 日志事件数据类
 /// 封装了日志的所有相关信息，便于在系统内部传递。

@@ -10,7 +10,7 @@ import '../../../core/routing/navigate.dart';
 import '../../../core/routing/routes.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/logger/logger.dart';
-import '../../../core/maps/map_picker_page.dart';
+import '../../../core/maps/pages/map_picker_page.dart';
 import '../../../core/widgets/common_app_bar.dart';
 import '../../../core/widgets/common_indicator.dart';
 import '../../../core/widgets/common_spacing.dart';
@@ -128,7 +128,7 @@ class _AddAddressPageState extends ConsumerState<AddAddressPage> {
       return;
     }
 
-    final loadingId = Pop.loading();
+    Pop.loading();
 
     try {
       final params = AddressItem(
@@ -144,7 +144,7 @@ class _AddAddressPageState extends ConsumerState<AddAddressPage> {
 
       await _logic.submit(params: params);
       await ref.read(addressListProvider.notifier).loadAddresses();
-      Pop.hideLoading(loadingId);
+      Pop.hideLoading();
       Pop.toast(
         _logic.successMessage(l10n),
         toastType: ToastType.success,
@@ -153,7 +153,7 @@ class _AddAddressPageState extends ConsumerState<AddAddressPage> {
         Navigate.pop(context, true);
       }
     } catch (e) {
-      Pop.hideLoading(loadingId);
+      Pop.hideLoading();
       Logger.error("AddAddressPage", "Error: $e");
       Pop.toast(e.toString(), toastType: ToastType.error);
     }
@@ -213,9 +213,9 @@ class _AddAddressPageState extends ConsumerState<AddAddressPage> {
     var stateState = ref.read(stateListProvider);
 
     if (stateState.states.isEmpty && !stateState.isLoading) {
-      final loadingId = Pop.loading();
+      Pop.loading();
       await ref.read(stateListProvider.notifier).loadStates();
-      Pop.hideLoading(loadingId);
+      Pop.hideLoading();
       stateState = ref.read(stateListProvider);
     }
 
@@ -260,9 +260,9 @@ class _AddAddressPageState extends ConsumerState<AddAddressPage> {
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: () async {
-                      final loading = Pop.loading();
+                      Pop.loading();
                       await ref.read(stateListProvider.notifier).loadStates();
-                      Pop.hideLoading(loading);
+                      Pop.hideLoading();
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.primaryOrange,

@@ -8,16 +8,16 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:unified_popups/unified_popups.dart';
 
-import '../l10n/app_localizations.dart';
-import '../routing/navigate.dart';
-import '../theme/app_theme.dart';
-import '../widgets/common_indicator.dart';
-import '../widgets/common_spacing.dart';
-import '../utils/logger/logger.dart';
-import 'maps_config.dart';
-import 'maps_service.dart';
-import 'map_providers.dart';
-import 'widgets/map_nearby_sheet.dart';
+import '../../l10n/app_localizations.dart';
+import '../../routing/navigate.dart';
+import '../../theme/app_theme.dart';
+import '../../widgets/common_indicator.dart';
+import '../../widgets/common_spacing.dart';
+import '../../utils/logger/logger.dart';
+import '../maps_config.dart';
+import '../services/maps_service.dart';
+import '../providers/map_providers.dart';
+import '../widgets/map_nearby_sheet.dart';
 
 class MapPickerArguments {
   MapPickerArguments({
@@ -147,14 +147,15 @@ class _MapPickerPageState extends ConsumerState<MapPickerPage> {
     bool closePicker = false,
   }) async {
     final notifier = ref.read(mapPickerProvider.notifier);
+    final activeSuggestion = notifier.cacheSuggestion(suggestion);
     LatLng? targetPosition;
-    String targetAddress = suggestion.description;
-    String targetLabel = suggestion.description;
-    Logger.info('MapPickerPage', 'onSuggestionSelected: ${suggestion.description}, closePicker: $closePicker');
-    if (suggestion.placeId == 'current_position') {
+    String targetAddress = activeSuggestion.description;
+    String targetLabel = activeSuggestion.description;
+    Logger.info('MapPickerPage', 'onSuggestionSelected: ${activeSuggestion.description}, closePicker: $closePicker');
+    if (notifier.isCurrentPositionSuggestion(activeSuggestion)) {
       final mapState = ref.read(mapPickerProvider);
       targetPosition = mapState.currentPosition;
-      targetAddress = (mapState.currentAddress ?? suggestion.primaryText).trim();
+      targetAddress = (mapState.currentAddress ?? activeSuggestion.primaryText).trim();
       final currentLabel = mapState.currentLabel?.trim();
       if (currentLabel != null && currentLabel.isNotEmpty) {
         targetLabel = currentLabel;
@@ -165,7 +166,7 @@ class _MapPickerPageState extends ConsumerState<MapPickerPage> {
         targetAddress = targetLabel;
       }
       notifier.setSelectedPlace(
-        suggestion: suggestion,
+        suggestion: activeSuggestion,
         position: targetPosition,
         address: targetAddress,
         label: targetLabel,
@@ -184,8 +185,8 @@ class _MapPickerPageState extends ConsumerState<MapPickerPage> {
             position: targetPosition,
             address: targetAddress,
             label: targetLabel,
-            primaryText: suggestion.primaryText,
-            secondaryText: suggestion.secondaryText,
+            primaryText: activeSuggestion.primaryText,
+            secondaryText: activeSuggestion.secondaryText,
           ),
         );
       } else {
@@ -195,49 +196,40 @@ class _MapPickerPageState extends ConsumerState<MapPickerPage> {
     }
 
     try {
-      final details = await mapsService.fetchPlaceDetails(suggestion.placeId);
-      if (details == null) return;
-      await _moveCamera(details.position);
-      targetPosition = details.position;
-      targetAddress = (details.formattedAddress ?? suggestion.description).trim();
+      final enrichedSuggestion = await notifier.ensureSuggestionDetails(activeSuggestion);
+      targetPosition = enrichedSuggestion.position;
+      if (targetPosition == null) {
+        toast.warn(AppLocalizations.of(context)?.mapNoAddress ?? '暂无可用位置');
+        return;
+      }
+      await _moveCamera(targetPosition);
+      targetAddress = (enrichedSuggestion.address ?? suggestion.description).trim();
+      if (targetAddress.isEmpty) {
+        targetAddress = suggestion.description;
+      }
       if (targetLabel.trim().isEmpty && targetAddress.isNotEmpty) {
         targetLabel = targetAddress;
       }
-      if (targetAddress.isEmpty) {
-        targetAddress = targetLabel;
-      }
-      // 提取街道信息
-      final street = MapsService.extractStreetFromAddress(details.formattedAddress);
-      Logger.info('MapPickerPage', '提取街道信息: formattedAddress=${details.formattedAddress}, street=$street');
-      final suggestionWithStreet = PlaceSuggestion(
-        placeId: suggestion.placeId,
-        primaryText: suggestion.primaryText,
-        secondaryText: suggestion.secondaryText,
-        street: street.isNotEmpty ? street : null,
-      );
       notifier.updatePosition(targetPosition);
       notifier.setSelectedPlace(
-        suggestion: suggestionWithStreet,
+        suggestion: enrichedSuggestion,
         position: targetPosition,
         address: targetAddress,
         label: targetLabel,
-        street: street.isNotEmpty ? street : null,
+        street: enrichedSuggestion.street,
       );
-      await notifier.loadNearbyPlaces(details.position);
       _searchController.text = targetLabel.isNotEmpty ? targetLabel : targetAddress;
       _searchFocusNode.unfocus();
       if (closePicker) {
         if (!mounted) return;
         _isNavigatingBack = true;
-        // 直接使用原始suggestion的primaryText和secondaryText，不要使用lastKnownPlace
-        Logger.info('MapPickerPage', '(position: $targetPosition, address: $targetAddress, label: $targetLabel))');
         Navigator.of(context).pop<MapPickerResult>(
           MapPickerResult(
             position: targetPosition,
             address: targetAddress,
             label: targetLabel,
-            primaryText: suggestion.primaryText,
-            secondaryText: suggestion.secondaryText,
+            primaryText: enrichedSuggestion.primaryText,
+            secondaryText: enrichedSuggestion.secondaryText,
           ),
         );
       }

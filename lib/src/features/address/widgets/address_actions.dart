@@ -108,14 +108,14 @@ class AddressActions {
       return false;
     }
 
-    final loadingId = Pop.loading();
+    Pop.loading();
     try {
       await AddressServices.deleteUserAddress(addressId);
-      Pop.hideLoading(loadingId);
+      Pop.hideLoading();
       Pop.toast(l10n.addressDeleteSuccess, toastType: ToastType.success);
       return true;
     } catch (e) {
-      Pop.hideLoading(loadingId);
+      Pop.hideLoading();
       Logger.error('AddressPage', '删除地址失败: $e');
       Pop.toast(e.toString(), toastType: ToastType.error);
       return false;

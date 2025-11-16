@@ -7,10 +7,11 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../l10n/app_localizations.dart';
 import '../../theme/app_theme.dart';
 import '../../utils/logger/logger.dart';
+import '../../widgets/common_image.dart';
 import '../../widgets/common_indicator.dart';
 import '../../widgets/common_spacing.dart';
-import '../map_providers.dart';
-import '../maps_service.dart';
+import '../providers/map_providers.dart';
+import '../services/maps_service.dart';
 
 class MapNearbySheet extends ConsumerWidget {
   const MapNearbySheet({
@@ -25,6 +26,7 @@ class MapNearbySheet extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(mapPickerProvider);
+    final notifier = ref.read(mapPickerProvider.notifier);
     final l10n = AppLocalizations.of(context);
 
     // 构建显示列表：lastKnownPlace作为第一项，然后过滤掉重复的item
@@ -35,30 +37,40 @@ class MapNearbySheet extends ConsumerWidget {
     // 过滤掉current_position、已经在lastKnownPlace中的item（通过placeId比较），以及当前选中的item
     // 注意：如果内容相同但placeId不同，我们允许显示，但会在UI中获取更多信息来区分
     final lastKnownPlace = state.lastKnownPlace;
-    final lastKnownPlaceId = lastKnownPlace?.placeId;
-    final selectedPlaceId = state.selectedPlaceId;
+    final lastKnownKey =
+        lastKnownPlace != null ? notifier.suggestionKey(lastKnownPlace) : null;
+    final selectedKey = state.selectedPlaceId ?? lastKnownKey;
     displayPlaces.addAll(
       state.nearbyPlaces.where(
         (item) {
-          // 过滤掉current_position
-          if (item.placeId == 'current_position') return false;
-          // 过滤掉placeId相同的item
-          if (item.placeId == lastKnownPlaceId || item.placeId == selectedPlaceId) return false;
-          // 允许内容相同但placeId不同的item通过，我们会在UI中获取更多信息来区分
+          final itemKey = notifier.suggestionKey(item);
+          if (notifier.isCurrentPositionSuggestion(item)) return false;
+          if (itemKey == lastKnownKey || itemKey == selectedKey) return false;
           return true;
         },
       ),
     );
 
     final isLoading = state.isNearbyLoading && displayPlaces.isEmpty;
+    final showOverlayLoading = state.isNearbyLoading && displayPlaces.isNotEmpty;
     final isUpdating = state.isNearbyUpdating && displayPlaces.isNotEmpty;
-    final selectedId = state.selectedPlaceId;
+    final nearbyError = state.nearbyError;
+    final hasRetryableError = nearbyError != null && state.nearbyRetryCount >= 3;
+    final selectedId = selectedKey;
 
     Logger.info('MapNearbySheet', 'displayPlaces: ${displayPlaces.map((item) => '${item.placeId} ${item.primaryText} ${item.secondaryText} ${item.street}').toList()}');
     if (isLoading) {
       return Padding(
         padding: EdgeInsets.symmetric(vertical: 24.h),
         child: const Center(child: CommonIndicator(size: 24)),
+      );
+    }
+
+    if (hasRetryableError && displayPlaces.isEmpty) {
+      return _NearbyErrorView(
+        message: nearbyError,
+        retryLabel: l10n?.tryAgainText ?? '重试',
+        onRetry: notifier.retryLoadNearbyPlaces,
       );
     }
 
@@ -72,19 +84,24 @@ class MapNearbySheet extends ConsumerWidget {
       );
     }
 
+    final listBottomPadding = hasRetryableError ? 100.h : 12.h;
+
     return Stack(
       children: [
         ListView.builder(
-          padding: EdgeInsets.symmetric(vertical: 6.h),
+          padding: EdgeInsets.only(
+            top: 6.h,
+            bottom: listBottomPadding,
+          ),
           physics: const ClampingScrollPhysics(),
           itemCount: displayPlaces.length,
           itemBuilder: (_, index) {
             final item = displayPlaces[index];
-            final isSelected = item.placeId == selectedId;
+            final itemKey = notifier.suggestionKey(item);
+            final isSelected = itemKey == selectedId;
             return _NearbyItem(
               suggestion: item,
               isSelected: isSelected,
-              lastKnownPlace: lastKnownPlace,
               onTap: () async {
                 await onSelectPlace(item);
                 dismiss();
@@ -92,7 +109,18 @@ class MapNearbySheet extends ConsumerWidget {
             );
           },
         ),
-        if (isUpdating)
+        if (hasRetryableError && displayPlaces.isNotEmpty)
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: _NearbyRetryFooter(
+              message: nearbyError,
+              retryLabel: l10n?.tryAgainText ?? '重试',
+              onRetry: notifier.retryLoadNearbyPlaces,
+            ),
+          ),
+        if (showOverlayLoading || isUpdating)
           Positioned.fill(
             child: IgnorePointer(
               ignoring: true,
@@ -108,144 +136,220 @@ class MapNearbySheet extends ConsumerWidget {
   }
 }
 
-class _NearbyItem extends StatefulWidget {
+class _NearbyItem extends StatelessWidget {
   const _NearbyItem({
     required this.suggestion,
     required this.isSelected,
     required this.onTap,
-    this.lastKnownPlace,
   });
 
   final PlaceSuggestion suggestion;
   final bool isSelected;
   final VoidCallback onTap;
-  final PlaceSuggestion? lastKnownPlace;
-
-  @override
-  State<_NearbyItem> createState() => _NearbyItemState();
-}
-
-class _NearbyItemState extends State<_NearbyItem> {
-  String? _additionalInfo;
-  bool _isLoadingDetails = false;
-
-  @override
-  void initState() {
-    super.initState();
-    // 如果内容相同但placeId不同，尝试获取详细信息来区分
-    _loadAdditionalInfoIfNeeded();
-  }
-
-  Future<void> _loadAdditionalInfoIfNeeded() async {
-    // 如果已经有街道信息，不需要加载
-    if (widget.suggestion.street != null && widget.suggestion.street!.isNotEmpty) {
-      return;
-    }
-
-    // 为所有没有街道信息的item获取详细信息
-    if (widget.suggestion.placeId.isNotEmpty && widget.suggestion.placeId != 'current_position') {
-      setState(() {
-        _isLoadingDetails = true;
-      });
-
-      try {
-        final details = await mapsService.fetchPlaceDetails(widget.suggestion.placeId);
-        if (details != null && details.formattedAddress != null) {
-          final street = MapsService.extractStreetFromAddress(details.formattedAddress);
-          if (street.isNotEmpty && mounted) {
-            setState(() {
-              _additionalInfo = street;
-              _isLoadingDetails = false;
-            });
-          } else if (mounted) {
-            setState(() {
-              _isLoadingDetails = false;
-            });
-          }
-        } else if (mounted) {
-          setState(() {
-            _isLoadingDetails = false;
-          });
-        }
-      } catch (e) {
-        Logger.error('MapNearbySheet', '获取地点详情失败: $e');
-        if (mounted) {
-          setState(() {
-            _isLoadingDetails = false;
-          });
-        }
-      }
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
-    // 确定要显示的街道信息：优先使用suggestion.street，如果没有则使用_additionalInfo
-    final streetToShow = widget.suggestion.street ?? _additionalInfo;
+    final streetToShow =
+        suggestion.street ?? suggestion.address ?? suggestion.secondaryText;
+    final borderColor = isSelected
+        ? AppTheme.primaryOrange
+        : Colors.grey.withValues(alpha: 0.2);
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: widget.onTap,
+      onTap: onTap,
       child: Container(
-        margin: EdgeInsets.symmetric(vertical: 4.h),
-        padding: EdgeInsets.symmetric(vertical: 8.h, horizontal: 10.w),
+        margin: EdgeInsets.symmetric(vertical: 6.h),
+        padding: EdgeInsets.symmetric(vertical: 10.h, horizontal: 12.w),
         decoration: BoxDecoration(
-          color: widget.isSelected
-              ? AppTheme.primaryOrange.withValues(alpha: 0.12)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(12.r),
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14.r),
+          border: Border.all(
+            color: borderColor,
+            width: isSelected ? 1.2 : 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Expanded(
-                  child: Text(
-                    widget.suggestion.primaryText,
-                    style: TextStyle(
-                      fontSize: 14.sp,
-                      color: Colors.black,
-                      fontWeight: FontWeight.w500,
-                    ),
+                Container(
+                  padding: EdgeInsets.all(8.w),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryOrange.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(12.r),
+                  ),
+                  child: CommonImage(
+                    imagePath: 'assets/images/location.png',
+                    width: 24.w,
+                    height: 24.w,
+                    fit: BoxFit.contain,
                   ),
                 ),
-                if (widget.isSelected)
-                  Icon(Icons.check, size: 18.sp, color: AppTheme.primaryOrange),
+                CommonSpacing.width(12.w),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        suggestion.primaryText,
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          color: Colors.black,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      CommonSpacing.height(4.h),
+                      if (streetToShow.isNotEmpty)
+                        Text(
+                          streetToShow,
+                          style: TextStyle(
+                            fontSize: 12.sp,
+                            color: Colors.grey[600],
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                if (isSelected)
+                  Icon(
+                    Icons.check_circle,
+                    size: 20.sp,
+                    color: AppTheme.primaryOrange,
+                  ),
               ],
             ),
-            CommonSpacing.height(4.h),
-
-            Text(
-              widget.suggestion.secondaryText,
-              style: TextStyle(
-                fontSize: 12.sp,
-                color: Colors.grey[500],
-                fontWeight: FontWeight.w400,
-              ),
-            ),
-            if (_isLoadingDetails) ...[
-              CommonSpacing.height(2.h),
-              SizedBox(
-                height: 12.h,
-                width: 12.w,
-                child: CommonIndicator(size: 12),
-              ),
-            ] else if (streetToShow != null && streetToShow.isNotEmpty) ...[
-              CommonSpacing.height(2.h),
+            if (suggestion.secondaryText.isNotEmpty &&
+                streetToShow.toLowerCase() !=
+                    suggestion.secondaryText.toLowerCase()) ...[
+              CommonSpacing.height(6.h),
               Text(
-                streetToShow,
+                suggestion.secondaryText,
                 style: TextStyle(
                   fontSize: 12.sp,
-                  color: Colors.grey[400],
+                  color: Colors.grey[500],
                   fontWeight: FontWeight.w400,
                 ),
               ),
             ],
-              
-            
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _NearbyErrorView extends StatelessWidget {
+  const _NearbyErrorView({
+    required this.message,
+    required this.retryLabel,
+    required this.onRetry,
+  });
+
+  final String message;
+  final String retryLabel;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.all(24.w),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            message,
+            style: TextStyle(fontSize: 14.sp, color: Colors.grey[600]),
+            textAlign: TextAlign.center,
+          ),
+          CommonSpacing.medium,
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: onRetry,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryOrange,
+                foregroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(vertical: 12.h),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
+              ),
+              child: Text(
+                retryLabel,
+                style: TextStyle(fontSize: 14.sp),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _NearbyRetryFooter extends StatelessWidget {
+  const _NearbyRetryFooter({
+    required this.message,
+    required this.retryLabel,
+    required this.onRetry,
+  });
+
+  final String message;
+  final String retryLabel;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 12,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            message,
+            style: TextStyle(fontSize: 13.sp, color: Colors.grey[600]),
+          ),
+          CommonSpacing.small,
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: onRetry,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppTheme.primaryOrange,
+                foregroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(vertical: 10.h),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
+              ),
+              child: Text(
+                retryLabel,
+                style: TextStyle(fontSize: 14.sp),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

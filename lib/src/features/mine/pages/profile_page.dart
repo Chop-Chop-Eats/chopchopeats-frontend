@@ -279,9 +279,9 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       );
 
       if (pickedFile == null || !mounted) return;
-      final popId = Pop.loading();
+      Pop.loading();
       final ui.Image image = await loadImageFromFile(pickedFile.path);
-      Pop.hideLoading(popId);
+      Pop.hideLoading();
       if (!mounted) return;
 
       final ui.Image? editedImage = await Navigator.of(context).push<ui.Image?>(
@@ -306,7 +306,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
 
       if (!mounted || editedImage == null) return;
 
-      final pid = Pop.loading();
+      Pop.loading();
       final bytes = await convertUiImageToBytes(editedImage);
       if (bytes == null) {
         return;
@@ -317,7 +317,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       });
 
       // 上传头像接口
-      await _uploadAvatar(bytes , pid);
+      await _uploadAvatar(bytes);
 
     } catch (e) {
       Logger.error('ProfilePage', '选择或裁剪图片失败: $e');
@@ -328,7 +328,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     }
   }
 
-  Future<void> _uploadAvatar(Uint8List bytes, String popId) async {
+  Future<void> _uploadAvatar(Uint8List bytes) async {
     final l10n = AppLocalizations.of(context)!;
     try {
       final avatarUrl = await MineServices().uploadAvatar(
@@ -350,7 +350,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         Pop.toast(l10n.avatarUploadFailed, toastType: ToastType.error);
       }
     } finally {
-      Pop.hideLoading(popId);
+      Pop.hideLoading();
     }
   }
 
@@ -515,7 +515,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
               setModalState(() {
                 _isUpdatingPhone = true;
               });
-              final popId = Pop.loading();
+              Pop.loading();
               try {
                 await AuthServices().updatePhone(
                   AppAuthUpdatePhoneParams(
@@ -530,7 +530,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                 Logger.error('ProfilePage', '修改手机号失败: $e');
                 Pop.toast(l10n.modifyPhoneFailed, toastType: ToastType.error);
               } finally {
-                Pop.hideLoading(popId);
+                Pop.hideLoading();
                 setModalState(() {
                   _isUpdatingPhone = false;
                 });
@@ -704,10 +704,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       Pop.toast(l10n.modifyUserInfoMissing, toastType: ToastType.error);
       return;
     }
-    String? popId;
-    if (showLoading) {
-      popId = Pop.loading();
-    }
+
     try {
       await MineServices().updateUserInfo(
         UpdateUserInfoParams(
@@ -724,9 +721,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       Logger.error('ProfilePage', '更新用户信息失败: $e');
       Pop.toast(l10n.modifyFailed, toastType: ToastType.error);
     } finally {
-      if (popId != null) {
-        Pop.hideLoading(popId);
-      }
+      Pop.hideLoading();
     }
   }
 

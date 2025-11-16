@@ -1,8 +1,9 @@
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 
-import 'maps_config.dart';
-import 'maps_api_client.dart';
-import '../utils/logger/logger.dart';
+import '../maps_config.dart';
+import '../maps_api_client.dart';
+import '../../l10n/locale_service.dart';
+import '../../utils/logger/logger.dart';
 
 class PlaceSuggestion {
   PlaceSuggestion({
@@ -10,30 +11,60 @@ class PlaceSuggestion {
     required this.primaryText,
     required this.secondaryText,
     this.street,
+    this.position,
+    this.address,
   });
 
   final String placeId;
   final String primaryText;
   final String secondaryText;
   final String? street;
+  final LatLng? position;
+  final String? address;
 
   String get description => [primaryText, secondaryText].where((e) => e.isNotEmpty).join(' · ');
+
+  PlaceSuggestion merge(PlaceSuggestion other) {
+    return PlaceSuggestion(
+      placeId: other.placeId.isNotEmpty ? other.placeId : placeId,
+      primaryText: other.primaryText.isNotEmpty ? other.primaryText : primaryText,
+      secondaryText: other.secondaryText.isNotEmpty ? other.secondaryText : secondaryText,
+      street: other.street ?? street,
+      position: other.position ?? position,
+      address: other.address ?? address,
+    );
+  }
 }
 
 class PlaceDetails {
   PlaceDetails({
     required this.position,
     required this.formattedAddress,
+    this.street,
   });
 
   final LatLng position;
   final String? formattedAddress;
+  final String? street;
 }
 
 class MapsService {
   MapsService({MapsApiClient? client}) : _client = client ?? MapsApiClient();
 
   final MapsApiClient _client;
+  String get _currentLanguage =>
+      LocaleService.isZh ? 'zh-CN' : 'en';
+
+  Map<String, String> _createParams(
+    Map<String, String> params, {
+    String? language,
+  }) {
+    return <String, String>{
+      'key': MapsConfig.apiKey,
+      'language': language ?? _currentLanguage,
+      ...params,
+    };
+  }
 
   /// 获取地图API响应
   /// [path] 路径
@@ -69,12 +100,10 @@ class MapsService {
   }) async {
     if (input.trim().isEmpty) return const [];
 
-    final params = <String, String>{
+    final params = _createParams({
       'input': input,
-      'key': MapsConfig.apiKey,
-      'language': 'zh-CN',
       'types': 'geocode',
-    };
+    });
 
     if (biasLocation != null) {
       params['location'] = '${biasLocation.latitude},${biasLocation.longitude}';
@@ -113,12 +142,10 @@ class MapsService {
     if (placeId.isEmpty) return null;
     final data = await _get(
       '/maps/api/place/details/json',
-      params: <String, String>{
+      params: _createParams({
         'place_id': placeId,
         'fields': 'geometry/location,formatted_address',
-        'language': 'zh-CN',
-        'key': MapsConfig.apiKey,
-      },
+      }),
     );
 
     final status = data['status'] as String? ?? 'UNKNOWN_ERROR';
@@ -136,20 +163,23 @@ class MapsService {
     final lng = (location['lng'] as num?)?.toDouble();
     if (lat == null || lng == null) return null;
 
+    final formattedAddress = result['formatted_address'] as String?;
+    final street = MapsService.extractStreetFromAddress(formattedAddress);
+
     return PlaceDetails(
       position: LatLng(lat, lng),
-      formattedAddress: result['formatted_address'] as String?,
+      formattedAddress: formattedAddress,
+      street: street.isNotEmpty ? street : null,
     );
   }
 
+  /// 逆地理编码
   Future<String?> reverseGeocode(LatLng position) async {
     final data = await _get(
       '/maps/api/geocode/json',
-      params: <String, String>{
+      params: _createParams({
         'latlng': '${position.latitude},${position.longitude}',
-        'language': 'zh-CN',
-        'key': MapsConfig.apiKey,
-      },
+      }),
     );
 
     final status = data['status'] as String? ?? 'UNKNOWN_ERROR';
@@ -174,16 +204,17 @@ class MapsService {
   Future<List<PlaceSuggestion>> fetchNearbyPlaces(
     LatLng location, {
     int radius = 1000,
-    String language = 'zh-CN',
+    String? language,
   }) async {
     final data = await _get(
       '/maps/api/place/nearbysearch/json',
-      params: <String, String>{
-        'location': '${location.latitude},${location.longitude}',
-        'radius': radius.toString(),
-        'key': MapsConfig.apiKey,
-        'language': language,
-      },
+      params: _createParams(
+        {
+          'location': '${location.latitude},${location.longitude}',
+          'radius': radius.toString(),
+        },
+        language: language,
+      ),
     );
 
     final status = data['status'] as String? ?? 'UNKNOWN_ERROR';
@@ -202,6 +233,14 @@ class MapsService {
       final name = (map['name'] as String? ?? '').trim();
       final vicinity = (map['vicinity'] as String? ?? '').trim();
       final formattedAddress = (map['formatted_address'] as String? ?? '').trim();
+      final geometry = map['geometry'] as Map<String, dynamic>? ?? {};
+      final location = geometry['location'] as Map<String, dynamic>? ?? {};
+      final lat = (location['lat'] as num?)?.toDouble();
+      final lng = (location['lng'] as num?)?.toDouble();
+      LatLng? position;
+      if (lat != null && lng != null) {
+        position = LatLng(lat, lng);
+      }
 
       final primaryText = name.isNotEmpty
           ? name
@@ -214,10 +253,19 @@ class MapsService {
         return null;
       }
 
+    final fallbackForStreet = formattedAddress.isNotEmpty ? formattedAddress : vicinity;
+    final street = fallbackForStreet.isNotEmpty
+        ? MapsService.extractStreetFromAddress(fallbackForStreet)
+        : '';
       return PlaceSuggestion(
         placeId: placeId,
         primaryText: primaryText,
         secondaryText: secondaryText,
+        street: street.isNotEmpty ? street : null,
+        position: position,
+      address: formattedAddress.isNotEmpty
+          ? formattedAddress
+          : (vicinity.isNotEmpty ? vicinity : null),
       );
     }).whereType<PlaceSuggestion>().toList();
 

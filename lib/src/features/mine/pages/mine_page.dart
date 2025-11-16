@@ -140,7 +140,7 @@ class _MinePageState extends ConsumerState<MinePage> {
         title: l10n.logout, 
         icon: 'assets/images/setting_8.png', 
         onTap: () async {
-          final loading = Pop.loading();
+          Pop.loading();
           try {
             await ref.read(authNotifierProvider.notifier).logout();
             
@@ -152,7 +152,7 @@ class _MinePageState extends ConsumerState<MinePage> {
             Logger.error("MinePage", "登出失败", error: e);
             if (!mounted) return;
           }finally {
-            Pop.hideLoading(loading);
+            Pop.hideLoading();
           }
         }
       ),

@@ -27,9 +27,12 @@ class SimpleLogPrinter extends external_logger.LogPrinter {
 
   @override
   List<String> log(external_logger.LogEvent event) {
-    final timeStr = printTime ? '${DateTime.now().toIso8601String().substring(11, 23)} ' : '';
+    final timeStr =
+        printTime
+            ? '${DateTime.now().toIso8601String().substring(11, 23)} '
+            : '';
     final emoji = _levelEmojis[event.level] ?? '🤔';
-    
+
     // 直接组合成最终的字符串，不进行任何颜色处理
     final messageStr = '$emoji $timeStr- ${event.message}';
 

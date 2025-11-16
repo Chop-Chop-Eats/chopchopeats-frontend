@@ -106,10 +106,10 @@ class HistoryListNotifier extends StateNotifier<HistoryListState> {
   /// 清除历史记录
   Future<void> clearHistories() async {
     try {
-      final loading = Pop.loading();
+      Pop.loading();
       await SearchServices.clearSearchHistory();
       state = state.copyWith(histories: []);
-      Pop.hideLoading(loading);
+      Pop.hideLoading();
       Logger.info('HistoryListNotifier', '历史记录已清除');
     } catch (e) {
       Logger.error('HistoryListNotifier', '清除历史记录失败: $e');
