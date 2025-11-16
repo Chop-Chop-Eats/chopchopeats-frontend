@@ -45,4 +45,14 @@ class DetailServices {
       throw Exception('API 返回的数据格式不正确，期望 List 类型');
     }
   }
+
+  // 领取优惠券
+  Future<void> claimCoupon(String couponId) async {
+    await ApiClient().post(
+      ApiPaths.claimCouponApi,
+      data: {
+        'couponId': couponId,
+      },
+    );
+  }
 }

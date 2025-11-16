@@ -121,7 +121,16 @@ class AppLocalizationsEn implements AppLocalizations {
   String get totalPrice => 'Total Price';
   @override
   String get orderNow => 'Order Now';
-
+  @override
+  String get noCoupon => 'No coupon';
+  @override
+  String get minSpend => 'Min Spend';
+  @override
+  String get claimCouponSuccess => 'Claim Coupon Success';
+  @override
+  String get claimCouponFailed => 'Claim Coupon Failed';
+  @override
+  String get couponClaimLimitReached => 'You have reached the claim limit';
   // ============== 业务文案 - 语言设置 ==============
   @override
   String get languageSettings => 'Language Settings';
@@ -261,7 +270,7 @@ class AppLocalizationsEn implements AppLocalizations {
   @override
   String get coupons => 'Coupons';
   @override
-  String get recharge => 'Recharge';
+  String get recharge => 'Recharge';    
   @override
   String get shopEnter => 'Shop Enter';
   @override

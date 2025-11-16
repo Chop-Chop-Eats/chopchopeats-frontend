@@ -1,7 +1,9 @@
+import 'package:chop_user/src/core/routing/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import '../../../core/routing/navigate.dart';
 import '../../../core/utils/logger/logger.dart';
 import '../../../core/widgets/common_image.dart';
 import '../../../core/widgets/common_spacing.dart';
@@ -95,57 +97,63 @@ class _UserinfoCardState extends ConsumerState<UserinfoCard> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            width: double.infinity,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(24.w),
-                topRight: Radius.circular(24.w),
+          GestureDetector(
+            onTap: () {
+              Navigate.push(context, Routes.profile);
+            },
+            child: Container(
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(24.w),
+                  topRight: Radius.circular(24.w),
+                ),
+                image: DecorationImage(
+                  image: AssetImage("assets/images/appbar_bg.png"),
+                  fit: BoxFit.cover,
+                ),
               ),
-              image: DecorationImage(
-                image: AssetImage("assets/images/appbar_bg.png"),
-                fit: BoxFit.cover,
+              padding: EdgeInsets.symmetric(vertical: 16.h),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CommonSpacing.medium,
+                  // 字段 avatar  若为空 则展示一个兜底
+                  CommonImage(
+                    imagePath:
+                        userInfo?.avatar?.isNotEmpty == true
+                            ? userInfo!.avatar!
+                            : "assets/images/avatar.png",
+                    width: 64.w,
+                    height: 64.h,
+                    borderRadius: 32.w,
+                  ),
+                  CommonSpacing.medium,
+                  // 字段 id
+                  Text(
+                    userInfo?.id ?? "",
+                    style: TextStyle(
+                      fontSize: 16.sp,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
+                  CommonSpacing.small,
+                  // 字段 email
+                  Text(
+                    userInfo?.email ?? "",
+                    style: TextStyle(
+                      fontSize: 12.sp,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                ],
               ),
-            ),
-            padding: EdgeInsets.symmetric(vertical: 16.h),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                CommonSpacing.medium,
-                // 字段 avatar  若为空 则展示一个兜底
-                CommonImage(
-                  imagePath:
-                      userInfo?.avatar?.isNotEmpty == true
-                          ? userInfo!.avatar!
-                          : "assets/images/avatar.png",
-                  width: 64.w,
-                  height: 64.h,
-                  borderRadius: 32.w,
-                ),
-                CommonSpacing.medium,
-                // 字段 id
-                Text(
-                  userInfo?.id ?? "",
-                  style: TextStyle(
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
-                ),
-                CommonSpacing.small,
-                // 字段 email
-                Text(
-                  userInfo?.email ?? "",
-                  style: TextStyle(
-                    fontSize: 12.sp,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.grey.shade600,
-                  ),
-                ),
-              ],
             ),
           ),
+          
           Container(
             width: double.infinity,
             decoration: BoxDecoration(

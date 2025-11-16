@@ -32,22 +32,26 @@ class DetailState {
 class CouponState {
   final AvailableCouponModel? couponData;
   final bool isLoading;
+  final bool isClaiming;
   final String? error;
 
   CouponState({
     this.couponData,
     this.isLoading = false,
+    this.isClaiming = false,
     this.error,
   });
 
   CouponState copyWith({
     AvailableCouponModel? couponData,
     bool? isLoading,
+    bool? isClaiming,
     String? error,
   }) {
     return CouponState(
       couponData: couponData ?? this.couponData,
       isLoading: isLoading ?? this.isLoading,
+      isClaiming: isClaiming ?? this.isClaiming,
       error: error ?? this.error,
     );
   }
@@ -144,15 +148,12 @@ class CouponNotifier extends StateNotifier<CouponState> {
       isLoading: true,
       error: null,
     );
-
     try {
       final couponData = await _detailServices.getAvailableCouponList(shopId);
-      
       state = state.copyWith(
         couponData: couponData,
         isLoading: false,
       );
-
       Logger.info('CouponNotifier', '优惠券列表加载成功: shopId=$shopId');
     } catch (e) {
       Logger.error('CouponNotifier', '优惠券列表加载失败: $e');
@@ -163,6 +164,31 @@ class CouponNotifier extends StateNotifier<CouponState> {
     }
   }
 
+  Future<bool> claimCoupon({
+    required String couponId,
+    required String shopId,
+    required int? userLimit,
+    required int? userClaimed,
+  }) async {
+    if (userLimit != null && userClaimed != null && userClaimed >= userLimit) {
+      Logger.warn('CouponNotifier', '用户已达到领取上限 couponId=$couponId');
+      return false;
+    }
+
+    state = state.copyWith(isClaiming: true, error: null);
+
+    try {
+      await _detailServices.claimCoupon(couponId);
+      await loadCouponList(shopId);
+      return true;
+    } catch (e) {
+      Logger.error('CouponNotifier', '领取优惠券失败: $e');
+      state = state.copyWith(error: e.toString());
+      rethrow;
+    } finally {
+      state = state.copyWith(isClaiming: false);
+    }
+  }
   /// 刷新优惠券列表
   Future<void> refresh(String shopId) async {
     await loadCouponList(shopId);
@@ -260,6 +286,10 @@ final couponLoadingProvider = Provider.family<bool, String>((ref, shopId) {
 /// 优惠券错误状态选择器
 final couponErrorProvider = Provider.family<String?, String>((ref, shopId) {
   return ref.watch(couponProvider(shopId)).error;
+});
+
+final couponClaimingProvider = Provider.family<bool, String>((ref, shopId) {
+  return ref.watch(couponProvider(shopId)).isClaiming;
 });
 
 // ============= 商品列表相关 Providers =============

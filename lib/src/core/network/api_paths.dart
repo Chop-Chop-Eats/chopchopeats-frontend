@@ -99,4 +99,10 @@ class ApiPaths {
   // 获取州市列表
   static const String getStateListApi = "/app-api/merchant/state-list";
 
+  // [优惠券模块]
+  // 获取我的优惠券列表
+  static const String getMyCouponListApi = "/app-api/market/user-coupon/my";
+
+  // 领取优惠券
+  static const String claimCouponApi = "/app-api/market/user-coupon/claim";
 }

@@ -126,11 +126,16 @@ abstract class AppLocalizations {
   String get guessYouLike;
   
   // ============== Detail 详情页 ==============
-  String get merchantDetail;
-  String get noShopDescription;
-  String get unknownDistance;
-  String get comments;
-  String get shopNotExist;
+  String get merchantDetail; // 商家详情
+  String get noShopDescription; // 暂无店铺描述
+  String get unknownDistance; // 距离未知
+  String get comments; // 条评论
+  String get shopNotExist; // 店铺信息不存在
+  String get noCoupon; // 暂无优惠券
+  String get minSpend; // 最低消费
+  String get claimCouponSuccess; // 领取优惠券成功
+  String get claimCouponFailed; // 领取优惠券失败
+  String get couponClaimLimitReached; // 已领取到上限
   
   
   // 星期相关

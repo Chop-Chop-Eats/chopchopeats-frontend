@@ -520,7 +520,7 @@ class AvailableCouponModel {
   }
 }
 
-/// 用户可领取优惠券响应
+/// 优惠券信息
 class AvailableCouponItem {
   ///是否可以领取
   final bool? canClaim;

@@ -209,6 +209,16 @@ class AppLocalizationsZh implements AppLocalizations {
   String get comments => '条评论';
   @override
   String get shopNotExist => '店铺信息不存在';
+  @override
+  String get noCoupon => '暂无优惠券';
+  @override
+  String get minSpend => '最低消费';
+  @override
+  String get claimCouponSuccess => '领取优惠券成功';
+  @override
+  String get claimCouponFailed => '领取优惠券失败';
+  @override
+  String get couponClaimLimitReached => '已经领取到上限';
   
   // 星期相关
   @override
