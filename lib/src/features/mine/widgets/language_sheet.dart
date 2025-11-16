@@ -27,7 +27,7 @@ class LanguageSheet extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text( languageMode == LanguageMode.zh ? l10n.languageChinese : l10n.languageEnglish , style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w500, color: Colors.black),),
+            Text(languageMode.displayName, style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.w500, color: Colors.black),),
             if (isSelected)
               Icon(Icons.check, color: AppTheme.primaryOrange),
           ],
@@ -44,7 +44,7 @@ class LanguageSheet extends StatelessWidget {
       children: [
         _buildLanguageItem(l10n, LanguageMode.zh),
         _buildLanguageItem(l10n, LanguageMode.en),
-        // _buildLanguageItem(LanguageMode.system),
+        _buildLanguageItem(l10n, LanguageMode.system),
       ],
     );
   }

@@ -25,9 +25,9 @@ enum LanguageMode {
       case LanguageMode.system:
         return '跟随系统 / System';
       case LanguageMode.zh:
-        return '中文';
+        return '中文 / Chinese';
       case LanguageMode.en:
-        return 'English';
+        return '英文 / English';
     }
   }
 }
