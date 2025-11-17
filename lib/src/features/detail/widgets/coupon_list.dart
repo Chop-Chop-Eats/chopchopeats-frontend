@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:intl/intl.dart';
 import 'package:unified_popups/unified_popups.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../../../core/theme/app_theme.dart';
@@ -10,7 +9,7 @@ import '../../../core/widgets/common_indicator.dart';
 import '../../../core/widgets/common_spacing.dart';
 import '../models/detail_model.dart';
 import '../providers/detail_provider.dart';
-import '../services/detail_services.dart';
+import '../../coupon/widgets/coupoon_item.dart';
 
 /// 优惠券列表组件
 class CouponList extends ConsumerStatefulWidget {
@@ -154,137 +153,6 @@ class _CouponListState extends ConsumerState<CouponList> {
   );
 
 
-  Widget _buildSheetItem(
-    AppLocalizations l10n,
-    AvailableCouponItem coupon,
-  ) {
-    final discount = _formatAmount(coupon.discountAmount);
-    final minSpend = _formatAmount(coupon.minSpendAmount);
-    final dateRange = _formatDateRange(coupon.validFrom, coupon.validUntil);
-
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
-      margin: EdgeInsets.only(bottom: 10.h),
-      decoration: BoxDecoration(
-        color: Color(0xFFFFF6F1), // #FFF6F1,
-        borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(
-          color: AppTheme.primaryOrange.withValues(alpha: 0.5),
-          width: 0.5.w,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Text(
-                      '\$$discount',
-                      style: TextStyle(
-                        color: AppTheme.primaryOrange,
-                        fontSize: 20.sp,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    CommonSpacing.width(12.w),
-                    Expanded(
-                      child: Text(
-                        coupon.couponTitle ?? '--',
-                        style: TextStyle(
-                          fontSize: 14.sp,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.black,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                if (coupon.remark?.isNotEmpty == true) ...[
-                  CommonSpacing.small,
-                  Text(
-                    coupon.remark!,
-                    style: TextStyle(fontSize: 12.sp, color: Colors.grey[600]),
-                  ),
-                ],
-                CommonSpacing.small,
-                Text(
-                  '${l10n.minSpend} \$$minSpend',
-                  style: TextStyle(fontSize: 12.sp, color: Colors.grey[700]),
-                ),
-                if (dateRange.isNotEmpty) ...[
-                  CommonSpacing.small,
-                  Text(
-                    dateRange,
-                    style: TextStyle(fontSize: 12.sp, color: Colors.grey[500]),
-                  ),
-                ],
-              ],
-            ),
-          ),
-          
-           ValueListenableBuilder<Set<String>>(
-             valueListenable: _claimingIds,
-             builder: (_, ids, __) {
-               final isClaiming = coupon.id != null && ids.contains(coupon.id);
-               return GestureDetector(
-                 onTap: () async {
-                   if (coupon.id == null) return;
-                   // 校验领取上限（仅提示，不禁用）
-                   final reachedLimit = (coupon.userLimit != null &&
-                       coupon.userClaimedCount != null &&
-                       coupon.userClaimedCount! >= coupon.userLimit!);
-                   if (reachedLimit) {
-                     Pop.toast(l10n.couponClaimLimitReached, toastType: ToastType.none);
-                     return;
-                   }
-                   Logger.info("CouponList", "点击领取优惠券 ${coupon.id}");
-                   // 标记该券处于领取中
-                   _claimingIds.value = {...ids, coupon.id!};
-                   try {
-                     await DetailServices().claimCoupon(coupon.id!); // 领取优惠券
-                     await ref.read(couponProvider(widget.shopId).notifier).loadCouponList(widget.shopId);
-                     Pop.toast(l10n.claimCouponSuccess, toastType: ToastType.success);
-                   } catch (e) {
-                     Pop.toast(l10n.claimCouponFailed, toastType: ToastType.error);
-                   } finally {
-                     final next = {..._claimingIds.value};
-                     next.remove(coupon.id!);
-                     _claimingIds.value = next;
-                   }
-                 },
-                 child: isClaiming
-                     ? const CommonIndicator(size: 16)
-                     : Container(
-                         padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
-                         decoration: BoxDecoration(
-                           color: AppTheme.primaryOrange,
-                           borderRadius: BorderRadius.circular(12.r),
-                         ),
-                         child: Text(
-                           l10n.getCoupon,
-                           style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold, color: Colors.white),
-                         ),
-                       ),
-               );
-             },
-           ),
-        ],
-      ),
-    );
-  }
-
-
   Future<void> _showCouponSheet({
     required AppLocalizations l10n,
     required List<AvailableCouponItem> couponList,
@@ -297,26 +165,21 @@ class _CouponListState extends ConsumerState<CouponList> {
       childBuilder: (dismiss) => isLoading
           ? const CommonIndicator()
           : ListView.builder(
-              itemBuilder: (context, index) => _buildSheetItem(l10n, couponList[index]),
+              itemBuilder: (context, index) {
+                final coupon = couponList[index];
+                return CoupoonItem(
+                  coupon: coupon.toDisplayModel(),
+                  showClaimButton: true,
+                  shopId: widget.shopId,
+                  claimingIds: _claimingIds,
+                  onClaimSuccess: () {
+                    // 领取成功后刷新列表
+                    ref.read(couponProvider(widget.shopId).notifier).loadCouponList(widget.shopId);
+                  },
+                );
+              },
               itemCount: couponList.length,
             ),
     );
-  }
-
-  String _formatAmount(double? value) {
-    if (value == null) return '--';
-    final hasFraction = (value * 100) % 100 != 0;
-    return hasFraction ? value.toStringAsFixed(2) : value.toStringAsFixed(0);
-  }
-
-  String _formatDateRange(DateTime? from, DateTime? to) {
-    final formatter = DateFormat('yyyy/MM/dd');
-    final start = from != null ? formatter.format(from) : null;
-    final end = to != null ? formatter.format(to) : null;
-    if (start == null && end == null) return '';
-    if (start != null && end != null) {
-      return '$start - $end';
-    }
-    return start ?? end ?? '';
   }
 }

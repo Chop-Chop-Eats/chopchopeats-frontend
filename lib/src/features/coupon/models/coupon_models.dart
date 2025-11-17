@@ -140,4 +140,66 @@ class CouponItem {
       validUntil: JsonUtils.parseDateTime(json, 'validUntil'),
     );
   }
+
+  /// 转换为统一的显示模型
+  CouponDisplayModel toDisplayModel() {
+    return CouponDisplayModel(
+      id: id ?? couponId,
+      couponTitle: couponTitle,
+      discountAmount: discountAmount,
+      minSpendAmount: minSpendAmount,
+      remark: remark,
+      validFrom: validFrom,
+      validUntil: validUntil,
+      userLimit: null, // 已领取的优惠券没有领取上限概念
+      userClaimedCount: null, // 已领取的优惠券没有已领取数量概念
+      status: status, // 优惠券状态：0表示未使用，1表示已使用，2表示过期
+    );
+  }
+}
+
+/// 统一的优惠券显示模型（用于 UI 展示）
+class CouponDisplayModel {
+  /// 优惠券ID
+  final String? id;
+
+  /// 优惠券标题
+  final String? couponTitle;
+
+  /// 优惠金额
+  final double? discountAmount;
+
+  /// 使用条件金额（满减金额）
+  final double? minSpendAmount;
+
+  /// 优惠券的备注信息
+  final String? remark;
+
+  /// 有效开始时间
+  final DateTime? validFrom;
+
+  /// 有效截止时间
+  final DateTime? validUntil;
+
+  /// 每个用户的领取上限（仅用于可领取优惠券）
+  final int? userLimit;
+
+  /// 当前用户已领取数量（仅用于可领取优惠券）
+  final int? userClaimedCount;
+
+  /// 优惠券状态：0表示未使用，1表示已使用，2表示过期（仅用于已领取优惠券）
+  final int? status;
+
+  CouponDisplayModel({
+    this.id,
+    this.couponTitle,
+    this.discountAmount,
+    this.minSpendAmount,
+    this.remark,
+    this.validFrom,
+    this.validUntil,
+    this.userLimit,
+    this.userClaimedCount,
+    this.status,
+  });
 }

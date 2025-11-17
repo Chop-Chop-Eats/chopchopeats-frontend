@@ -1,6 +1,7 @@
 import '../../home/models/home_models.dart';
 import '../../../core/utils/json_utils.dart';
 import '../../../core/l10n/locale_service.dart';
+import '../../coupon/models/coupon_models.dart';
 
 /// 商户店铺返回
 class ShopModel {
@@ -592,6 +593,21 @@ class AvailableCouponItem {
       userLimit: json['userLimit'],
       validFrom: JsonUtils.parseDateTime(json, 'validFrom'),
       validUntil: JsonUtils.parseDateTime(json, 'validUntil'),
+    );
+  }
+
+  /// 转换为统一的显示模型
+  CouponDisplayModel toDisplayModel() {
+    return CouponDisplayModel(
+      id: id,
+      couponTitle: couponTitle,
+      discountAmount: discountAmount,
+      minSpendAmount: minSpendAmount,
+      remark: remark,
+      validFrom: validFrom,
+      validUntil: validUntil,
+      userLimit: userLimit,
+      userClaimedCount: userClaimedCount,
     );
   }
 }
