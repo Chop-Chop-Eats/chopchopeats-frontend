@@ -68,11 +68,16 @@ class _MapPickerPageState extends ConsumerState<MapPickerPage> {
   Timer? _debounce;
   bool _isCameraMoving = false;
   bool _isNavigatingBack = false;
+  bool _isKeyboardVisible = false; // 键盘状态标志
 
   @override
   void initState() {
     super.initState();
     _mapViewKey = UniqueKey();
+    
+    // 监听焦点变化（键盘显示/隐藏）
+    _searchFocusNode.addListener(_onFocusChange);
+    
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final notifier = ref.read(mapPickerProvider.notifier);
       Logger.info('MapPickerPage', 'initialAddress: ${widget.arguments.initialAddress}, initialLabel: ${widget.arguments.initialLabel}');
@@ -88,11 +93,39 @@ class _MapPickerPageState extends ConsumerState<MapPickerPage> {
 
   @override
   void dispose() {
+    _searchFocusNode.removeListener(_onFocusChange); // 移除监听器
     _debounce?.cancel();
     _mapController?.dispose();
     _searchController.dispose();
     _searchFocusNode.dispose();
     super.dispose();
+  }
+
+  /// 监听焦点变化（键盘显示/隐藏）
+  void _onFocusChange() {
+    if (!mounted) return;
+    
+    final hasFocus = _searchFocusNode.hasFocus;
+    
+    // 键盘显示：关闭 sheet
+    if (hasFocus && !_isKeyboardVisible) {
+      _isKeyboardVisible = true;
+      Logger.info('MapPickerPage', '键盘显示，关闭 sheet');
+      if (PopupManager.hasNonToastPopup) {
+        PopupManager.hideLastNonToast();
+      }
+    }
+    // 键盘隐藏：显示 sheet
+    else if (!hasFocus && _isKeyboardVisible) {
+      _isKeyboardVisible = false;
+      Logger.info('MapPickerPage', '键盘隐藏，显示 sheet');
+      // 延迟一下，确保键盘完全收起后再显示 sheet
+      Future.delayed(const Duration(milliseconds: 100), () {
+        if (mounted && !_searchFocusNode.hasFocus) {
+          _showSheetOnce();
+        }
+      });
+    }
   }
 
   Future<void> _handleCameraIdle() async {
@@ -249,8 +282,6 @@ class _MapPickerPageState extends ConsumerState<MapPickerPage> {
         _clearSuggestions();
         return;
       }
-      _searchFocusNode.unfocus(); // 收起键盘
-
       try {
         final position = ref.read(mapPickerProvider).currentPosition;
         await ref.read(mapPickerProvider.notifier).searchSuggestions(keyword, bias: position);

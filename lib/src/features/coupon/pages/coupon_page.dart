@@ -40,6 +40,7 @@ class _CouponPageState extends ConsumerState<CouponPage> {
 
     return Scaffold(
       appBar: CommonAppBar(title: l10n.coupons),
+      backgroundColor: Colors.white,
       body: _buildBody(couponData, isLoading, error),
     );
   }
