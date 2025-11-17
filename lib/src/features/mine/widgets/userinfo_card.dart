@@ -196,7 +196,7 @@ class _UserinfoCardState extends ConsumerState<UserinfoCard> {
                             ? "${userInfo!.availableCouponCount} ${l10n.coupons}"
                             : "0",
                     onTap: () {
-                      Logger.info("UserinfoCard", "点击优惠券");
+                      Navigate.push(context, Routes.coupon);
                     },
                   ),
                 ),
