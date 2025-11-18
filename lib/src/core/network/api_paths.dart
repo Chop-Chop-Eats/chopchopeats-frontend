@@ -105,4 +105,24 @@ class ApiPaths {
 
   // 领取优惠券
   static const String claimCouponApi = "/app-api/market/user-coupon/claim";
+
+  // [订单模块]
+  // 创建交易订单
+  static const String createOrderApi = "/app-api/trade/app-order/create";
+
+  // 添加购物车
+  static const String addCartApi = "/app-api/trade/cart/add";
+
+  // 获取购物车列表
+  static const String getCartListApi = "/app-api/trade/cart/list";
+
+  // 清空购物车
+  static const String clearCartApi = "/app-api/trade/cart/clear";
+
+  // 更新购物车商品数量
+  static const String updateCartQuantityApi = "/app-api/trade/cart/update-quantity";
+
+  // 创建 Stripe PaymentIntent
+  static const String createSPIApi = "/app-api/trade/stripe-payment-intent/create";
+
 }
