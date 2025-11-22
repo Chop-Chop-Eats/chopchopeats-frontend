@@ -34,7 +34,6 @@ class MapNearbySheet extends ConsumerWidget {
     if (state.lastKnownPlace != null) {
       displayPlaces.add(state.lastKnownPlace!);
     }
-    // 过滤掉current_position、已经在lastKnownPlace中的item（通过placeId比较），以及当前选中的item
     // 注意：如果内容相同但placeId不同，我们允许显示，但会在UI中获取更多信息来区分
     final lastKnownPlace = state.lastKnownPlace;
     final lastKnownKey =

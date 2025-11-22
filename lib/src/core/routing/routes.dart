@@ -17,4 +17,5 @@ class Routes {
   static const String help = '/help'; // 获取帮助页面
   static const String shopEnter = '/shopEnter'; // 入驻私厨商家页面
   static const String coupon = '/coupon'; // 优惠券页面
+  static const String productDetail = '/productDetail'; // 商品详情页面
 }

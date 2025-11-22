@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../core/l10n/app_localizations.dart';
+import '../../../core/routing/navigate.dart';
+import '../../../core/routing/routes.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/logger/logger.dart';
 import '../../../core/widgets/common_image.dart';
@@ -9,6 +11,7 @@ import '../../../core/widgets/common_indicator.dart';
 import '../../../core/widgets/common_spacing.dart';
 import '../models/detail_model.dart';
 import '../providers/detail_provider.dart';
+import 'sku_counter.dart';
 
 /// 商品列表组件
 class ProductList extends ConsumerStatefulWidget {
@@ -150,65 +153,77 @@ class _ProductListState extends ConsumerState<ProductList> {
   }) {
     final isSku = product.skuSetting == 1; 
     final firstSku = product.skus.isNotEmpty ? product.skus.first : null;
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16.r),
-      ),
-      margin: EdgeInsets.only(right: 8.w),
-      padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 10.h),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          CommonImage(
-            imagePath: product.carouselImages?[0].url ?? product.imageThumbnail ?? '',
-            width: 48.w,
-            height: 48.h,
-          ),
-
-          CommonSpacing.small,
-
-         Text(
-            product.localizedName,
-            style: TextStyle(
-              color: Colors.black,
-              fontSize: 14.sp,
-              fontWeight: FontWeight.bold,
+    return GestureDetector(
+      onTap: () { 
+        Logger.info("ProductList", "点击商品: ${product.id}");
+        Navigate.push(
+          context, 
+          Routes.productDetail,
+          arguments: {
+            "productId": product.id,
+            "shopId": product.shopId,
+          },
+        );
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16.r),
+        ),
+        margin: EdgeInsets.only(right: 8.w),
+        padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 10.h),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CommonImage(
+              imagePath: product.carouselImages?[0].url ?? product.imageThumbnail ?? '',
+              width: 48.w,
+              height: 48.h,
             ),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.left,
-          ),
-          
-          CommonSpacing.small,
-
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                firstSku != null
-                    ? !isSku? '\$${firstSku.price.toStringAsFixed(2)}' : '\$${firstSku.price.toStringAsFixed(2)}+'
-                    : '\$0.00',
-                style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 14.sp,
-                  fontWeight: FontWeight.bold,
-                ),
+            CommonSpacing.small,
+            Text(
+              product.localizedName,
+              style: TextStyle(
+                color: Colors.black,
+                fontSize: 14.sp,
+                fontWeight: FontWeight.bold,
               ),
-              CommonSpacing.width(8),
-
-              // 操作按钮
-              Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(isSku ? 10.r : 12.r),
-                  border: Border.all(color: AppTheme.primaryOrange, width: 1.w),
-                  color: isSku ? AppTheme.primaryOrange : Colors.white,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.left,
+            ),
+            CommonSpacing.small,
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  firstSku != null
+                      ? !isSku? '\$${firstSku.price.toStringAsFixed(2)}' : '\$${firstSku.price.toStringAsFixed(2)}+'
+                      : '\$0.00',
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-                child: isSku? _buildSelectButton(selectSpecification): _buildSkuCounter(firstSku),
-              ),
-            ],
-          ),
-        ],
+                CommonSpacing.width(8),
+
+                // 操作按钮
+                if(isSku)
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10.r),
+                    border: Border.all(color: AppTheme.primaryOrange, width: 1.w),
+                    color:  AppTheme.primaryOrange ,
+                  ),
+                  child:  _buildSelectButton(selectSpecification)
+                )
+                else
+                  _buildSkuCounter(firstSku),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -216,41 +231,7 @@ class _ProductListState extends ConsumerState<ProductList> {
   /// 构建SKU计数器
   Widget _buildSkuCounter(SaleProductSku? sku) {
     if (sku == null) return SizedBox.shrink();
-    return Row( 
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        GestureDetector(
-          // 数量必须 > 1
-          onTap: () {
-            // TODO: 实现减少数量逻辑
-            Logger.info("ProductList", "点击减少数量");
-          },
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
-            child: Icon(Icons.remove, size: 16.w, color: Colors.black),
-          ),
-        ),
-        Text(
-          '1', // TODO: 从购物车状态获取实际数量
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 12.sp,
-            fontWeight: FontWeight.normal,
-          ),
-        ),
-        GestureDetector(
-          // 数量必须小于 sku.stock
-          onTap: () {
-            Logger.info("ProductList", "点击增加数量");
-            // TODO: 实现增加数量逻辑
-          },
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 5.h),
-            child: Icon(Icons.add, size: 16.w, color: Colors.black),
-          ),
-        ),
-      ],
-    );
+    return const SkuCounter();
   }
 
   /// 构建选择按钮

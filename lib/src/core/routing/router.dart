@@ -9,6 +9,7 @@ import '../../features/auth/pages/verification_code_page.dart';
 import '../../features/category/pages/category_detail_page.dart';
 import '../../features/coupon/pages/coupon_page.dart';
 import '../../features/detail/pages/detail_page.dart';
+import '../../features/detail/pages/product_detail_page.dart';
 import '../../features/error_page.dart';
 import '../../features/auth/pages/login_page.dart';
 import '../../features/help/pages/help_page.dart';
@@ -86,6 +87,17 @@ class AppRouter {
     },
     Routes.shopEnter: (settings) => const ShopEnterPage(),
     Routes.coupon: (settings) => const CouponPage(),
+    Routes.productDetail: (settings) {
+      if (settings.arguments is Map<String, dynamic>) {
+        final args = settings.arguments as Map<String, dynamic>;
+        final productId = args["productId"];
+        final shopId = args["shopId"];
+        if (productId is String && shopId is String) {
+          return ProductDetailPage(productId: productId, shopId: shopId);
+        }
+      }
+      return const ErrorPage(message: "商品参数错误或缺失");
+    },
   };
 
   /// 创建路由方法

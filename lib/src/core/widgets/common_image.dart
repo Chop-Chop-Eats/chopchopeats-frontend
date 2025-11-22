@@ -33,6 +33,9 @@ class CommonImage extends StatelessWidget {
   /// 图片装饰
   final BoxDecoration? decoration;
 
+  /// 图片颜色
+  final Color? color;
+
   const CommonImage({
     super.key,
     required this.imagePath,
@@ -44,6 +47,7 @@ class CommonImage extends StatelessWidget {
     this.borderRadius,
     this.borderRadiusClip,
     this.decoration,
+    this.color,
   });
 
   @override
@@ -68,6 +72,7 @@ class CommonImage extends StatelessWidget {
         memCacheHeight: height?.toInt(),
         maxWidthDiskCache: width != null ? (width! * 2).toInt() : null,
         maxHeightDiskCache: height != null ? (height! * 2).toInt() : null,
+        color: color,
       );
     } else if (isLocalFile) {
       // 本地文件路径
@@ -76,6 +81,7 @@ class CommonImage extends StatelessWidget {
         width: width,
         height: height,
         fit: fit,
+        color: color,
         errorBuilder: (context, error, stackTrace) {
           return _buildErrorWidget();
         },
@@ -87,6 +93,7 @@ class CommonImage extends StatelessWidget {
         width: width,
         height: height,
         fit: fit,
+        color: color,
         errorBuilder: (context, error, stackTrace) {
           return _buildErrorWidget();
         },
@@ -199,6 +206,9 @@ class CommonCircularImage extends StatelessWidget {
   /// 边框颜色
   final Color? borderColor;
 
+  /// 图片颜色
+  final Color? color;
+
   const CommonCircularImage({
     super.key,
     required this.imagePath,
@@ -208,6 +218,7 @@ class CommonCircularImage extends StatelessWidget {
     this.errorWidget,
     this.borderWidth,
     this.borderColor,
+    this.color,
   });
 
   @override
@@ -229,6 +240,7 @@ class CommonCircularImage extends StatelessWidget {
           fit: fit,
           placeholder: placeholder,
           errorWidget: errorWidget,
+          color: color,
         ),
       ),
     );
@@ -258,6 +270,9 @@ class CommonRoundedImage extends StatelessWidget {
   /// 错误组件
   final Widget? errorWidget;
 
+  /// 图片颜色
+  final Color? color;
+
   const CommonRoundedImage({
     super.key,
     required this.imagePath,
@@ -267,6 +282,7 @@ class CommonRoundedImage extends StatelessWidget {
     this.fit = BoxFit.cover,
     this.placeholder,
     this.errorWidget,
+    this.color,
   });
 
   @override
@@ -279,6 +295,7 @@ class CommonRoundedImage extends StatelessWidget {
       placeholder: placeholder,
       errorWidget: errorWidget,
       borderRadiusClip: BorderRadius.circular(borderRadius),
+      color: color,
     );
   }
 }
