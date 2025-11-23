@@ -11,6 +11,7 @@ import '../../../core/widgets/common_image.dart';
 import '../../../core/widgets/common_indicator.dart';
 import '../../../core/widgets/common_spacing.dart';
 import '../models/detail_model.dart';
+import '../providers/cart_notifier.dart';
 import '../providers/detail_provider.dart';
 
 class ProductDetailPage extends ConsumerStatefulWidget {
@@ -28,6 +29,8 @@ class ProductDetailPage extends ConsumerStatefulWidget {
 }
 
 class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
+  String? _selectedSkuId;
+
   @override
   void initState() {
     super.initState();
@@ -126,13 +129,18 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
       );
     }
 
+    _ensureDefaultSku(product);
+    final cartState = ref.watch(cartStateProvider(widget.shopId));
+    final diningDate = cartState.diningDate;
+    final selectedSku = _currentSku(product);
+
     return Stack(
       children: [
         Positioned(
           top: 0,
           left: 0,
           right: 0,
-          child:  Column(
+          child: Column(
             children: [
               // 商品图片
               _buildProductImages(product),
@@ -144,11 +152,11 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
                     topRight: Radius.circular(16.r),
                   ),
                 ),
-                padding: EdgeInsets.symmetric(horizontal: 16.w , vertical: 16.h),
+                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildProductInfo(product),
+                    _buildProductInfo(product, selectedSku, diningDate),
                     CommonSpacing.medium,
                     if (product.skuSetting == 1 && product.skus.isNotEmpty)
                       _buildSkuInfo(product),
@@ -158,7 +166,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
             ],
           ),
         ),
-       
+
         // 底部购物车
         Positioned(
           bottom: 0,
@@ -183,29 +191,39 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
                   children: [
                     Text(
                       "总价",
-                      style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold, color: Colors.grey[600]),
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey[600],
+                      ),
                     ),
                     CommonSpacing.width(4.w),
                     Text(
-                      "\$${100.00}",
-                      style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.w900, color: AppTheme.primaryOrange),
+                      "\$${cartState.totals.subtotal.toStringAsFixed(2)}",
+                      style: TextStyle(
+                        fontSize: 18.sp,
+                        fontWeight: FontWeight.w900,
+                        color: AppTheme.primaryOrange,
+                      ),
                     ),
                   ],
                 ),
-                _buildCartButton(),
+                _buildCartButton(product, selectedSku, diningDate),
               ],
             ),
           ),
         ),
-      ]
+      ],
     );
   }
 
-  Widget _buildCartButton() {
+  Widget _buildCartButton(
+    SaleProductModel product,
+    SaleProductSku? selectedSku,
+    String diningDate, // 格式: YYYY-MM-DD
+  ) {
     return GestureDetector(
-      onTap: () {
-        Logger.info("ProductDetailPage", "点击加入购物车");
-      },
+      onTap: () => _handleAddToCart(product, selectedSku, diningDate),
       child: Container(
         decoration: BoxDecoration(
           color: AppTheme.primaryOrange,
@@ -213,10 +231,14 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
         ),
         padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 12.h),
         child: Text(
-          '加入购物车', 
-          style: TextStyle(fontSize: 14.sp, fontWeight: FontWeight.bold, color: Colors.white)
+          '加入购物车',
+          style: TextStyle(
+            fontSize: 14.sp,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
         ),
-      )
+      ),
     );
   }
 
@@ -250,51 +272,72 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
         enlargeCenterPage: false,
         scrollDirection: Axis.horizontal,
       ),
-      items: images.map((image) {
-        return Builder(
-          builder: (BuildContext context) {
-            return Container(
-              color: Color(0xFFF4F4F4),
-              alignment: Alignment.center,
-              child: CommonImage(
-                imagePath: image.url!,
-                height: 120.h,
-                width: 120.w,
-              ),
+      items:
+          images.map((image) {
+            return Builder(
+              builder: (BuildContext context) {
+                return Container(
+                  color: Color(0xFFF4F4F4),
+                  alignment: Alignment.center,
+                  child: CommonImage(
+                    imagePath: image.url!,
+                    height: 120.h,
+                    width: 120.w,
+                  ),
+                );
+              },
             );
-          },
-        );
-      }).toList(),
+          }).toList(),
     );
   }
 
-  Widget _buildTag(String title , String imagePath, Color color){
+  Widget _buildTag(String title, String imagePath, Color color) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal:4.w, vertical: 1.h ),
+      padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.h),
       margin: EdgeInsets.only(right: 8.w),
       decoration: BoxDecoration(
-        color: color, 
-        borderRadius: BorderRadius.circular(6.r)
+        color: color,
+        borderRadius: BorderRadius.circular(6.r),
       ),
       child: Row(
         children: [
-          CommonImage(imagePath: imagePath, width: 16.w, height: 16.h , color: Colors.white),
+          CommonImage(
+            imagePath: imagePath,
+            width: 16.w,
+            height: 16.h,
+            color: Colors.white,
+          ),
           CommonSpacing.width(4.w),
-          Text(title, style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold, color: Colors.white)),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 12.sp,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildProductInfo(SaleProductModel product) {
+  Widget _buildProductInfo(
+    SaleProductModel product,
+    SaleProductSku? selectedSku,
+    String diningDate, // 格式: YYYY-MM-DD
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            _buildTag('New',  'assets/images/fire.png', const Color(0xFFffb700)),
-            if(product.hotMark == true)
-              _buildTag('Hot', 'assets/images/search_fire.png', AppTheme.primaryOrange),
+            _buildTag('New', 'assets/images/fire.png', const Color(0xFFffb700)),
+            if (product.hotMark == true)
+              _buildTag(
+                'Hot',
+                'assets/images/search_fire.png',
+                AppTheme.primaryOrange,
+              ),
           ],
         ),
         Row(
@@ -309,11 +352,21 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
                 ),
               ),
             ),
-            const SkuCounter()
+            if (product.skuSetting != 1 &&
+                selectedSku != null &&
+                selectedSku.id != null)
+              SkuCounter(
+                shopId: widget.shopId,
+                productId: product.id,
+                productName: product.localizedName,
+                productSpecId: selectedSku.id ?? '',
+                productSpecName: selectedSku.skuName ?? product.localizedName,
+                diningDate: diningDate,
+              ),
           ],
         ),
         CommonSpacing.medium,
-        if(product.highlight != null)
+        if (product.highlight != null)
           Text(
             product.highlight!,
             style: TextStyle(fontSize: 12.sp, color: Colors.grey[500]),
@@ -324,7 +377,6 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
             product.localizedDescription!,
             style: TextStyle(fontSize: 14.sp, color: Colors.grey[600]),
           ),
-        
       ],
     );
   }
@@ -347,16 +399,24 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
           runSpacing: 8.h,
           children:
               product.skus.map((sku) {
-                return _buildSkuItem(sku , true);
+                final isSelected = sku.id == _selectedSkuId;
+                return _buildSkuItem(sku, isSelected);
               }).toList(),
         ),
       ],
     );
   }
 
-  Widget _buildSkuItem(SaleProductSku sku , bool isSelected) {
+  Widget _buildSkuItem(SaleProductSku sku, bool isSelected) {
     return GestureDetector(
       onTap: () {
+        if (sku.id == null) {
+          _showSnackBar('该规格不可用');
+          return;
+        }
+        setState(() {
+          _selectedSkuId = sku.id;
+        });
         Logger.info("ProductDetailPage", "点击规格: ${sku.skuName}");
       },
       child: Container(
@@ -365,7 +425,10 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12.r),
-          border: Border.all(color: isSelected ? AppTheme.primaryOrange : Colors.grey[200]!, width: 1.w), // 选中的样式
+          border: Border.all(
+            color: isSelected ? AppTheme.primaryOrange : Colors.grey[200]!,
+            width: 1.w,
+          ), // 选中的样式
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -374,11 +437,89 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
           children: [
             Text(
               sku.skuName ?? '默认规格',
-              style: TextStyle(fontSize: 12.sp, color: isSelected ? AppTheme.primaryOrange : Colors.black  , fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 12.sp,
+                color: isSelected ? AppTheme.primaryOrange : Colors.black,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ],
         ),
       ),
     );
+  }
+
+  void _ensureDefaultSku(SaleProductModel product) {
+    if (_selectedSkuId != null) return;
+    if (product.skus.isEmpty) return;
+    final candidate = product.skus.firstWhere(
+      (sku) => (sku.id ?? '').isNotEmpty,
+      orElse: () => product.skus.first,
+    );
+    if (candidate.id == null || candidate.id!.isEmpty) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _selectedSkuId != null) return;
+      setState(() {
+        _selectedSkuId = candidate.id;
+      });
+    });
+  }
+
+  SaleProductSku? _currentSku(SaleProductModel product) {
+    if (_selectedSkuId == null) {
+      return product.skus.isNotEmpty ? product.skus.first : null;
+    }
+    try {
+      return product.skus.firstWhere((sku) => sku.id == _selectedSkuId);
+    } catch (_) {
+      return product.skus.isNotEmpty ? product.skus.first : null;
+    }
+  }
+
+  Future<void> _handleAddToCart(
+    SaleProductModel product,
+    SaleProductSku? selectedSku,
+    String diningDate, // 格式: YYYY-MM-DD
+  ) async {
+    final notifier = ref.read(cartProvider.notifier);
+    try {
+      if (product.skuSetting == 1) {
+        if (selectedSku == null || selectedSku.id == null) {
+          _showSnackBar('请选择规格');
+          return;
+        }
+        await notifier.increment(
+          shopId: widget.shopId,
+          diningDate: diningDate,
+          productId: product.id,
+          productName: product.localizedName,
+          productSpecId: selectedSku.id ?? '',
+          productSpecName: selectedSku.skuName ?? product.localizedName,
+        );
+        return;
+      }
+      final sku = product.skus.isNotEmpty ? product.skus.first : null;
+      if (sku == null || sku.id == null) {
+        _showSnackBar('暂无可售规格');
+        return;
+      }
+      await notifier.increment(
+        shopId: widget.shopId,
+        diningDate: diningDate,
+        productId: product.id,
+        productName: product.localizedName,
+        productSpecId: sku.id ?? '',
+        productSpecName: sku.skuName ?? product.localizedName,
+      );
+    } catch (e) {
+      _showSnackBar('加入购物车失败，请稍后重试');
+    }
+  }
+
+  void _showSnackBar(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 }

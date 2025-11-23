@@ -1,5 +1,6 @@
 import 'package:chop_user/src/features/detail/widgets/sku_counter.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:unified_popups/unified_popups.dart';
 
@@ -8,28 +9,29 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/logger/logger.dart';
 import '../../../core/widgets/common_image.dart';
 import '../../../core/widgets/common_spacing.dart';
+import '../models/order_model.dart';
+import '../providers/cart_notifier.dart';
+import '../providers/cart_state.dart';
 
-class ShopCart extends StatefulWidget {
-  const ShopCart({super.key});
+class ShopCart extends ConsumerStatefulWidget {
+  const ShopCart({super.key, required this.shopId});
+
+  final String shopId;
 
   @override
-  State<ShopCart> createState() => _ShopCartState();
+  ConsumerState<ShopCart> createState() => _ShopCartState();
 }
 
-class _ShopCartState extends State<ShopCart> {
+class _ShopCartState extends ConsumerState<ShopCart> {
   final GlobalKey _shopCartKey = GlobalKey();
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final cartState = ref.watch(cartStateProvider(widget.shopId));
+
     return GestureDetector(
-      onTap: () async {
-        if(PopupManager.hasNonToastPopup) {
-          PopupManager.hideLast();
-          return;
-        }
-        Logger.info("ShopCart", "点击购物车");
-        await _openCartSheet();
-      },
+      onTap: cartState.isEmpty ? null : () => _openCartSheet(cartState),
       child: Container(
         key: _shopCartKey,
         height: 80.h,
@@ -45,69 +47,147 @@ class _ShopCartState extends State<ShopCart> {
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            _buildPriceInfo(l10n: l10n),
-            _buildOrder(l10n: l10n),
+            _buildPriceInfo(
+              l10n: l10n,
+              quantity: cartState.totalQuantity,
+              totals: cartState.totals,
+            ),
+            _buildOrder(l10n: l10n, cartState: cartState),
           ],
         ),
       ),
     );
   }
 
-  Future<void> _openCartSheet() async {
-    final res = await Pop.sheet(
-      maxHeight: SheetDimension.fraction(0.6),
-      dockToEdge:true,
+  Future<void> _openCartSheet(CartState cartState) async {
+    if (cartState.isEmpty) {
+      return;
+    }
+    if (PopupManager.hasNonToastPopup) {
+      PopupManager.hideLast();
+    }
+    await Pop.sheet(
+      maxHeight: SheetDimension.fraction(0.7),
+      dockToEdge: true,
       edgeGap: 80.h,
       boxShadow: [],
-      childBuilder: (dismiss) =>  Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      childBuilder:
+          (dismiss) => Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              // 代表购物车的数量
-              Text("购物车(1)", style: TextStyle(fontSize: 14.sp, color: Colors.black, fontWeight: FontWeight.w500)),
-              IconButton(
-                onPressed: (){
-                  Logger.info("ShopCart", "清空购物车");
-                }, 
-                icon: Icon(Icons.delete_forever_outlined, color: Colors.black, size: 16.sp)
-              )
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    '购物车(${cartState.totalQuantity})',
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      color: Colors.black,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => _clearCart(cartState, dismiss),
+                    icon: Icon(
+                      Icons.delete_forever_outlined,
+                      color: Colors.black,
+                      size: 16.sp,
+                    ),
+                  ),
+                ],
+              ),
+              CommonSpacing.medium,
+              if (cartState.items.isEmpty)
+                Padding(
+                  padding: EdgeInsets.symmetric(vertical: 24.h),
+                  child: Text(
+                    '购物车为空',
+                    style: TextStyle(fontSize: 12.sp, color: Colors.grey[500]),
+                  ),
+                )
+              else
+                ...cartState.items.map(
+                  (item) => Padding(
+                    padding: EdgeInsets.only(bottom: 12.h),
+                    child: _buildSheetItem(cartState, item),
+                  ),
+                ),
             ],
           ),
-          // 每个加入购物车的商品 用 _buildSheetItem 渲染
-      
-        ],
-      )
     );
   }
 
-  Widget _buildSheetItem({
-    required String imagePath,
-    required String title,
-    required String price,
-  }){
+  Future<void> _clearCart(CartState cartState, VoidCallback dismiss) async {
+    final notifier = ref.read(cartProvider.notifier);
+    try {
+      await notifier.clearCart(
+        shopId: widget.shopId,
+        diningDate: cartState.diningDate,
+      );
+      dismiss();
+    } catch (e) {
+      _showSnackBar('清空失败，请稍后重试');
+    }
+  }
+
+  Widget _buildSheetItem(CartState cartState, CartItemModel item) {
+    final specName = item.productSpecName ?? '';
+    final productName = item.productName ?? '';
+    final image = item.imageThumbnail ?? 'assets/images/shop_cart.png';
+    final price = item.price ?? 0;
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        CommonImage(imagePath: imagePath, width: 24.w, height: 24.h),
-        CommonSpacing.width(12.w),
-        Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(title, style: TextStyle(fontSize: 14.sp, color: Colors.black)),
-            Text(price, style: TextStyle(fontSize: 16.sp, color: AppTheme.primaryOrange, fontWeight: FontWeight.w900)),
-          ],
+        CommonImage(
+          imagePath: image,
+          width: 40.w,
+          height: 40.h,
+          borderRadius: 8.r,
         ),
-        SkuCounter()
-       
+        CommonSpacing.width(12.w),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                productName,
+                style: TextStyle(fontSize: 14.sp, color: Colors.black),
+              ),
+              CommonSpacing.small,
+              Text(
+                specName,
+                style: TextStyle(fontSize: 12.sp, color: Colors.grey[600]),
+              ),
+              CommonSpacing.small,
+              Text(
+                '\$${price.toStringAsFixed(2)}',
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  color: AppTheme.primaryOrange,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+        ),
+        CommonSpacing.width(8.w),
+        SkuCounter(
+          shopId: widget.shopId,
+          productId: item.productId ?? '',
+          productName: productName,
+          productSpecId: item.productSpecId ?? '',
+          productSpecName: specName.isEmpty ? productName : specName,
+          diningDate: cartState.diningDate,
+        ),
       ],
     );
   }
 
   Widget _buildPriceInfo({
     required AppLocalizations l10n,
-  }){
+    required int quantity,
+    required CartTotals totals,
+  }) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -115,7 +195,6 @@ class _ShopCartState extends State<ShopCart> {
         Stack(
           clipBehavior: Clip.none,
           children: [
-            // 角标 
             Positioned(
               right: -8.w,
               top: -8.h,
@@ -126,12 +205,25 @@ class _ShopCartState extends State<ShopCart> {
                   color: AppTheme.primaryOrange,
                   borderRadius: BorderRadius.circular(10.r),
                 ),
-                child: Center(child: Text('10', style: TextStyle(fontSize: 10.sp, color: Colors.white, fontWeight: FontWeight.bold))),
+                child: Center(
+                  child: Text(
+                    '$quantity',
+                    style: TextStyle(
+                      fontSize: 10.sp,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
               ),
             ),
-            CommonImage(imagePath: 'assets/images/shop_cart.png', width: 24.w, height: 24.h),
+            CommonImage(
+              imagePath: 'assets/images/shop_cart.png',
+              width: 24.w,
+              height: 24.h,
+            ),
           ],
-        ), 
+        ),
         CommonSpacing.width(12.w),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -139,24 +231,45 @@ class _ShopCartState extends State<ShopCart> {
             Text.rich(
               TextSpan(
                 children: [
-                  TextSpan(text: '${l10n.totalPrice}:', style: TextStyle(fontSize: 12.sp, color: Colors.grey.shade600)),
-                  TextSpan(text: '\$100', style: TextStyle(fontSize: 16.sp, color: AppTheme.primaryOrange, fontWeight: FontWeight.bold)),
+                  TextSpan(
+                    text: '${l10n.totalPrice}:',
+                    style: TextStyle(
+                      fontSize: 12.sp,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                  TextSpan(
+                    text: '\$${totals.subtotal.toStringAsFixed(2)}',
+                    style: TextStyle(
+                      fontSize: 16.sp,
+                      color: AppTheme.primaryOrange,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ],
               ),
             ),
-            Text('${l10n.estimatedDeliveryFee}  : \$10', style: TextStyle(fontSize: 11.sp, color: Colors.grey.shade600)),
+            Text(
+              '${l10n.estimatedDeliveryFee} : \$${totals.deliveryFee.toStringAsFixed(2)}',
+              style: TextStyle(fontSize: 11.sp, color: Colors.grey.shade600),
+            ),
           ],
-        )
+        ),
       ],
     );
   }
 
   Widget _buildOrder({
     required AppLocalizations l10n,
-  }){
+    required CartState cartState,
+  }) {
     return GestureDetector(
       onTap: () {
-        Logger.info("ShopCart", "点击下单");
+        if (cartState.isEmpty) {
+          _showSnackBar('购物车为空，无法下单');
+          return;
+        }
+        Logger.info('ShopCart', '点击下单 shopId=${widget.shopId}');
       },
       child: Container(
         decoration: BoxDecoration(
@@ -164,8 +277,22 @@ class _ShopCartState extends State<ShopCart> {
           borderRadius: BorderRadius.circular(16.r),
         ),
         padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 12.h),
-        child: Text(l10n.orderNow, style: TextStyle(fontSize: 16.sp, color: Colors.white, fontWeight: FontWeight.bold)),
-      )
+        child: Text(
+          l10n.orderNow,
+          style: TextStyle(
+            fontSize: 16.sp,
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
     );
+  }
+
+  void _showSnackBar(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 }

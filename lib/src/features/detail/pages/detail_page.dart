@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:chop_user/src/core/routing/navigate.dart';
 import 'package:chop_user/src/core/widgets/common_app_bar.dart';
 import 'package:flutter/material.dart';
@@ -11,6 +13,8 @@ import '../../../core/controllers/favorite_controller.dart';
 import '../../../core/providers/favorite_provider.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../models/detail_model.dart';
+import '../models/order_model.dart' show formatDiningDate;
+import '../providers/cart_notifier.dart';
 import '../providers/detail_provider.dart';
 import '../widgets/carousel_background.dart';
 import '../widgets/product_detail.dart';
@@ -26,21 +30,34 @@ class DetailPage extends ConsumerStatefulWidget {
 
 class _DetailPageState extends ConsumerState<DetailPage> {
   final double logoHeight = 200.h;
-  final RefreshController _refreshController = RefreshController(initialRefresh: false);
-  
+  final RefreshController _refreshController = RefreshController(
+    initialRefresh: false,
+  );
+
   @override
   void initState() {
     super.initState();
     Logger.info('DetailPage', '店铺详情页面初始化: shopId=${widget.id}');
-    
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final existingShop = ref.read(shopDetailProvider(widget.id));
       if (existingShop == null) {
         Logger.info('DetailPage', '无缓存数据，开始加载: shopId=${widget.id}');
         ref.read(detailProvider(widget.id).notifier).loadShopDetail(widget.id);
       } else {
-        Logger.info('DetailPage', '使用缓存数据: shopId=${widget.id}, shopName=${existingShop.chineseShopName}');
+        Logger.info(
+          'DetailPage',
+          '使用缓存数据: shopId=${widget.id}, shopName=${existingShop.chineseShopName}',
+        );
       }
+      final cartNotifier = ref.read(cartProvider.notifier);
+      unawaited(cartNotifier.loadFromLocal(widget.id));
+      unawaited(
+        cartNotifier.syncFromRemote(
+          shopId: widget.id,
+          diningDate: formatDiningDate(DateTime.now()),
+        ),
+      );
     });
   }
 
@@ -75,25 +92,27 @@ class _DetailPageState extends ConsumerState<DetailPage> {
     }
   }
 
-
   /// 构建AppBar
-  Widget _buildAppBar(ShopModel? shop, BuildContext context){
+  Widget _buildAppBar(ShopModel? shop, BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return CommonAppBar(
       backgroundColor: Colors.transparent,
       titleColor: Colors.white,
       iconColor: Colors.white,
-      title: l10n.merchantDetail, 
+      title: l10n.merchantDetail,
       onBackPressed: () {
         Logger.info('DetailPage', '返回按钮被点击');
         Navigate.pop(context);
       },
-      actions: shop != null ? [
-        FavoriteIcon(
-          isFavorite: shop.favorite ?? false, 
-          onTap: () => _onFavoriteTap(shop),
-        ),
-      ] : null,
+      actions:
+          shop != null
+              ? [
+                FavoriteIcon(
+                  isFavorite: shop.favorite ?? false,
+                  onTap: () => _onFavoriteTap(shop),
+                ),
+              ]
+              : null,
     );
   }
 
@@ -115,9 +134,7 @@ class _DetailPageState extends ConsumerState<DetailPage> {
               right: 0,
               child: _buildAppBar(null, context),
             ),
-            const Center(
-              child: CommonIndicator(),
-            ),
+            const Center(child: CommonIndicator()),
           ],
         ),
       );
@@ -143,7 +160,9 @@ class _DetailPageState extends ConsumerState<DetailPage> {
                   SizedBox(height: 16.h),
                   ElevatedButton(
                     onPressed: () {
-                      ref.read(detailProvider(widget.id).notifier).loadShopDetail(widget.id);
+                      ref
+                          .read(detailProvider(widget.id).notifier)
+                          .loadShopDetail(widget.id);
                     },
                     child: Text(l10n.tryAgainText),
                   ),
@@ -167,9 +186,7 @@ class _DetailPageState extends ConsumerState<DetailPage> {
               right: 0,
               child: _buildAppBar(null, context),
             ),
-            Center(
-              child: Text(l10n.shopNotExist),
-            ),
+            Center(child: Text(l10n.shopNotExist)),
           ],
         ),
       );
@@ -183,15 +200,16 @@ class _DetailPageState extends ConsumerState<DetailPage> {
           SmartRefresher(
             controller: _refreshController,
             enablePullDown: true,
-            enablePullUp: false, 
+            enablePullUp: false,
             onRefresh: _onRefresh,
             header: CustomHeader(
               // height: 120.h + MediaQuery.of(context).padding.top, // 测试ios灵动岛
-              builder: (context, mode) => Container(
-                color: Colors.black,
-                padding: EdgeInsets.symmetric(vertical: 16.w),
-                child: CommonIndicator(size: 16.w),
-              ),
+              builder:
+                  (context, mode) => Container(
+                    color: Colors.black,
+                    padding: EdgeInsets.symmetric(vertical: 16.w),
+                    child: CommonIndicator(size: 16.w),
+                  ),
             ),
             child: Stack(
               children: [
@@ -200,13 +218,13 @@ class _DetailPageState extends ConsumerState<DetailPage> {
               ],
             ),
           ),
-          
+
           // 固定在底部的购物车（不随内容滚动）
           Positioned(
             bottom: 0,
             left: 0,
             right: 0,
-            child: const ShopCart(),
+            child: ShopCart(shopId: widget.id),
           ),
 
           // 固定在顶部的AppBar

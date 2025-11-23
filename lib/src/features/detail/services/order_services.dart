@@ -54,7 +54,7 @@ class OrderServices {
 
   /// 更新购物车数量
   Future<void> updateCartQuantity(UpdateCartParams params) async {
-    final response = await ApiClient().post(
+    final response = await ApiClient().put(
       ApiPaths.updateCartQuantityApi,
       data: params.toJson(),
     );

@@ -1,5 +1,28 @@
 import '../../../core/utils/json_utils.dart';
 
+/// 将 DateTime 转换为 YYYY-MM-DD 格式的字符串
+String formatDiningDate(DateTime date) {
+  return '${date.year.toString().padLeft(4, '0')}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+}
+
+/// 将 YYYY-MM-DD 格式的字符串转换为 DateTime
+DateTime? parseDiningDate(String? dateStr) {
+  if (dateStr == null || dateStr.isEmpty) return null;
+  try {
+    final parts = dateStr.split('-');
+    if (parts.length == 3) {
+      return DateTime(
+        int.parse(parts[0]),
+        int.parse(parts[1]),
+        int.parse(parts[2]),
+      );
+    }
+  } catch (e) {
+    // 解析失败返回 null
+  }
+  return null;
+}
+
 /// 创建订单参数
 class CreateOrderParams {
   ///订单备注（可选）
@@ -146,8 +169,8 @@ class OrderItem {
 
 /// 添加购物车参数
 class AddCartParams {
-  ///用餐日期
-  final DateTime diningDate;
+  ///用餐日期 (格式: YYYY-MM-DD)
+  final String diningDate;
 
   ///商品ID
   final String productId;
@@ -178,7 +201,7 @@ class AddCartParams {
   });
 
   Map<String, dynamic> toJson() => {
-    'diningDate': diningDate.toIso8601String(),
+    'diningDate': diningDate,
     'productId': productId,
     'productName': productName,
     'productSpecId': productSpecId,
@@ -190,18 +213,15 @@ class AddCartParams {
 
 /// 获取购物车列表参数
 class GetCartListQuery {
-  ///用餐日期
-  final DateTime diningDate;
+  ///用餐日期 (格式: YYYY-MM-DD)
+  final String diningDate;
 
   ///店铺ID
   final String shopId;
 
   GetCartListQuery({required this.diningDate, required this.shopId});
 
-  Map<String, dynamic> toJson() => {
-    'diningDate': diningDate.toIso8601String(),
-    'shopId': shopId,
-  };
+  Map<String, dynamic> toJson() => {'diningDate': diningDate, 'shopId': shopId};
 }
 
 /// 更新购物车数量
@@ -222,8 +242,8 @@ class CartItemModel {
   ///创建时间
   final DateTime? createTime;
 
-  ///用餐日期
-  final DateTime? diningDate;
+  ///用餐日期 (格式: YYYY-MM-DD)
+  final String? diningDate;
 
   ///主键ID
   final String? id;
@@ -277,19 +297,69 @@ class CartItemModel {
   factory CartItemModel.fromJson(Map<String, dynamic> json) {
     return CartItemModel(
       createTime: JsonUtils.parseDateTime(json, 'createTime'),
-      diningDate: JsonUtils.parseDateTime(json, 'diningDate'),
-      id: json['id'],
-      imageThumbnail: json['imageThumbnail'],
-      price: json['price'],
-      productId: json['productId'],
-      productName: json['productName'],
-      productSpecId: json['productSpecId'],
-      productSpecName: json['productSpecName'],
-      quantity: json['quantity'],
-      shopId: json['shopId'],
-      skuSetting: json['skuSetting'],
-      userId: json['userId'],
+      diningDate: JsonUtils.parseString(json, 'diningDate'), // 格式: YYYY-MM-DD
+      id: json['id'] as String?,
+      imageThumbnail: json['imageThumbnail'] as String?,
+      price: JsonUtils.parseDouble(json, 'price'),
+      productId: json['productId'] as String?,
+      productName: json['productName'] as String?,
+      productSpecId: json['productSpecId'] as String?,
+      productSpecName: json['productSpecName'] as String?,
+      quantity: JsonUtils.parseInt(json, 'quantity'),
+      shopId: json['shopId'] as String?,
+      skuSetting: JsonUtils.parseInt(json, 'skuSetting'),
+      userId: JsonUtils.parseInt(json, 'userId'),
     );
+  }
+
+  CartItemModel copyWith({
+    DateTime? createTime,
+    String? diningDate, // 格式: YYYY-MM-DD
+    String? id,
+    String? imageThumbnail,
+    double? price,
+    String? productId,
+    String? productName,
+    String? productSpecId,
+    String? productSpecName,
+    int? quantity,
+    String? shopId,
+    int? skuSetting,
+    int? userId,
+  }) {
+    return CartItemModel(
+      createTime: createTime ?? this.createTime,
+      diningDate: diningDate ?? this.diningDate,
+      id: id ?? this.id,
+      imageThumbnail: imageThumbnail ?? this.imageThumbnail,
+      price: price ?? this.price,
+      productId: productId ?? this.productId,
+      productName: productName ?? this.productName,
+      productSpecId: productSpecId ?? this.productSpecId,
+      productSpecName: productSpecName ?? this.productSpecName,
+      quantity: quantity ?? this.quantity,
+      shopId: shopId ?? this.shopId,
+      skuSetting: skuSetting ?? this.skuSetting,
+      userId: userId ?? this.userId,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      if (createTime != null) 'createTime': createTime!.toIso8601String(),
+      if (diningDate != null) 'diningDate': diningDate!, // 已经是字符串格式
+      'id': id,
+      'imageThumbnail': imageThumbnail,
+      'price': price,
+      'productId': productId,
+      'productName': productName,
+      'productSpecId': productSpecId,
+      'productSpecName': productSpecName,
+      'quantity': quantity,
+      'shopId': shopId,
+      'skuSetting': skuSetting,
+      'userId': userId,
+    };
   }
 }
 
