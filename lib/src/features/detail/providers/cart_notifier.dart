@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/utils/logger/logger.dart';
-import '../models/order_model.dart' show formatDiningDate;
 import '../models/order_model.dart';
 import '../services/cart_storage.dart';
 import '../services/order_services.dart';

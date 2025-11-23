@@ -13,7 +13,6 @@ import '../models/detail_model.dart';
 import '../providers/cart_notifier.dart';
 import '../providers/detail_provider.dart';
 import 'sku_counter.dart';
-import 'sku_selector_sheet.dart';
 
 /// 商品列表组件
 class ProductList extends ConsumerStatefulWidget {
@@ -274,7 +273,7 @@ class _ProductListState extends ConsumerState<ProductList> {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 6.h),
       child: GestureDetector(
-        onTap: () => _handleSelectSku(product, diningDate),
+        onTap: () => Navigate.push(context, Routes.productDetail, arguments: {"productId": product.id, "shopId": product.shopId},),
         child: Text(
           selectSpecification,
           style: TextStyle(
@@ -285,39 +284,5 @@ class _ProductListState extends ConsumerState<ProductList> {
         ),
       ),
     );
-  }
-
-  Future<void> _handleSelectSku(
-    SaleProductModel product,
-    String diningDate, // 格式: YYYY-MM-DD
-  ) async {
-    final sku = await showSkuSelectorSheet(context, product);
-    if (sku == null) return;
-    if (sku.id == null) {
-      Logger.warn('ProductList', '所选规格缺少ID productId=${product.id}');
-      _showSnack('该规格不可用');
-      return;
-    }
-    try {
-      await ref
-          .read(cartProvider.notifier)
-          .increment(
-            shopId: widget.shopId,
-            diningDate: diningDate,
-            productId: product.id,
-            productName: product.localizedName,
-            productSpecId: sku.id ?? '',
-            productSpecName: sku.skuName ?? product.localizedName,
-          );
-    } catch (_) {
-      _showSnack('加入购物车失败，请稍后再试');
-    }
-  }
-
-  void _showSnack(String message) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
   }
 }

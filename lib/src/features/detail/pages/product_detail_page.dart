@@ -1,9 +1,11 @@
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:chop_user/src/core/utils/pop/toast.dart';
 import 'package:chop_user/src/features/detail/widgets/sku_counter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import '../../../core/routing/navigate.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/logger/logger.dart';
 import '../../../core/widgets/common_app_bar.dart';
@@ -222,21 +224,37 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
     SaleProductSku? selectedSku,
     String diningDate, // 格式: YYYY-MM-DD
   ) {
+    final cartState = ref.watch(cartStateProvider(widget.shopId));
+    final isBusy = cartState.isUpdating || cartState.isOperating;
+    
     return GestureDetector(
-      onTap: () => _handleAddToCart(product, selectedSku, diningDate),
+      onTap: isBusy ? null : () => _handleAddToCart(product, selectedSku, diningDate),
       child: Container(
         decoration: BoxDecoration(
-          color: AppTheme.primaryOrange,
+          color: isBusy ? Colors.grey[400] : AppTheme.primaryOrange,
           borderRadius: BorderRadius.circular(12.r),
         ),
         padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 12.h),
-        child: Text(
-          '加入购物车',
-          style: TextStyle(
-            fontSize: 14.sp,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (isBusy) ...[
+              CommonIndicator(
+                strokeWidth: 2,
+                color: Colors.white,
+                size: 14.w,
+              ),
+              CommonSpacing.width(8.w),
+            ],
+            Text(
+              isBusy ? '添加中...' : '加入购物车',
+              style: TextStyle(
+                fontSize: 14.sp,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -411,7 +429,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
     return GestureDetector(
       onTap: () {
         if (sku.id == null) {
-          _showSnackBar('该规格不可用');
+          toast.warn('该规格不可用');
           return;
         }
         setState(() {
@@ -481,11 +499,18 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
     SaleProductSku? selectedSku,
     String diningDate, // 格式: YYYY-MM-DD
   ) async {
+    final cartState = ref.read(cartStateProvider(widget.shopId));
+    final isBusy = cartState.isUpdating || cartState.isOperating;
+    if (isBusy) {
+      // 如果正在操作中，不重复执行
+      return;
+    }
+
     final notifier = ref.read(cartProvider.notifier);
     try {
       if (product.skuSetting == 1) {
         if (selectedSku == null || selectedSku.id == null) {
-          _showSnackBar('请选择规格');
+          toast.warn('请选择规格');
           return;
         }
         await notifier.increment(
@@ -496,30 +521,36 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
           productSpecId: selectedSku.id ?? '',
           productSpecName: selectedSku.skuName ?? product.localizedName,
         );
-        return;
+      } else {
+        final sku = product.skus.isNotEmpty ? product.skus.first : null;
+        if (sku == null || sku.id == null) {
+          toast.warn('暂无可售规格');
+          return;
+        }
+        await notifier.increment(
+          shopId: widget.shopId,
+          diningDate: diningDate,
+          productId: product.id,
+          productName: product.localizedName,
+          productSpecId: sku.id ?? '',
+          productSpecName: sku.skuName ?? product.localizedName,
+        );
       }
-      final sku = product.skus.isNotEmpty ? product.skus.first : null;
-      if (sku == null || sku.id == null) {
-        _showSnackBar('暂无可售规格');
-        return;
+      
+      // 统一处理成功提示和页面关闭
+      toast.success('加入购物车成功');
+      if (mounted) {
+        // 延迟一点时间让toast显示，然后再关闭页面
+        await Future.delayed(const Duration(milliseconds: 300));
+        if (mounted) {
+          Navigate.pop(context);
+        }
       }
-      await notifier.increment(
-        shopId: widget.shopId,
-        diningDate: diningDate,
-        productId: product.id,
-        productName: product.localizedName,
-        productSpecId: sku.id ?? '',
-        productSpecName: sku.skuName ?? product.localizedName,
-      );
     } catch (e) {
-      _showSnackBar('加入购物车失败，请稍后重试');
+      Logger.error('ProductDetailPage', '加入购物车失败: $e');
+      toast.warn('加入购物车失败，请稍后重试'); 
     }
   }
 
-  void _showSnackBar(String message) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
-  }
+
 }

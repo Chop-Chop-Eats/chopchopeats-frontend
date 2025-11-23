@@ -67,7 +67,7 @@ class _ShopCartState extends ConsumerState<ShopCart> {
       PopupManager.hideLast();
     }
     await Pop.sheet(
-      maxHeight: SheetDimension.fraction(0.7),
+      maxHeight: SheetDimension.fraction(0.4),
       dockToEdge: true,
       edgeGap: 80.h,
       boxShadow: [],
@@ -106,12 +106,15 @@ class _ShopCartState extends ConsumerState<ShopCart> {
                   ),
                 )
               else
-                ...cartState.items.map(
-                  (item) => Padding(
+              Expanded(
+                child:  ListView.builder(
+                  itemBuilder: (context, index) => Padding(
                     padding: EdgeInsets.only(bottom: 12.h),
-                    child: _buildSheetItem(cartState, item),
+                    child: _buildSheetItem(cartState, cartState.items[index] ),
                   ),
+                  itemCount: cartState.items.length,
                 ),
+              )
             ],
           ),
     );

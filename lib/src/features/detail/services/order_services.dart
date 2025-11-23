@@ -41,7 +41,7 @@ class OrderServices {
 
   /// 清空购物车
   Future<void> clearCart(String shopId  , String diningDate) async {
-    final response = await ApiClient().post(
+    final response = await ApiClient().delete(
       ApiPaths.clearCartApi,
       data: {
         'shopId': shopId,

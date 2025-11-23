@@ -31,35 +31,43 @@ class SkuCounter extends ConsumerWidget {
     final cartState = ref.watch(cartStateProvider(shopId));
     final quantity = cartState.quantityOf(productId, productSpecId);
     final isBusy = cartState.isUpdating || cartState.isOperating;
-    final canDecrease = quantity > 0 && !isBusy;
-    final canIncrease = !isBusy;
+    final canDecrease = quantity > 0 && !isBusy && _isSpecValid;
+    final canIncrease = !isBusy && _isSpecValid;
 
     return Container(
       padding: EdgeInsets.symmetric(vertical: 2.h),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: AppTheme.primaryOrange, width: 1.w),
-        color: Colors.white,
+        border: Border.all(
+          color: canIncrease || canDecrease
+              ? AppTheme.primaryOrange
+              : Colors.grey[300]!,
+          width: 1.w,
+        ),
+        color: canIncrease || canDecrease ? Colors.white : Colors.grey[100],
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           _buildButton(
             icon: Icons.remove,
-            enabled: canDecrease && _isSpecValid,
+            enabled: canDecrease,
             onTap: () => _onDecrease(ref),
           ),
-          Text(
-            quantity.toString(),
-            style: TextStyle(
-              color: Colors.black,
-              fontSize: 12.sp,
-              fontWeight: FontWeight.normal,
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 8.w),
+            child: Text(
+              quantity.toString(),
+              style: TextStyle(
+                color: isBusy ? Colors.grey[400] : Colors.black,
+                fontSize: 12.sp,
+                fontWeight: FontWeight.normal,
+              ),
             ),
           ),
           _buildButton(
             icon: Icons.add,
-            enabled: canIncrease && _isSpecValid,
+            enabled: canIncrease,
             onTap: () => _onIncrease(ref),
           ),
         ],
@@ -74,11 +82,18 @@ class SkuCounter extends ConsumerWidget {
   }) {
     return GestureDetector(
       onTap: enabled ? onTap : null,
-      child: Opacity(
-        opacity: enabled ? 1 : 0.4,
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 5.h),
-          child: Icon(icon, size: 16.w, color: Colors.black),
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 5.h),
+        decoration: enabled
+            ? null
+            : BoxDecoration(
+                color: Colors.grey[200],
+                borderRadius: BorderRadius.circular(4.r),
+              ),
+        child: Icon(
+          icon,
+          size: 16.w,
+          color: enabled ? Colors.black : Colors.grey[400],
         ),
       ),
     );
