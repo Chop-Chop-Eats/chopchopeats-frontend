@@ -125,4 +125,7 @@ class ApiPaths {
   // 创建 Stripe PaymentIntent
   static const String createSPIApi = "/app-api/trade/stripe-payment-intent/create";
 
+  // 计算配送预估费用
+  static const String getDeliveryFeeEstimateApi = "/app-api/merchant/geocoding/test/delivery-fee-estimate";
+
 }

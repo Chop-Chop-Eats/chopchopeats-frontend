@@ -328,3 +328,63 @@ class SPIModel {
     );
   }
 }
+
+/// 计算配送预估费用请求参数
+class DeliveryFeeQuery {
+  ///纬度
+  final double latitude;
+
+  ///经度
+  final double longitude;
+
+  ///店铺ID
+  final String shopId;
+
+  DeliveryFeeQuery({
+    required this.latitude,
+    required this.longitude,
+    required this.shopId,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'latitude': latitude,
+    'longitude': longitude,
+    'shopId': shopId,
+  };
+}
+
+/// 计算配送预估费用返回值
+class DeliveryFeeModel {
+  ///每英里配送费用
+  final double? deliveryFeePerMile;
+
+  ///配送距离（英里）
+  final double? distance;
+
+  ///预估配送费用
+  final double? estimatedDeliveryFee;
+
+  ///店铺ID
+  final String? shopId;
+
+  ///店铺名称
+  final String? shopName;
+
+  DeliveryFeeModel({
+    this.deliveryFeePerMile,
+    this.distance,
+    this.estimatedDeliveryFee,
+    this.shopId,
+    this.shopName,
+  });
+
+  factory DeliveryFeeModel.fromJson(Map<String, dynamic> json) {
+    return DeliveryFeeModel(
+      deliveryFeePerMile: json['deliveryFeePerMile'],
+      distance: json['distance'],
+      estimatedDeliveryFee: json['estimatedDeliveryFee'],
+      shopId: json['shopId'],
+      shopName: json['shopName'],
+    );
+  }
+}

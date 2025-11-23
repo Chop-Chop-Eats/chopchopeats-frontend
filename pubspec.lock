@@ -934,10 +934,10 @@ packages:
     dependency: "direct main"
     description:
       name: unified_popups
-      sha256: "2fc3f2e808e9bfd3c8f4f1926105bad89d8b4fe7673ed101f4a76d47c7babad8"
+      sha256: "030d970ba67a6d1d6a858bd6eb864ff8e67dee1f38ba9b4815bef12c3e9b5ba5"
       url: "https://pub.dev"
     source: hosted
-    version: "1.1.12"
+    version: "1.1.15"
   url_launcher:
     dependency: "direct main"
     description:

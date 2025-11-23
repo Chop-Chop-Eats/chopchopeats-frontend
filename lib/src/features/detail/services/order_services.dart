@@ -76,6 +76,15 @@ class OrderServices {
     } else {
       throw Exception('API 返回的数据格式不正确，期望 Map<String, dynamic> 类型');
     }
-  
+  }
+
+  /// 计算配送预估费用
+  Future<DeliveryFeeModel> getDeliveryFee(DeliveryFeeQuery query) async {
+    final response = await ApiClient().get(
+      ApiPaths.getDeliveryFeeEstimateApi,
+      queryParameters: query.toJson(),
+    );
+    Logger.info('OrderServices', '计算配送预估费用: ${response.data}');
+    return DeliveryFeeModel.fromJson(response.data);
   }
 }
