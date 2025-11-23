@@ -128,4 +128,10 @@ class ApiPaths {
   // 计算配送预估费用
   static const String getDeliveryFeeEstimateApi = "/app-api/merchant/geocoding/test/delivery-fee-estimate";
 
+  // 获取可配送时间列表
+  static const String getAvailableDeliveryTimesApi = "/app-api/merchant/shop/available-delivery-times";
+
+  // 检查当前是否在配送时间范围内
+  static const String checkDeliveryTimeApi = "/app-api/merchant/shop/check-delivery-time";
+
 }

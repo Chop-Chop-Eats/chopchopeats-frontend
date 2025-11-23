@@ -1,3 +1,4 @@
+import 'package:chop_user/src/features/detail/widgets/sku_counter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:unified_popups/unified_popups.dart';
@@ -27,22 +28,7 @@ class _ShopCartState extends State<ShopCart> {
           return;
         }
         Logger.info("ShopCart", "点击购物车");
-        final res = await Pop.sheet(
-          dockToEdge:true,
-          edgeGap: 80.h,
-          boxShadow: [],
-          childBuilder: (dismiss) => Container(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text("构图车弹出层"),
-                Text("构图车弹出层"),
-                Text("构图车弹出层"),
-                Text("构图车弹出层"),
-              ],
-            ),
-          )
-        );
+        await _openCartSheet();
       },
       child: Container(
         key: _shopCartKey,
@@ -64,6 +50,58 @@ class _ShopCartState extends State<ShopCart> {
           ],
         ),
       ),
+    );
+  }
+
+  Future<void> _openCartSheet() async {
+    final res = await Pop.sheet(
+      maxHeight: SheetDimension.fraction(0.6),
+      dockToEdge:true,
+      edgeGap: 80.h,
+      boxShadow: [],
+      childBuilder: (dismiss) =>  Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // 代表购物车的数量
+              Text("购物车(1)", style: TextStyle(fontSize: 14.sp, color: Colors.black, fontWeight: FontWeight.w500)),
+              IconButton(
+                onPressed: (){
+                  Logger.info("ShopCart", "清空购物车");
+                }, 
+                icon: Icon(Icons.delete_forever_outlined, color: Colors.black, size: 16.sp)
+              )
+            ],
+          ),
+          // 每个加入购物车的商品 用 _buildSheetItem 渲染
+      
+        ],
+      )
+    );
+  }
+
+  Widget _buildSheetItem({
+    required String imagePath,
+    required String title,
+    required String price,
+  }){
+    return Row(
+      children: [
+        CommonImage(imagePath: imagePath, width: 24.w, height: 24.h),
+        CommonSpacing.width(12.w),
+        Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(title, style: TextStyle(fontSize: 14.sp, color: Colors.black)),
+            Text(price, style: TextStyle(fontSize: 16.sp, color: AppTheme.primaryOrange, fontWeight: FontWeight.w900)),
+          ],
+        ),
+        SkuCounter()
+       
+      ],
     );
   }
 
