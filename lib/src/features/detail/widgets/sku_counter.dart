@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/logger/logger.dart';
 import '../providers/cart_notifier.dart';
+import '../providers/cart_state.dart';
 
 class SkuCounter extends ConsumerWidget {
   const SkuCounter({
@@ -30,7 +31,14 @@ class SkuCounter extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final cartState = ref.watch(cartStateProvider(shopId));
     final quantity = cartState.quantityOf(productId, productSpecId);
-    final isBusy = cartState.isUpdating || cartState.isOperating;
+    // 创建当前商品的引用
+    final currentProductRef = CartProductRef(
+      productId: productId,
+      productSpecId: productSpecId,
+    );
+    // 只有当正在操作的商品是当前商品时才禁用
+    final isBusy = cartState.operatingProductRef != null &&
+        cartState.operatingProductRef == currentProductRef;
     final canDecrease = quantity > 0 && !isBusy && _isSpecValid;
     final canIncrease = !isBusy && _isSpecValid;
 

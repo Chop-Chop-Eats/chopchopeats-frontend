@@ -118,6 +118,7 @@ class CartState {
   final bool isOperating;
   final String? error;
   final String? lastError;
+  final CartProductRef? operatingProductRef;
   final Map<CartProductRef, CartItemModel> itemRefs;
 
   CartState({
@@ -132,6 +133,7 @@ class CartState {
     this.isOperating = false,
     this.error,
     this.lastError,
+    this.operatingProductRef,
     Map<CartProductRef, CartItemModel>? itemRefs,
   }) : itemRefs = itemRefs ?? _buildItemRefs(items);
 
@@ -153,6 +155,7 @@ class CartState {
     bool? isOperating,
     Object? error = _cartStateSentinel,
     Object? lastError = _cartStateSentinel,
+    Object? operatingProductRef = _cartStateSentinel,
   }) {
     final nextItems = items ?? this.items;
     final nextError =
@@ -161,6 +164,10 @@ class CartState {
         identical(lastError, _cartStateSentinel)
             ? this.lastError
             : lastError as String?;
+    final nextOperatingProductRef =
+        identical(operatingProductRef, _cartStateSentinel)
+            ? this.operatingProductRef
+            : operatingProductRef as CartProductRef?;
     return CartState(
       shopId: shopId,
       diningDate: diningDate ?? this.diningDate,
@@ -173,6 +180,7 @@ class CartState {
       isOperating: isOperating ?? this.isOperating,
       error: nextError,
       lastError: nextLastError,
+      operatingProductRef: nextOperatingProductRef,
       itemRefs: _buildItemRefs(nextItems),
     );
   }

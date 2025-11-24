@@ -78,6 +78,7 @@ class CartNotifier extends StateNotifier<Map<String, CartState>> {
         isOperating: false,
         error: null,
         lastError: null,
+        operatingProductRef: null,
       );
       _commit(shopId, next);
       await _storage.write(next);
@@ -93,6 +94,7 @@ class CartNotifier extends StateNotifier<Map<String, CartState>> {
           isSyncing: false,
           error: e.toString(),
           lastError: e.toString(),
+          operatingProductRef: null,
         ),
       );
     }
@@ -100,6 +102,10 @@ class CartNotifier extends StateNotifier<Map<String, CartState>> {
 
   Future<void> addItem(AddCartParams params) async {
     final current = _ensureCart(params.shopId);
+    final productRef = CartProductRef(
+      productId: params.productId,
+      productSpecId: params.productSpecId,
+    );
     _commit(
       params.shopId,
       current.copyWith(
@@ -107,6 +113,7 @@ class CartNotifier extends StateNotifier<Map<String, CartState>> {
         isUpdating: true,
         isOperating: true,
         error: null,
+        operatingProductRef: productRef,
       ),
     );
     try {
@@ -124,6 +131,7 @@ class CartNotifier extends StateNotifier<Map<String, CartState>> {
           isOperating: false,
           error: e.toString(),
           lastError: e.toString(),
+          operatingProductRef: null,
         ),
       );
       rethrow;
@@ -136,6 +144,15 @@ class CartNotifier extends StateNotifier<Map<String, CartState>> {
     required String diningDate,
   }) async {
     final current = _ensureCart(shopId);
+    // 找到对应的商品项以获取 productId 和 productSpecId
+    final targetItem = current.items.firstWhere(
+      (item) => item.id == params.cartId,
+      orElse: () => throw Exception('找不到对应的购物车项: ${params.cartId}'),
+    );
+    final productRef = CartProductRef(
+      productId: targetItem.productId ?? '',
+      productSpecId: targetItem.productSpecId ?? '',
+    );
     final optimisticItems =
         current.items
             .map(
@@ -155,6 +172,7 @@ class CartNotifier extends StateNotifier<Map<String, CartState>> {
         isUpdating: true,
         isOperating: true,
         error: null,
+        operatingProductRef: productRef,
       ),
     );
     try {
@@ -169,6 +187,7 @@ class CartNotifier extends StateNotifier<Map<String, CartState>> {
           isOperating: false,
           error: e.toString(),
           lastError: e.toString(),
+          operatingProductRef: null,
         ),
       );
       rethrow;
@@ -180,17 +199,18 @@ class CartNotifier extends StateNotifier<Map<String, CartState>> {
     required String diningDate,
   }) async {
     final current = _ensureCart(shopId);
-    _commit(
-      shopId,
-      current.copyWith(
-        items: const [],
-        totals: const CartTotals(),
-        diningDate: diningDate,
-        isUpdating: true,
-        isOperating: true,
-        error: null,
-      ),
-    );
+      _commit(
+        shopId,
+        current.copyWith(
+          items: const [],
+          totals: const CartTotals(),
+          diningDate: diningDate,
+          isUpdating: true,
+          isOperating: true,
+          error: null,
+          operatingProductRef: null,
+        ),
+      );
     try {
       await _orderServices.clearCart(shopId, diningDate);
       await _storage.remove(shopId);
@@ -212,6 +232,7 @@ class CartNotifier extends StateNotifier<Map<String, CartState>> {
           isOperating: false,
           error: e.toString(),
           lastError: e.toString(),
+          operatingProductRef: null,
         ),
       );
       rethrow;

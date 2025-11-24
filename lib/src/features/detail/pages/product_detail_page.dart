@@ -135,7 +135,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
     final cartState = ref.watch(cartStateProvider(widget.shopId));
     final diningDate = cartState.diningDate;
     final selectedSku = _currentSku(product);
-
+    final isSku = product.skuSetting != 1 &&  selectedSku != null && selectedSku.id != null;
     return Stack(
       children: [
         Positioned(
@@ -158,7 +158,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildProductInfo(product, selectedSku, diningDate),
+                    _buildProductInfo(product, selectedSku, diningDate , isSku),
                     CommonSpacing.medium,
                     if (product.skuSetting == 1 && product.skus.isNotEmpty)
                       _buildSkuInfo(product),
@@ -226,9 +226,12 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
   ) {
     final cartState = ref.watch(cartStateProvider(widget.shopId));
     final isBusy = cartState.isUpdating || cartState.isOperating;
-    
+
     return GestureDetector(
-      onTap: isBusy ? null : () => _handleAddToCart(product, selectedSku, diningDate),
+      onTap:
+          isBusy
+              ? null
+              : () => _handleAddToCart(product, selectedSku, diningDate),
       child: Container(
         decoration: BoxDecoration(
           color: isBusy ? Colors.grey[400] : AppTheme.primaryOrange,
@@ -239,11 +242,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
           mainAxisSize: MainAxisSize.min,
           children: [
             if (isBusy) ...[
-              CommonIndicator(
-                strokeWidth: 2,
-                color: Colors.white,
-                size: 14.w,
-              ),
+              CommonIndicator(strokeWidth: 2, color: Colors.white, size: 14.w),
               CommonSpacing.width(8.w),
             ],
             Text(
@@ -343,6 +342,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
     SaleProductModel product,
     SaleProductSku? selectedSku,
     String diningDate, // 格式: YYYY-MM-DD
+    bool isSku,
   ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -361,7 +361,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
         Row(
           children: [
             Expanded(
-              child: Text(
+              child:  Text(
                 product.localizedName,
                 style: TextStyle(
                   fontSize: 14.sp,
@@ -370,19 +370,29 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
                 ),
               ),
             ),
-            if (product.skuSetting != 1 &&
-                selectedSku != null &&
-                selectedSku.id != null)
+            if (isSku)
+              
+              CommonSpacing.width(8.w),
               SkuCounter(
                 shopId: widget.shopId,
                 productId: product.id,
                 productName: product.localizedName,
-                productSpecId: selectedSku.id ?? '',
+                productSpecId: selectedSku!.id ?? '',
                 productSpecName: selectedSku.skuName ?? product.localizedName,
                 diningDate: diningDate,
               ),
+            
           ],
         ),
+        if (isSku ) 
+          Text(
+            "\$${selectedSku.price}",
+            style: TextStyle(
+              fontSize: 14.sp,
+              fontWeight: FontWeight.bold,
+              color: AppTheme.primaryOrange,
+            ),
+          ),
         CommonSpacing.medium,
         if (product.highlight != null)
           Text(
@@ -454,7 +464,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              sku.skuName ?? '默认规格',
+              "${sku.skuName} \$${sku.price}",
               style: TextStyle(
                 fontSize: 12.sp,
                 color: isSelected ? AppTheme.primaryOrange : Colors.black,
@@ -536,7 +546,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
           productSpecName: sku.skuName ?? product.localizedName,
         );
       }
-      
+
       // 统一处理成功提示和页面关闭
       toast.success('加入购物车成功');
       if (mounted) {
@@ -548,9 +558,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
       }
     } catch (e) {
       Logger.error('ProductDetailPage', '加入购物车失败: $e');
-      toast.warn('加入购物车失败，请稍后重试'); 
+      toast.warn('加入购物车失败，请稍后重试');
     }
   }
-
-
 }
