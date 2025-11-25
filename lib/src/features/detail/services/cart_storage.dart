@@ -83,20 +83,47 @@ class CartStorage {
     }
   }
 
+  /// 读取完整的购物车状态（包括待同步操作）
+  Future<CartState?> readFullState(String shopId) async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString(_key(shopId));
+    if (raw == null) {
+      return null;
+    }
+    try {
+      final decoded = jsonDecode(raw) as Map<String, dynamic>;
+      final version = decoded['version'] as int? ?? 0;
+      if (version != _version) {
+        await prefs.remove(_key(shopId));
+        Logger.warn('CartStorage', '版本不匹配，清理缓存: shopId=$shopId');
+        return null;
+      }
+      final state = CartState.fromStorageJson(shopId, decoded);
+      Logger.info(
+        'CartStorage',
+        '读取完整状态成功: shopId=$shopId, items=${state.items.length}, '
+        'pendingOps=${state.pendingOperations.length}',
+      );
+      return state;
+    } catch (e) {
+      Logger.error('CartStorage', '解析完整状态失败，移除本地缓存: $e');
+      await prefs.remove(_key(shopId));
+      return null;
+    }
+  }
+
   Future<void> write(CartState state) async {
     final prefs = await SharedPreferences.getInstance();
-    final entry = CartStorageEntry(
-      shopId: state.shopId,
-      diningDate: state.diningDate,
-      items: state.items,
-      totals: state.totals,
-      savedAt: DateTime.now(),
-    );
-    final payload = {'version': _version, ...entry.toMap()};
+    // 使用 CartState 的 toStorageJson 方法，包含待同步操作
+    final payload = {
+      'version': _version,
+      ...state.toStorageJson(savedAt: DateTime.now()),
+    };
     await prefs.setString(_key(state.shopId), jsonEncode(payload));
     Logger.info(
       'CartStorage',
-      '写入缓存: shopId=${state.shopId}, items=${state.items.length}',
+      '写入缓存: shopId=${state.shopId}, items=${state.items.length}, '
+      'pendingOps=${state.pendingOperations.length}',
     );
   }
 

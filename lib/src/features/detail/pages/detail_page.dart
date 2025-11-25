@@ -50,13 +50,64 @@ class _DetailPageState extends ConsumerState<DetailPage> {
           '使用缓存数据: shopId=${widget.id}, shopName=${existingShop.chineseShopName}',
         );
       }
+
       final cartNotifier = ref.read(cartProvider.notifier);
-      unawaited(cartNotifier.loadFromLocal(widget.id));
+      final diningDate = formatDiningDate(DateTime.now());
+
+      // 1. 先加载本地缓存（包括待同步操作队列）
       unawaited(
-        cartNotifier.syncFromRemote(
-          shopId: widget.id,
-          diningDate: formatDiningDate(DateTime.now()),
-        ),
+        cartNotifier.loadFromLocal(widget.id).then((_) {
+          final cartState = ref.read(cartStateProvider(widget.id));
+          Logger.info(
+            'DetailPage',
+            '本地购物车加载完成: shopId=${widget.id}, items=${cartState.items.length}, '
+            'pendingOps=${cartState.pendingOperations.length}',
+          );
+          // 2. 如果有待同步操作，先执行批量同步
+          if (cartState.hasPendingChanges) {
+            Logger.info(
+              'DetailPage',
+              '检测到待同步操作，先执行批量同步: shopId=${widget.id}, '
+              'pendingOps=${cartState.pendingOperations.length}',
+            );
+            unawaited(
+              cartNotifier.syncPendingOperations(widget.id).then((_) {
+                // 3. 批量同步完成后，再执行远程同步
+                Logger.info(
+                  'DetailPage',
+                  '批量同步完成，执行远程同步: shopId=${widget.id}',
+                );
+                unawaited(
+                  cartNotifier.syncFromRemote(
+                    shopId: widget.id,
+                    diningDate: diningDate,
+                  ),
+                );
+              }).catchError((e) {
+                Logger.error(
+                  'DetailPage',
+                  '批量同步失败: shopId=${widget.id}, error=$e',
+                );
+                // 即使批量同步失败，也尝试远程同步
+                unawaited(
+                  cartNotifier.syncFromRemote(
+                    shopId: widget.id,
+                    diningDate: diningDate,
+                    skipIfPending: true, // 跳过远程同步，避免覆盖本地数据
+                  ),
+                );
+              }),
+            );
+          } else {
+            // 如果没有待同步操作，直接执行远程同步
+            unawaited(
+              cartNotifier.syncFromRemote(
+                shopId: widget.id,
+                diningDate: diningDate,
+              ),
+            );
+          }
+        }),
       );
     });
   }
@@ -193,48 +244,67 @@ class _DetailPageState extends ConsumerState<DetailPage> {
     }
 
     // 展示店铺详情
-    return Scaffold(
-      body: Stack(
-        children: [
-          // 可滚动内容区域
-          SmartRefresher(
-            controller: _refreshController,
-            enablePullDown: true,
-            enablePullUp: false,
-            onRefresh: _onRefresh,
-            header: CustomHeader(
-              // height: 120.h + MediaQuery.of(context).padding.top, // 测试ios灵动岛
-              builder:
-                  (context, mode) => Container(
-                    color: Colors.black,
-                    padding: EdgeInsets.symmetric(vertical: 16.w),
-                    child: CommonIndicator(size: 16.w),
-                  ),
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (bool didPop, dynamic result) {
+        if (didPop) {
+          // 页面已返回，触发批量同步（后台执行，不阻塞） 12 797.68 10 708  13 975.44
+          final cartState = ref.read(cartStateProvider(widget.id));
+          if (cartState.hasPendingChanges) {
+            Logger.info(
+              'DetailPage',
+              '页面返回，触发批量同步: shopId=${widget.id}, '
+              'pendingOps=${cartState.pendingOperations.length}',
+            );
+            unawaited(
+              ref.read(cartProvider.notifier).syncPendingOperations(widget.id),
+            );
+          }
+        }
+      },
+      child: Scaffold(
+        body: Stack(
+          children: [
+            // 可滚动内容区域
+            SmartRefresher(
+              controller: _refreshController,
+              enablePullDown: true,
+              enablePullUp: false,
+              onRefresh: _onRefresh,
+              header: CustomHeader(
+                // height: 120.h + MediaQuery.of(context).padding.top, // 测试ios灵动岛
+                builder:
+                    (context, mode) => Container(
+                      color: Colors.black,
+                      padding: EdgeInsets.symmetric(vertical: 16.w),
+                      child: CommonIndicator(size: 16.w),
+                    ),
+              ),
+              child: Stack(
+                children: [
+                  CarouselBackground(shop: shop, logoHeight: logoHeight),
+                  ProductDetail(shop: shop, logoHeight: logoHeight),
+                ],
+              ),
             ),
-            child: Stack(
-              children: [
-                CarouselBackground(shop: shop, logoHeight: logoHeight),
-                ProductDetail(shop: shop, logoHeight: logoHeight),
-              ],
+
+            // 固定在底部的购物车（不随内容滚动）
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: ShopCart(shopId: widget.id),
             ),
-          ),
 
-          // 固定在底部的购物车（不随内容滚动）
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: ShopCart(shopId: widget.id),
-          ),
-
-          // 固定在顶部的AppBar
-          Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: _buildAppBar(shop, context),
-          ),
-        ],
+            // 固定在顶部的AppBar
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: _buildAppBar(shop, context),
+            ),
+          ],
+        ),
       ),
     );
   }

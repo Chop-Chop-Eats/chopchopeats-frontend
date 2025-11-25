@@ -190,6 +190,9 @@ class AddCartParams {
   ///店铺ID
   final String shopId;
 
+  ///商品价格（可选，用于本地计算总额）
+  final double? price;
+
   AddCartParams({
     required this.diningDate,
     required this.productId,
@@ -198,6 +201,7 @@ class AddCartParams {
     required this.productSpecName,
     required this.quantity,
     required this.shopId,
+    this.price,
   });
 
   Map<String, dynamic> toJson() => {
@@ -208,6 +212,7 @@ class AddCartParams {
     'productSpecName': productSpecName,
     'quantity': quantity,
     'shopId': shopId,
+    if (price != null) 'price': price,
   };
 }
 

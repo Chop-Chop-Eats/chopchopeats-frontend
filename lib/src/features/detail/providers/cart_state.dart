@@ -1,4 +1,5 @@
 import '../models/order_model.dart' show formatDiningDate, CartItemModel;
+import '../models/pending_cart_operation.dart';
 
 /// 标记购物车数据的来源
 enum CartDataOrigin { local, remote }
@@ -120,6 +121,8 @@ class CartState {
   final String? lastError;
   final CartProductRef? operatingProductRef;
   final Map<CartProductRef, CartItemModel> itemRefs;
+  final List<PendingCartOperation> pendingOperations;
+  final DateTime? lastSyncAttemptAt;
 
   CartState({
     required this.shopId,
@@ -135,6 +138,8 @@ class CartState {
     this.lastError,
     this.operatingProductRef,
     Map<CartProductRef, CartItemModel>? itemRefs,
+    this.pendingOperations = const [],
+    this.lastSyncAttemptAt,
   }) : itemRefs = itemRefs ?? _buildItemRefs(items);
 
   factory CartState.initial(String shopId) {
@@ -156,6 +161,8 @@ class CartState {
     Object? error = _cartStateSentinel,
     Object? lastError = _cartStateSentinel,
     Object? operatingProductRef = _cartStateSentinel,
+    List<PendingCartOperation>? pendingOperations,
+    DateTime? lastSyncAttemptAt,
   }) {
     final nextItems = items ?? this.items;
     final nextError =
@@ -182,6 +189,8 @@ class CartState {
       lastError: nextLastError,
       operatingProductRef: nextOperatingProductRef,
       itemRefs: _buildItemRefs(nextItems),
+      pendingOperations: pendingOperations ?? this.pendingOperations,
+      lastSyncAttemptAt: lastSyncAttemptAt ?? this.lastSyncAttemptAt,
     );
   }
 
@@ -189,6 +198,9 @@ class CartState {
 
   int get totalQuantity =>
       items.fold<int>(0, (sum, item) => sum + (item.quantity ?? 0));
+
+  /// 是否有待同步的变更
+  bool get hasPendingChanges => pendingOperations.isNotEmpty;
 
   CartItemModel? findItem(String productId, String productSpecId) {
     return itemRefs[CartProductRef(
@@ -209,6 +221,8 @@ class CartState {
       'items': items.map((item) => item.toJson()).toList(),
       'totals': totals.toJson(),
       'lastSyncedAt': (savedAt ?? lastSyncedAt)?.toIso8601String(),
+      'pendingOperations': pendingOperations.map((op) => op.toJson()).toList(),
+      'lastSyncAttemptAt': lastSyncAttemptAt?.toIso8601String(),
     };
   }
 
@@ -222,6 +236,14 @@ class CartState {
             .toList();
     final dateStr = json['diningDate'] as String? ?? '';
     final defaultDate = formatDiningDate(DateTime.now());
+    
+    // 恢复待同步操作队列
+    final rawPendingOps = json['pendingOperations'] as List<dynamic>? ?? [];
+    final pendingOps = rawPendingOps
+        .map((e) => PendingCartOperation.fromJson(
+            Map<String, dynamic>.from(e as Map)))
+        .toList();
+    
     return CartState(
       shopId: shopId,
       diningDate: dateStr.isNotEmpty ? dateStr : defaultDate,
@@ -229,6 +251,9 @@ class CartState {
       totals: CartTotals.fromJson(json['totals'] as Map<String, dynamic>?),
       lastSyncedAt: DateTime.tryParse(json['lastSyncedAt'] as String? ?? ''),
       dataOrigin: CartDataOrigin.local,
+      pendingOperations: pendingOps,
+      lastSyncAttemptAt: DateTime.tryParse(
+          json['lastSyncAttemptAt'] as String? ?? ''),
     );
   }
 

@@ -530,6 +530,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
           productName: product.localizedName,
           productSpecId: selectedSku.id ?? '',
           productSpecName: selectedSku.skuName ?? product.localizedName,
+          price: selectedSku.price, // 传递商品价格
         );
       } else {
         final sku = product.skus.isNotEmpty ? product.skus.first : null;
@@ -544,6 +545,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
           productName: product.localizedName,
           productSpecId: sku.id ?? '',
           productSpecName: sku.skuName ?? product.localizedName,
+          price: sku.price, // 传递商品价格
         );
       }
 
