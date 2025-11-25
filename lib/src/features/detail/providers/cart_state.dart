@@ -1,8 +1,17 @@
+import 'package:hive/hive.dart';
 import '../models/order_model.dart' show formatDiningDate, CartItemModel;
 import '../models/pending_cart_operation.dart';
 
+part 'cart_state.g.dart';
+
 /// 标记购物车数据的来源
-enum CartDataOrigin { local, remote }
+@HiveType(typeId: 3)
+enum CartDataOrigin {
+  @HiveField(0)
+  local,
+  @HiveField(1)
+  remote,
+}
 
 /// 商品 + 规格引用，便于在 UI 中快速定位购物车条目
 class CartProductRef {
@@ -30,13 +39,21 @@ class CartProductRef {
 }
 
 /// 购物车费用明细
+@HiveType(typeId: 4)
 class CartTotals {
+  @HiveField(0)
   final double subtotal;
+  @HiveField(1)
   final double serviceFee;
+  @HiveField(2)
   final double taxAmount;
+  @HiveField(3)
   final double deliveryFee;
+  @HiveField(4)
   final double couponOffset;
+  @HiveField(5)
   final double tipAmount;
+  @HiveField(6)
   final double payable;
 
   const CartTotals({
@@ -107,22 +124,51 @@ class CartTotals {
 /// 单个店铺的购物车状态
 const _cartStateSentinel = Object();
 
+@HiveType(typeId: 5)
 class CartState {
+  @HiveField(0)
   final String shopId;
+  @HiveField(1)
   final String diningDate; // 格式: YYYY-MM-DD
+  @HiveField(2)
   final List<CartItemModel> items;
+  @HiveField(3)
   final CartTotals totals;
+  @HiveField(4)
   final DateTime? lastSyncedAt;
+  @HiveField(5)
   final CartDataOrigin dataOrigin;
+  @HiveField(6)
   final bool isSyncing;
+  @HiveField(7)
   final bool isUpdating;
+  @HiveField(8)
   final bool isOperating;
+  @HiveField(9)
   final String? error;
+  @HiveField(10)
   final String? lastError;
-  final CartProductRef? operatingProductRef;
-  final Map<CartProductRef, CartItemModel> itemRefs;
+  @HiveField(11)
+  final String? operatingProductId; // 存储 productId，因为 Hive 不支持复杂对象作为字段
+  @HiveField(12)
+  final String? operatingProductSpecId; // 存储 productSpecId
+  @HiveField(13)
   final List<PendingCartOperation> pendingOperations;
+  @HiveField(14)
   final DateTime? lastSyncAttemptAt;
+
+  // itemRefs 和 operatingProductRef 作为计算属性，不存储在 Hive 中
+  Map<CartProductRef, CartItemModel> get itemRefs => _buildItemRefs(items);
+  
+  CartProductRef? get operatingProductRef {
+    if (operatingProductId != null && operatingProductSpecId != null) {
+      return CartProductRef(
+        productId: operatingProductId!,
+        productSpecId: operatingProductSpecId!,
+      );
+    }
+    return null;
+  }
 
   CartState({
     required this.shopId,
@@ -136,11 +182,11 @@ class CartState {
     this.isOperating = false,
     this.error,
     this.lastError,
-    this.operatingProductRef,
-    Map<CartProductRef, CartItemModel>? itemRefs,
+    CartProductRef? operatingProductRef,
     this.pendingOperations = const [],
     this.lastSyncAttemptAt,
-  }) : itemRefs = itemRefs ?? _buildItemRefs(items);
+  }) : operatingProductId = operatingProductRef?.productId,
+       operatingProductSpecId = operatingProductRef?.productSpecId;
 
   factory CartState.initial(String shopId) {
     return CartState(
@@ -188,7 +234,6 @@ class CartState {
       error: nextError,
       lastError: nextLastError,
       operatingProductRef: nextOperatingProductRef,
-      itemRefs: _buildItemRefs(nextItems),
       pendingOperations: pendingOperations ?? this.pendingOperations,
       lastSyncAttemptAt: lastSyncAttemptAt ?? this.lastSyncAttemptAt,
     );

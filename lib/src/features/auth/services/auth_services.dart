@@ -9,7 +9,7 @@ class AuthServices {
 
   // 检查是否登录
   Future<bool> isLoggedIn() async {
-    final token = await AppServices.cache.get(AppConstants.accessToken);
+    final token = await AppServices.cache.get<String>(AppConstants.accessToken);
     return token != null && token.isNotEmpty;
   }
 

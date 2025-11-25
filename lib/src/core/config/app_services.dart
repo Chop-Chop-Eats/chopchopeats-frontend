@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import '../network/api_client.dart';
 import '../../data/datasources/local/cache_service.dart';
 import 'app_setting.dart';
@@ -27,8 +27,13 @@ class AppServices {
 
   /// 初始化基础服务，缓存和app设置
   static Future<void> initCacheService() async {
-    final prefs = await SharedPreferences.getInstance();
-    cache = CacheService(prefs: prefs);
+    // 初始化 Hive
+    await Hive.initFlutter();
+    
+    // 初始化 CacheService（内部会初始化 Hive Boxes）
+    cache = CacheService();
+    await cache.init();
+    
     appSettings = await AppSettings.init();
   }
 

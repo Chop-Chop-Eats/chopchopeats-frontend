@@ -436,7 +436,11 @@ class CartNotifier extends StateNotifier<Map<String, CartState>> {
               (item) =>
                   item.productId == params.productId &&
                   item.productSpecId == params.productSpecId
-                      ? item.copyWith(quantity: newQuantity)
+                      ? item.copyWith(
+                          quantity: newQuantity,
+                          // 确保价格被保留，如果商品已有价格则保留，否则使用传入的价格
+                          price: item.price ?? params.price,
+                        )
                       : item,
             )
             .toList();

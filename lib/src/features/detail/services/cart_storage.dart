@@ -1,54 +1,7 @@
 import 'dart:convert';
-
-import 'package:shared_preferences/shared_preferences.dart';
-
+import '../../../core/config/app_services.dart';
 import '../../../core/utils/logger/logger.dart';
-import '../models/order_model.dart';
 import '../providers/cart_state.dart';
-
-class CartStorageEntry {
-  CartStorageEntry({
-    required this.shopId,
-    required this.diningDate,
-    required this.items,
-    required this.totals,
-    required this.savedAt,
-  });
-
-  final String shopId;
-  final String? diningDate; // 格式: YYYY-MM-DD
-  final List<CartItemModel> items;
-  final CartTotals totals;
-  final DateTime savedAt;
-
-  Map<String, dynamic> toMap() {
-    return {
-      'shopId': shopId,
-      'diningDate': diningDate,
-      'items': items.map((e) => e.toJson()).toList(),
-      'totals': totals.toJson(),
-      'savedAt': savedAt.toIso8601String(),
-    };
-  }
-
-  factory CartStorageEntry.fromMap(Map<String, dynamic> map) {
-    final rawItems =
-        (map['items'] as List<dynamic>? ?? [])
-            .map(
-              (e) =>
-                  CartItemModel.fromJson(Map<String, dynamic>.from(e as Map)),
-            )
-            .toList();
-    return CartStorageEntry(
-      shopId: map['shopId'] as String? ?? '',
-      diningDate: map['diningDate'] as String?,
-      items: rawItems,
-      totals: CartTotals.fromJson(map['totals'] as Map<String, dynamic>?),
-      savedAt:
-          DateTime.tryParse(map['savedAt'] as String? ?? '') ?? DateTime.now(),
-    );
-  }
-}
 
 class CartStorage {
   static const _prefix = 'cart_';
@@ -56,80 +9,85 @@ class CartStorage {
 
   String _key(String shopId) => '$_prefix$shopId';
 
-  Future<CartStorageEntry?> read(String shopId) async {
-    final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString(_key(shopId));
-    if (raw == null) {
-      return null;
-    }
-    try {
-      final decoded = jsonDecode(raw) as Map<String, dynamic>;
-      final version = decoded['version'] as int? ?? 0;
-      if (version != _version) {
-        await prefs.remove(_key(shopId));
-        Logger.warn('CartStorage', '版本不匹配，清理缓存: shopId=$shopId');
-        return null;
-      }
-      final entry = CartStorageEntry.fromMap(decoded);
-      Logger.info(
-        'CartStorage',
-        '读取缓存成功: shopId=$shopId, items=${entry.items.length}',
-      );
-      return entry;
-    } catch (e) {
-      Logger.error('CartStorage', '解析缓存失败，移除本地缓存: $e');
-      await prefs.remove(_key(shopId));
-      return null;
-    }
-  }
-
   /// 读取完整的购物车状态（包括待同步操作）
+  /// 从 Hive 读取（使用 TypeAdapter）
   Future<CartState?> readFullState(String shopId) async {
-    final prefs = await SharedPreferences.getInstance();
-    final raw = prefs.getString(_key(shopId));
-    if (raw == null) {
-      return null;
-    }
-    try {
-      final decoded = jsonDecode(raw) as Map<String, dynamic>;
-      final version = decoded['version'] as int? ?? 0;
-      if (version != _version) {
-        await prefs.remove(_key(shopId));
-        Logger.warn('CartStorage', '版本不匹配，清理缓存: shopId=$shopId');
-        return null;
-      }
-      final state = CartState.fromStorageJson(shopId, decoded);
+    final key = _key(shopId);
+    
+    // 从 Hive 读取（使用 TypeAdapter）
+    final state = await AppServices.cache.getObject<CartState>(key);
+    if (state != null) {
       Logger.info(
         'CartStorage',
-        '读取完整状态成功: shopId=$shopId, items=${state.items.length}, '
+        '从 Hive 读取完整状态成功: shopId=$shopId, items=${state.items.length}, '
         'pendingOps=${state.pendingOperations.length}',
       );
       return state;
+    }
+    
+    // 如果 Hive 中没有，尝试从 JSON 字符串读取（兼容旧数据格式）
+    try {
+      final jsonString = await AppServices.cache.get<String>(key);
+      
+      if (jsonString == null) {
+        return null;
+      }
+      
+      // 解析 JSON
+      final jsonData = jsonDecode(jsonString) as Map<String, dynamic>;
+      final version = jsonData['version'] as int? ?? 0;
+      if (version != _version) {
+        await AppServices.cache.remove(key);
+        Logger.warn('CartStorage', '版本不匹配，清理缓存: shopId=$shopId');
+        return null;
+      }
+      
+      final state = CartState.fromStorageJson(shopId, jsonData);
+      Logger.info(
+        'CartStorage',
+        '从 JSON 读取完整状态成功: shopId=$shopId, items=${state.items.length}, '
+        'pendingOps=${state.pendingOperations.length}',
+      );
+      
+      // 迁移到 Hive TypeAdapter
+      await write(state);
+      
+      return state;
     } catch (e) {
       Logger.error('CartStorage', '解析完整状态失败，移除本地缓存: $e');
-      await prefs.remove(_key(shopId));
+      await AppServices.cache.remove(key);
       return null;
     }
   }
 
+  /// 写入购物车状态（使用 Hive TypeAdapter）
   Future<void> write(CartState state) async {
-    final prefs = await SharedPreferences.getInstance();
-    // 使用 CartState 的 toStorageJson 方法，包含待同步操作
-    final payload = {
-      'version': _version,
-      ...state.toStorageJson(savedAt: DateTime.now()),
-    };
-    await prefs.setString(_key(state.shopId), jsonEncode(payload));
-    Logger.info(
-      'CartStorage',
-      '写入缓存: shopId=${state.shopId}, items=${state.items.length}, '
-      'pendingOps=${state.pendingOperations.length}',
-    );
+    final key = _key(state.shopId);
+    
+    // 使用 Hive TypeAdapter 存储
+    final success = await AppServices.cache.setObject<CartState>(key, state);
+    
+    if (success) {
+      Logger.info(
+        'CartStorage',
+        '写入缓存（Hive）: shopId=${state.shopId}, items=${state.items.length}, '
+        'pendingOps=${state.pendingOperations.length}',
+      );
+    } else {
+      Logger.warn('CartStorage', '写入 Hive 失败，尝试使用 JSON 存储');
+      // 如果 Hive 写入失败，回退到 JSON 存储
+      final payload = {
+        'version': _version,
+        ...state.toStorageJson(savedAt: DateTime.now()),
+      };
+      await AppServices.cache.set(key, payload);
+    }
   }
 
+  /// 移除购物车缓存
   Future<void> remove(String shopId) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_key(shopId));
+    final key = _key(shopId);
+    await AppServices.cache.remove(key);
     Logger.info('CartStorage', '移除缓存: shopId=$shopId');
   }
 }

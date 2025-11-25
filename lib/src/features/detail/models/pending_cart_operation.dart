@@ -1,47 +1,68 @@
+import 'dart:convert';
+import 'package:hive/hive.dart';
+
+part 'pending_cart_operation.g.dart';
+
 /// 购物车操作类型
+@HiveType(typeId: 0)
 enum CartOperationType {
   /// 添加商品到购物车
+  @HiveField(0)
   add,
 
   /// 更新购物车商品数量
+  @HiveField(1)
   update,
 
   /// 从购物车移除商品
+  @HiveField(2)
   remove,
 }
 
 /// 待同步的购物车操作
+@HiveType(typeId: 1)
 class PendingCartOperation {
   /// 操作类型
+  @HiveField(0)
   final CartOperationType type;
 
   /// 操作唯一标识
+  @HiveField(1)
   final String operationId;
 
-  /// 操作参数
-  final Map<String, dynamic> params;
+  /// 操作参数（存储为 JSON 字符串，因为 Hive 不支持 Map<String, dynamic>）
+  @HiveField(2)
+  final String paramsJson;
+  
+  /// 操作参数（从 JSON 解析）
+  Map<String, dynamic> get params => jsonDecode(paramsJson) as Map<String, dynamic>;
 
   /// 创建时间
+  @HiveField(3)
   final DateTime createdAt;
 
   /// 重试次数
+  @HiveField(4)
   final int retryCount;
 
   /// 商品ID（用于操作合并）
+  @HiveField(5)
   final String? productId;
 
   /// 商品规格ID（用于操作合并）
+  @HiveField(6)
   final String? productSpecId;
 
   PendingCartOperation({
     required this.type,
     required this.operationId,
-    required this.params,
+    Map<String, dynamic>? params,
+    String? paramsJson,
     required this.createdAt,
     this.retryCount = 0,
     this.productId,
     this.productSpecId,
-  });
+  }) : paramsJson = paramsJson ?? (params != null ? jsonEncode(params) : '{}');
 
   /// 创建添加操作
   factory PendingCartOperation.add({
@@ -96,7 +117,7 @@ class PendingCartOperation {
     return PendingCartOperation(
       type: type,
       operationId: operationId,
-      params: params,
+      paramsJson: paramsJson,
       createdAt: createdAt,
       retryCount: retryCount + 1,
       productId: productId,
@@ -127,6 +148,7 @@ class PendingCartOperation {
       'type': type.name,
       'operationId': operationId,
       'params': params,
+      'paramsJson': paramsJson,
       'createdAt': createdAt.toIso8601String(),
       'retryCount': retryCount,
       'productId': productId,
@@ -152,10 +174,14 @@ class PendingCartOperation {
         throw Exception('Unknown operation type: $typeStr');
     }
 
+    final paramsData = json['params'] as Map<String, dynamic>?;
+    final paramsJsonStr = json['paramsJson'] as String?;
+    
     return PendingCartOperation(
       type: type,
       operationId: json['operationId'] as String,
-      params: Map<String, dynamic>.from(json['params'] as Map),
+      params: paramsData,
+      paramsJson: paramsJsonStr,
       createdAt: DateTime.parse(json['createdAt'] as String),
       retryCount: json['retryCount'] as int? ?? 0,
       productId: json['productId'] as String?,
