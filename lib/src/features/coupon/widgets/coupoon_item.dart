@@ -121,77 +121,169 @@ class _CoupoonItemState extends ConsumerState<CoupoonItem> {
     final dateRange = _formatDateRange(widget.coupon.validFrom, widget.coupon.validUntil);
 
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 12.h),
       margin: EdgeInsets.only(bottom: 10.h),
       decoration: BoxDecoration(
-        color: Color(0xFFFFF6F1), // #FFF6F1
         borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(
-          color: AppTheme.primaryOrange.withValues(alpha: 0.5),
-          width: 0.5.w,
-        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 12,
             offset: const Offset(0, 4),
           ),
         ],
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Text(
-                      '\$$discount',
-                      style: TextStyle(
-                        color: AppTheme.primaryOrange,
-                        fontSize: 20.sp,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    CommonSpacing.width(12.w),
-                    Expanded(
-                      child: Text(
-                        widget.coupon.couponTitle ?? '--',
-                        style: TextStyle(
-                          fontSize: 14.sp,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.black,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                if (widget.coupon.remark?.isNotEmpty == true) ...[
-                  CommonSpacing.small,
-                  Text(
-                    widget.coupon.remark!,
-                    style: TextStyle(fontSize: 12.sp, color: Colors.grey[600]),
-                  ),
-                ],
-                CommonSpacing.small,
-                Text(
-                  '${l10n.minSpend} \$$minSpend',
-                  style: TextStyle(fontSize: 12.sp, color: Colors.grey[700]),
-                ),
-                if (dateRange.isNotEmpty) ...[
-                  CommonSpacing.small,
-                  Text(
-                    dateRange,
-                    style: TextStyle(fontSize: 12.sp, color: Colors.grey[500]),
-                  ),
-                ],
-              ],
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12.r),
+        child: Row(
+          children: [
+            // 左侧：金额区域（带锯齿效果）
+            _buildAmountSection(discount, l10n),
+            // 右侧：详细信息区域
+            Expanded(
+              child: _buildDetailSection(
+                l10n,
+                discount,
+                minSpend,
+                dateRange,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// 构建金额区域（左侧，带锯齿效果）
+  Widget _buildAmountSection(String discount, AppLocalizations l10n) {
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AppTheme.primaryOrange,
+            AppTheme.primaryOrange.withValues(alpha: 0.9),
+          ],
+        ),
+      ),
+      child: ClipPath(
+        clipper: _CouponClipper(),
+        child: Container(
+          padding: EdgeInsets.symmetric(vertical: 24.h, horizontal: 24.w),
+          child: Center(
+            child: Text(
+              '\$$discount',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 24.sp,
+                fontWeight: FontWeight.w800,
+                height: 1.2,
+              ),
             ),
           ),
-          // 显示按钮：可领取模式显示"领取"按钮，已领取模式根据status显示不同按钮
-          _buildActionButton(l10n),
+        ),
+      ),
+    );
+  }
+
+  /// 构建详细信息区域（右侧）
+  Widget _buildDetailSection(
+    AppLocalizations l10n,
+    String discount,
+    String minSpend,
+    String dateRange,
+  ) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+      decoration: BoxDecoration(
+        color: Color(0xFFFFF6F1), // #FFF6F1
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 第一行：标题和按钮
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      widget.coupon.couponTitle ?? '--',
+                      style: TextStyle(
+                        fontSize: 16.sp,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.black87,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (widget.coupon.remark?.isNotEmpty == true) ...[
+                      CommonSpacing.small,
+                      Text(
+                        widget.coupon.remark!,
+                        style: TextStyle(
+                          fontSize: 12.sp,
+                          color: Colors.grey[600],
+                          height: 1.4,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              CommonSpacing.width(12.w),
+              // 操作按钮
+              _buildActionButton(l10n),
+            ],
+          ),
+          // 第二行：最低消费
+          Row(
+            children: [
+              Icon(
+                Icons.shopping_bag_outlined,
+                size: 14.sp,
+                color: Colors.grey[600],
+              ),
+              CommonSpacing.width(6.w),
+              Text(
+                '${l10n.minSpend} \$$minSpend',
+                style: TextStyle(
+                  fontSize: 12.sp,
+                  color: Colors.grey[700],
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+          // 第三行：有效日期（独占一行）
+          if (dateRange.isNotEmpty) ...[
+            CommonSpacing.small,
+            Row(
+              children: [
+                Icon(
+                  Icons.calendar_today_outlined,
+                  size: 14.sp,
+                  color: Colors.grey[600],
+                ),
+                CommonSpacing.width(6.w),
+                Expanded(
+                  child: Text(
+                    dateRange,
+                    style: TextStyle(
+                      fontSize: 12.sp,
+                      color: Colors.grey[600],
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );
@@ -316,4 +408,53 @@ class _CoupoonItemState extends ConsumerState<CoupoonItem> {
       },
     );
   }
+}
+
+/// 优惠券锯齿裁剪器（在右侧边缘创建锯齿效果）
+class _CouponClipper extends CustomClipper<Path> {
+  @override
+  Path getClip(Size size) {
+    final path = Path();
+    final notchRadius = 6.0; // 锯齿半径
+    final notchCount = 8; // 锯齿数量（增加数量使效果更明显）
+    final notchSpacing = size.height / notchCount; // 每个锯齿的间距
+
+    // 从左上角开始
+    path.moveTo(0, 0);
+    
+    // 绘制顶部边缘
+    path.lineTo(size.width, 0);
+    
+    // 绘制右侧锯齿边缘
+    for (int i = 0; i < notchCount; i++) {
+      final y = notchSpacing * (i + 0.5);
+      final centerY = y;
+      
+      // 绘制半圆（向外凸出）
+      path.arcToPoint(
+        Offset(size.width, centerY + notchRadius),
+        radius: Radius.circular(notchRadius),
+        clockwise: false,
+        largeArc: false,
+      );
+      
+      // 如果还有下一个锯齿，继续绘制
+      if (i < notchCount - 1) {
+        path.lineTo(size.width, centerY + notchRadius + notchSpacing * 0.5 - notchRadius);
+      }
+    }
+    
+    // 绘制底部边缘
+    path.lineTo(size.width, size.height);
+    
+    // 绘制左侧和底部
+    path.lineTo(0, size.height);
+    path.lineTo(0, 0);
+    
+    path.close();
+    return path;
+  }
+
+  @override
+  bool shouldReclip(CustomClipper<Path> oldClipper) => false;
 }

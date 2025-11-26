@@ -160,6 +160,7 @@ class _CouponListState extends ConsumerState<CouponList> {
   }) async {
     await Pop.sheet<void>(
       title: l10n.coupons,
+      titleStyle: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
       showCloseButton: true,
       maxHeight: SheetDimension.fraction(0.5),
       childBuilder: (dismiss) => isLoading
