@@ -173,8 +173,7 @@ class _AddAddressPageState extends ConsumerState<AddAddressPage> {
         Routes.mapPicker,
         arguments: MapPickerArguments(
           initialPosition: initialPosition,
-          initialAddress: currentAddress.isNotEmpty ? currentAddress : settings.locationLabel,
-          initialLabel: currentAddress.isNotEmpty ? currentAddress : settings.locationLabel,
+          initialAddress: currentAddress.isNotEmpty ? currentAddress : (settings.isLocationInitialized ? settings.locationLabel : null),
         ),
       );
 

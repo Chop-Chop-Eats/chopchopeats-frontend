@@ -24,6 +24,9 @@ class AppSettings extends ChangeNotifier {
   /// 当前选定位置的展示文案
   String _locationLabel = 'Northwalk Rd, Toronto';
 
+  /// 位置是否已初始化（用户是否选择过位置）
+  bool _isLocationInitialized = false;
+
   /// 页面大小
   final int _pageSize = 10;
 
@@ -63,6 +66,8 @@ class AppSettings extends ChangeNotifier {
   int get pageSize => _pageSize;
   /// 访问位置标题
   String get locationLabel => _locationLabel;
+  /// 访问位置是否已初始化
+  bool get isLocationInitialized => _isLocationInitialized;
 
   /// 初始化 AppSettings
   /// 从缓存中加载用户偏好，如果不存在则使用默认值
@@ -82,6 +87,7 @@ class AppSettings extends ChangeNotifier {
     final cachedLongitude = await AppServices.cache.get<double>(AppConstants.longitude);
     final cachedLatitude = await AppServices.cache.get<double>(AppConstants.latitude);
     final cachedLabel = await AppServices.cache.get<String>(AppConstants.locationLabel);
+    final cachedIsInitialized = await AppServices.cache.get<bool>(AppConstants.isLocationInitialized);
 
     if (cachedLongitude != null) {
       settings._longitude = cachedLongitude;
@@ -91,6 +97,9 @@ class AppSettings extends ChangeNotifier {
     }
     if (cachedLabel != null && cachedLabel.isNotEmpty) {
       settings._locationLabel = cachedLabel;
+    }
+    if (cachedIsInitialized != null) {
+      settings._isLocationInitialized = cachedIsInitialized;
     }
 
     // 初始化 LocaleService（使用系统默认语言或设置的语言）
@@ -139,16 +148,23 @@ class AppSettings extends ChangeNotifier {
   }) async {
     final labelValue = label?.trim();
     var hasLabelUpdate = false;
+    var shouldMarkInitialized = false;
+    
     if (labelValue != null && labelValue.isNotEmpty && labelValue != _locationLabel) {
       _locationLabel = labelValue;
       hasLabelUpdate = true;
+      // 当传入有效的 label 时，标记为已初始化
+      if (!_isLocationInitialized) {
+        _isLocationInitialized = true;
+        shouldMarkInitialized = true;
+      }
     }
 
     final hasPositionUpdate = _latitude != latitude || _longitude != longitude;
     _latitude = latitude;
     _longitude = longitude;
 
-    if (hasPositionUpdate || hasLabelUpdate) {
+    if (hasPositionUpdate || hasLabelUpdate || shouldMarkInitialized) {
       notifyListeners();
     }
 
@@ -156,6 +172,9 @@ class AppSettings extends ChangeNotifier {
     await AppServices.cache.set<double>(AppConstants.longitude, _longitude);
     if (hasLabelUpdate) {
       await AppServices.cache.set<String>(AppConstants.locationLabel, _locationLabel);
+    }
+    if (shouldMarkInitialized) {
+      await AppServices.cache.set<bool>(AppConstants.isLocationInitialized, _isLocationInitialized);
     }
   }
 

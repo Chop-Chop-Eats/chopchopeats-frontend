@@ -29,7 +29,7 @@ class LocationBar extends StatelessWidget {
           Icon(Icons.location_on, color: Colors.black, size: 20.sp),
           CommonSpacing.width(8),
           Expanded(
-            child: secondaryText != null
+            child: secondaryText != null && secondaryText.isNotEmpty
                 ? Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
@@ -50,7 +50,7 @@ class LocationBar extends StatelessWidget {
                   )
                 : Text(
                     location,
-                    style: TextStyle(fontSize: 16.sp),
+                    style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w500),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),

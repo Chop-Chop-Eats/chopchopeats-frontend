@@ -162,6 +162,8 @@ class AppLocalizationsZh implements AppLocalizations {
   String get noBannerData => '暂无Banner数据';
   @override
   String get noRestaurantData => '暂无甄选私厨数据';
+  @override
+  String get selectCurrentLocationHint => '选择当前位置';
 
   // ============== 地图选址 ==============
   @override

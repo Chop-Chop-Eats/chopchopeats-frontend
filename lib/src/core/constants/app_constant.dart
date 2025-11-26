@@ -27,5 +27,6 @@ class AppConstants {
   static const String latitude = "APP_LATITUDE";
   // 全局位置名称
   static const String locationLabel = "APP_LOCATION_LABEL";
-
+  // 位置是否已初始化（用户是否选择过位置）
+  static const String isLocationInitialized = "APP_LOCATION_INITIALIZED";
 }

@@ -29,35 +29,17 @@ class MapNearbySheet extends ConsumerWidget {
     final notifier = ref.read(mapPickerProvider.notifier);
     final l10n = AppLocalizations.of(context);
 
-    // 构建显示列表：lastKnownPlace作为第一项，然后过滤掉重复的item
-    final List<PlaceSuggestion> displayPlaces = [];
-    if (state.lastKnownPlace != null) {
-      displayPlaces.add(state.lastKnownPlace!);
-    }
-    // 注意：如果内容相同但placeId不同，我们允许显示，但会在UI中获取更多信息来区分
-    final lastKnownPlace = state.lastKnownPlace;
-    final lastKnownKey =
-        lastKnownPlace != null ? notifier.suggestionKey(lastKnownPlace) : null;
-    final selectedKey = state.selectedPlaceId ?? lastKnownKey;
-    displayPlaces.addAll(
-      state.nearbyPlaces.where(
-        (item) {
-          final itemKey = notifier.suggestionKey(item);
-          if (notifier.isCurrentPositionSuggestion(item)) return false;
-          if (itemKey == lastKnownKey || itemKey == selectedKey) return false;
-          return true;
-        },
-      ),
-    );
+    // 简化显示列表：直接使用 nearbyPlaces，过滤掉当前定位项
+    final displayPlaces = state.nearbyPlaces.where(
+      (item) => !notifier.isCurrentPositionSuggestion(item),
+    ).toList();
 
     final isLoading = state.isNearbyLoading && displayPlaces.isEmpty;
     final showOverlayLoading = state.isNearbyLoading && displayPlaces.isNotEmpty;
     final isUpdating = state.isNearbyUpdating && displayPlaces.isNotEmpty;
     final nearbyError = state.nearbyError;
     final hasRetryableError = nearbyError != null && state.nearbyRetryCount >= 3;
-    final selectedId = selectedKey;
 
-    Logger.info('MapNearbySheet', 'displayPlaces: ${displayPlaces.map((item) => '${item.placeId} ${item.primaryText} ${item.secondaryText} ${item.street}').toList()}');
     if (isLoading) {
       return Padding(
         padding: EdgeInsets.symmetric(vertical: 24.h),
@@ -96,11 +78,8 @@ class MapNearbySheet extends ConsumerWidget {
           itemCount: displayPlaces.length,
           itemBuilder: (_, index) {
             final item = displayPlaces[index];
-            final itemKey = notifier.suggestionKey(item);
-            final isSelected = itemKey == selectedId;
             return _NearbyItem(
               suggestion: item,
-              isSelected: isSelected,
               onTap: () async {
                 await onSelectPlace(item);
                 dismiss();
@@ -138,21 +117,16 @@ class MapNearbySheet extends ConsumerWidget {
 class _NearbyItem extends StatelessWidget {
   const _NearbyItem({
     required this.suggestion,
-    required this.isSelected,
     required this.onTap,
   });
 
   final PlaceSuggestion suggestion;
-  final bool isSelected;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final streetToShow =
         suggestion.street ?? suggestion.address ?? suggestion.secondaryText;
-    final borderColor = isSelected
-        ? AppTheme.primaryOrange
-        : Colors.grey.withValues(alpha: 0.2);
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
@@ -161,19 +135,12 @@ class _NearbyItem extends StatelessWidget {
         margin: EdgeInsets.symmetric(vertical: 6.h),
         padding: EdgeInsets.symmetric(vertical: 10.h, horizontal: 12.w),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(14.r),
-          border: Border.all(
-            color: borderColor,
-            width: isSelected ? 1.2 : 1,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
+          border: Border(
+            bottom: BorderSide(
+              color: Colors.grey.withValues(alpha: 0.2),
+              width: 1,
             ),
-          ],
+          ),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -220,12 +187,6 @@ class _NearbyItem extends StatelessWidget {
                     ],
                   ),
                 ),
-                if (isSelected)
-                  Icon(
-                    Icons.check_circle,
-                    size: 20.sp,
-                    color: AppTheme.primaryOrange,
-                  ),
               ],
             ),
             if (suggestion.secondaryText.isNotEmpty &&

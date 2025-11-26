@@ -172,7 +172,9 @@ class AppLocalizationsEn implements AppLocalizations {
   String get noBannerData => 'No banners available';
   @override
   String get noRestaurantData => 'No restaurants available';
-  
+  @override
+  String get selectCurrentLocationHint => 'Select current location';
+
   // ============== 地图选址 ==============
   @override
   String get mapSelectLocationTitle => 'Choose Location';

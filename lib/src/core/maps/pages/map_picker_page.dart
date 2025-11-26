@@ -23,14 +23,11 @@ class MapPickerArguments {
   MapPickerArguments({
     required this.initialPosition,
     this.initialAddress,
-    this.initialLabel,
-
     this.enableReverseGeocode = true,
   });
 
   final LatLng initialPosition;
   final String? initialAddress;
-  final String? initialLabel;
   final bool enableReverseGeocode;
 }
 
@@ -80,12 +77,11 @@ class _MapPickerPageState extends ConsumerState<MapPickerPage> {
     
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final notifier = ref.read(mapPickerProvider.notifier);
-      Logger.info('MapPickerPage', 'initialAddress: ${widget.arguments.initialAddress}, initialLabel: ${widget.arguments.initialLabel}');
+      Logger.info('MapPickerPage', 'initialAddress: ${widget.arguments.initialAddress}');
       notifier.reset();
       notifier.initialize(
         position: widget.arguments.initialPosition,
         address: widget.arguments.initialAddress,
-      label: widget.arguments.initialLabel ?? widget.arguments.initialAddress,
       );
       _showSheetOnce();
     });
@@ -95,6 +91,10 @@ class _MapPickerPageState extends ConsumerState<MapPickerPage> {
   void dispose() {
     _searchFocusNode.removeListener(_onFocusChange); // 移除监听器
     _debounce?.cancel();
+    // 页面销毁时，确保关闭所有打开的sheet
+    if (PopupManager.hasNonToastPopup) {
+      PopupManager.hideLastNonToast();
+    }
     _mapController?.dispose();
     _searchController.dispose();
     _searchFocusNode.dispose();
@@ -121,7 +121,8 @@ class _MapPickerPageState extends ConsumerState<MapPickerPage> {
       Logger.info('MapPickerPage', '键盘隐藏，显示 sheet');
       // 延迟一下，确保键盘完全收起后再显示 sheet
       Future.delayed(const Duration(milliseconds: 100), () {
-        if (mounted && !_searchFocusNode.hasFocus) {
+        // 严格检查：确保页面仍然挂载且没有导航返回，且焦点仍然不在搜索框
+        if (mounted && !_isNavigatingBack && !_searchFocusNode.hasFocus) {
           _showSheetOnce();
         }
       });
@@ -224,6 +225,8 @@ class _MapPickerPageState extends ConsumerState<MapPickerPage> {
         );
       } else {
         _searchController.text = targetLabel.isNotEmpty ? targetLabel : targetAddress;
+        // 点击搜索结果后，清除搜索建议列表
+        _clearSuggestions();
       }
       return;
     }
@@ -253,6 +256,8 @@ class _MapPickerPageState extends ConsumerState<MapPickerPage> {
       );
       _searchController.text = targetLabel.isNotEmpty ? targetLabel : targetAddress;
       _searchFocusNode.unfocus();
+      // 点击搜索结果后，清除搜索建议列表
+      _clearSuggestions();
       if (closePicker) {
         if (!mounted) return;
         _isNavigatingBack = true;
@@ -295,6 +300,10 @@ class _MapPickerPageState extends ConsumerState<MapPickerPage> {
 
 
   Future<void> _showSheetOnce() async {
+    // 严格检查：确保页面仍然挂载且没有导航返回
+    if (!mounted || _isNavigatingBack) {
+      return;
+    }
     if (PopupManager.hasNonToastPopup) {
       return;
     }
@@ -362,13 +371,21 @@ class _MapPickerPageState extends ConsumerState<MapPickerPage> {
     final l10n = AppLocalizations.of(context)!;
     final searchHint = l10n.mapSearchHint;
     final myLocationTooltip = l10n.mapUseMyLocation;
-    final currentPosition = mapState.currentPosition ?? widget.arguments.initialPosition;
+    // 始终使用传入的初始位置，确保地图显示的是应用的当前位置
+    final currentPosition = widget.arguments.initialPosition;
     
     // 计算地图padding：底部44%（让地图显示为56%高度，更美观）
     final screenHeight = MediaQuery.of(context).size.height;
     final mapBottomPadding = screenHeight * 0.44;
 
-    return PopScopeWidget(
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (bool didPop, dynamic result) {
+        // 页面返回时，确保关闭所有打开的sheet
+        if (didPop && PopupManager.hasNonToastPopup) {
+          PopupManager.hideLastNonToast();
+        }
+      },
       child: Scaffold(
         appBar: null,
         body: Stack(
@@ -391,7 +408,7 @@ class _MapPickerPageState extends ConsumerState<MapPickerPage> {
             markers: {
               Marker(
                 markerId: const MarkerId('selected_location'),
-                position: currentPosition,
+                position: mapState.currentPosition ?? currentPosition,
                 draggable: false,
               ),
             },
@@ -408,11 +425,12 @@ class _MapPickerPageState extends ConsumerState<MapPickerPage> {
               ],
             ),
           ),
-          Positioned(
-            right: 16.w,
-            bottom: MediaQuery.of(context).size.height * 0.48  + 24.h,
-            child: _buildMyLocationButton(myLocationTooltip),
-          ),
+          if (!_isKeyboardVisible)
+            Positioned(
+              right: 16.w,
+              bottom: MediaQuery.of(context).size.height * 0.48  + 24.h,
+              child: _buildMyLocationButton(myLocationTooltip),
+            ),
         ],
       ),
       ),
@@ -584,6 +602,4 @@ class _MapPickerPageState extends ConsumerState<MapPickerPage> {
       ),
     );
   }
-
 }
-

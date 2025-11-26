@@ -183,48 +183,50 @@ class MapPickerNotifier extends StateNotifier<MapPickerState> {
   void initialize({
     required LatLng position,
     String? address,
-    String? label,
   }) {
     final initialKey = _coordsKey(position);
     state = state.copyWith(
       currentPosition: position,
       selectedPlaceId: initialKey,
-      currentLabel: label ?? address,
+      currentLabel: address,
     );
     
-    // 如果label是"primaryText · secondaryText"格式，解析它来创建lastKnownPlace
-    String? primaryText;
-    String? secondaryText;
-    if (label != null && label.contains(' · ')) {
-      final parts = label.split(' · ');
-      primaryText = parts.isNotEmpty ? parts[0].trim() : null;
-      secondaryText = parts.length > 1 ? parts[1].trim() : null;
-    } else if (address != null) {
-      // 如果没有label，使用address作为primaryText
-      primaryText = address;
-    }
-    
-    // 创建lastKnownPlace
-    if (primaryText != null) {
-      final placeForDisplay = PlaceSuggestion(
-        placeId: _currentPositionId,
-        primaryText: primaryText,
-        secondaryText: secondaryText ?? '${position.latitude.toStringAsFixed(6)}, ${position.longitude.toStringAsFixed(6)}',
-        position: position,
-        address: address ?? label,
-      );
-      final placeKey = _buildSuggestionKey(placeForDisplay, fallbackPosition: position);
-      state = state.copyWith(
-        lastKnownPlace: _cacheSuggestion(placeForDisplay),
-        currentAddress: address,
-        selectedPlaceId: placeKey,
-      );
+    // 如果有地址，创建 lastKnownPlace（用于判断是否需要 reverseGeocode）
+    if (address != null && address.isNotEmpty) {
+      // 如果地址是"primaryText · secondaryText"格式，解析它
+      String? primaryText;
+      String? secondaryText;
+      if (address.contains(' · ')) {
+        final parts = address.split(' · ');
+        primaryText = parts.isNotEmpty ? parts[0].trim() : null;
+        secondaryText = parts.length > 1 ? parts[1].trim() : null;
+      } else {
+        primaryText = address;
+      }
+      
+      if (primaryText != null) {
+        final placeForDisplay = PlaceSuggestion(
+          placeId: _currentPositionId,
+          primaryText: primaryText,
+          secondaryText: secondaryText ?? '${position.latitude.toStringAsFixed(6)}, ${position.longitude.toStringAsFixed(6)}',
+          position: position,
+          address: address,
+        );
+        final placeKey = _buildSuggestionKey(placeForDisplay, fallbackPosition: position);
+        state = state.copyWith(
+          lastKnownPlace: _cacheSuggestion(placeForDisplay),
+          currentAddress: address,
+          selectedPlaceId: placeKey,
+        );
+      } else {
+        setAddress(address, markAsCurrent: true);
+      }
     } else {
-      setAddress(address, label: label, markAsCurrent: true);
+      setAddress(null, markAsCurrent: true);
     }
     
     loadNearbyPlaces(position);
-    if (address == null && primaryText == null) {
+    if (address == null || address.isEmpty) {
       resolveAddress(position);
     }
   }

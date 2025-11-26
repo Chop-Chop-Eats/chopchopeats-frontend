@@ -105,6 +105,7 @@ abstract class AppLocalizations {
   String get noCategoryData;
   String get noBannerData;
   String get noRestaurantData;
+  String get selectCurrentLocationHint;
   
   // ============== 地图选址 ==============
   String get mapSelectLocationTitle;

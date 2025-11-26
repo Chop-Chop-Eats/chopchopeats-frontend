@@ -85,11 +85,15 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   Widget _buildSliverAppBar() {
+    final locationText = _appSettings.isLocationInitialized
+        ? _appSettings.locationLabel
+        : AppLocalizations.of(context)!.selectCurrentLocationHint;
+    
     return CustomSliverAppBar(
       backgroundColor: const Color.fromARGB(255, 246, 247, 253),
       expandedHeight: 130.h,
       locationWidget: LocationBar(
-        location: _appSettings.locationLabel,
+        location: locationText,
         onLocationTap: _handleChangeLocation,
       ),
       contentPadding: EdgeInsets.only(left: 16.w, right: 16.w, top: 32.h),
@@ -323,7 +327,6 @@ class _HomePageState extends ConsumerState<HomePage> {
       arguments: MapPickerArguments(
         initialPosition: LatLng(settings.latitude, settings.longitude),
         initialAddress: settings.locationLabel,
-        initialLabel: settings.locationLabel,
       ),
     );
 
