@@ -6,6 +6,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:unified_popups/unified_popups.dart';
 
 import '../../../core/routing/routes.dart';
+import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/logger/logger.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../../../core/widgets/common_spacing.dart';
@@ -140,19 +141,26 @@ class _MinePageState extends ConsumerState<MinePage> {
         title: l10n.logout, 
         icon: 'assets/images/setting_8.png', 
         onTap: () async {
-          Pop.loading();
-          try {
-            await ref.read(authNotifierProvider.notifier).logout();
-            
-            if (!mounted) return;
-    
-            Logger.info("MinePage", "登出成功，跳转到登录页面");
-            Navigate.replace(context, Routes.login);
-          } catch (e) {
-            Logger.error("MinePage", "登出失败", error: e);
-            if (!mounted) return;
-          }finally {
-            Pop.hideLoading();
+          final res = await Pop.confirm(
+            content: l10n.logoutConfirmMessage,
+            confirmText: l10n.btnConfirm,
+            confirmBgColor: AppTheme.primaryOrange,
+            cancelBorder: Border.all(color: AppTheme.primaryOrange),
+            cancelBgColor: Colors.white,
+            cancelText: l10n.btnCancel,
+          );
+          if(res != null && res == true){
+             try {
+              Pop.loading();
+              await ref.read(authNotifierProvider.notifier).logout();
+              if (!mounted) return;
+              Pop.hideLoading();
+              Logger.info("MinePage", "登出成功，跳转到登录页面");
+              Navigate.replace(context, Routes.login);
+            } catch (e) {
+              Logger.error("MinePage", "登出失败", error: e);
+              if (!mounted) return;
+            }
           }
         }
       ),
