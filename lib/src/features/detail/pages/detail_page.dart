@@ -150,7 +150,7 @@ class _DetailPageState extends ConsumerState<DetailPage> {
       backgroundColor: Colors.transparent,
       titleColor: Colors.white,
       iconColor: Colors.white,
-      title: l10n.merchantDetail,
+      title: '',
       onBackPressed: () {
         Logger.info('DetailPage', '返回按钮被点击');
         Navigate.pop(context);
@@ -248,7 +248,7 @@ class _DetailPageState extends ConsumerState<DetailPage> {
       canPop: true,
       onPopInvokedWithResult: (bool didPop, dynamic result) {
         if (didPop) {
-          // 页面已返回，触发批量同步（后台执行，不阻塞） 12 797.68 10 708  13 975.44
+          // 页面已返回，触发批量同步（后台执行，不阻塞）
           final cartState = ref.read(cartStateProvider(widget.id));
           if (cartState.hasPendingChanges) {
             Logger.info(
@@ -272,7 +272,7 @@ class _DetailPageState extends ConsumerState<DetailPage> {
               enablePullUp: false,
               onRefresh: _onRefresh,
               header: CustomHeader(
-                // height: 120.h + MediaQuery.of(context).padding.top, // 测试ios灵动岛
+                height: 60.h + MediaQuery.of(context).padding.top, // 测试ios灵动岛
                 builder:
                     (context, mode) => Container(
                       color: Colors.black,

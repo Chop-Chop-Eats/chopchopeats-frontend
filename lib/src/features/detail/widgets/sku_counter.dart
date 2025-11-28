@@ -43,7 +43,7 @@ class SkuCounter extends ConsumerWidget {
     final canIncrease = !isBusy && _isSpecValid;
 
     return Container(
-      padding: EdgeInsets.symmetric(vertical: 2.h),
+      padding: EdgeInsets.symmetric(vertical: 2.h, horizontal: 2.w),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12.r),
         border: Border.all(
@@ -91,12 +91,12 @@ class SkuCounter extends ConsumerWidget {
     return GestureDetector(
       onTap: enabled ? onTap : null,
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 5.h),
+        padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 4.h),
         decoration: enabled
             ? null
             : BoxDecoration(
                 color: Colors.grey[200],
-                borderRadius: BorderRadius.circular(4.r),
+                borderRadius: BorderRadius.circular(12.r),
               ),
         child: Icon(
           icon,

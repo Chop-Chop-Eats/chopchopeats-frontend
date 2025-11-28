@@ -2,7 +2,6 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../maps_config.dart';
 import '../maps_api_client.dart';
-import '../../l10n/locale_service.dart';
 import '../../utils/logger/logger.dart';
 
 class PlaceSuggestion {
@@ -52,8 +51,7 @@ class MapsService {
   MapsService({MapsApiClient? client}) : _client = client ?? MapsApiClient();
 
   final MapsApiClient _client;
-  String get _currentLanguage =>
-      LocaleService.isZh ? 'zh-CN' : 'en';
+  String get _currentLanguage => 'en';
 
   Map<String, String> _createParams(
     Map<String, String> params, {
