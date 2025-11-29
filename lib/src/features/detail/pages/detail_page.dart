@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import '../../../core/utils/logger/logger.dart';
+import '../../../core/utils/pop/toast.dart';
 import '../../../core/widgets/common_indicator.dart';
 import '../../../core/widgets/restaurant/favorite_icon.dart';
 import '../../../core/controllers/favorite_controller.dart';
@@ -54,60 +55,23 @@ class _DetailPageState extends ConsumerState<DetailPage> {
       final cartNotifier = ref.read(cartProvider.notifier);
       final diningDate = formatDiningDate(DateTime.now());
 
-      // 1. 先加载本地缓存（包括待同步操作队列）
+      // 直接刷新购物车数据（从服务端获取最新数据）
       unawaited(
-        cartNotifier.loadFromLocal(widget.id).then((_) {
-          final cartState = ref.read(cartStateProvider(widget.id));
-          Logger.info(
-            'DetailPage',
-            '本地购物车加载完成: shopId=${widget.id}, items=${cartState.items.length}, '
-            'pendingOps=${cartState.pendingOperations.length}',
-          );
-          // 2. 如果有待同步操作，先执行批量同步
-          if (cartState.hasPendingChanges) {
-            Logger.info(
-              'DetailPage',
-              '检测到待同步操作，先执行批量同步: shopId=${widget.id}, '
-              'pendingOps=${cartState.pendingOperations.length}',
-            );
-            unawaited(
-              cartNotifier.syncPendingOperations(widget.id).then((_) {
-                // 3. 批量同步完成后，再执行远程同步
-                Logger.info(
-                  'DetailPage',
-                  '批量同步完成，执行远程同步: shopId=${widget.id}',
-                );
-                unawaited(
-                  cartNotifier.syncFromRemote(
-                    shopId: widget.id,
-                    diningDate: diningDate,
-                  ),
-                );
-              }).catchError((e) {
-                Logger.error(
-                  'DetailPage',
-                  '批量同步失败: shopId=${widget.id}, error=$e',
-                );
-                // 即使批量同步失败，也尝试远程同步
-                unawaited(
-                  cartNotifier.syncFromRemote(
-                    shopId: widget.id,
-                    diningDate: diningDate,
-                    skipIfPending: true, // 跳过远程同步，避免覆盖本地数据
-                  ),
-                );
-              }),
-            );
-          } else {
-            // 如果没有待同步操作，直接执行远程同步
-            unawaited(
-              cartNotifier.syncFromRemote(
-                shopId: widget.id,
-                diningDate: diningDate,
-              ),
-            );
-          }
-        }),
+        cartNotifier
+            .refreshCart(shopId: widget.id, diningDate: diningDate)
+            .then((_) {
+              final cartState = ref.read(cartStateProvider(widget.id));
+              Logger.info(
+                'DetailPage',
+                '购物车刷新完成: shopId=${widget.id}, items=${cartState.items.length}',
+              );
+            })
+            .catchError((e) {
+              Logger.error(
+                'DetailPage',
+                '购物车刷新失败: shopId=${widget.id}, error=$e',
+              );
+            }),
       );
     });
   }
@@ -121,8 +85,31 @@ class _DetailPageState extends ConsumerState<DetailPage> {
   /// 下拉刷新
   Future<void> _onRefresh() async {
     Logger.info('DetailPage', '手动刷新店铺详情: shopId=${widget.id}');
-    await ref.read(detailProvider(widget.id).notifier).refresh(widget.id);
-    _refreshController.refreshCompleted();
+
+    // 读取当前选中的星期
+    final currentWeekday = ref.read(selectedWeekdayProvider);
+    final productListParams = ProductListParams(
+      shopId: widget.id,
+      saleWeekDay: currentWeekday,
+    );
+
+    // 使用 Future.wait 并行刷新所有接口
+    try {
+      await Future.wait([
+        ref.read(detailProvider(widget.id).notifier).refresh(widget.id),
+        ref.read(couponProvider(widget.id).notifier).refresh(widget.id),
+        ref
+            .read(productListProvider(productListParams).notifier)
+            .refresh(widget.id, currentWeekday),
+      ]);
+      Logger.info('DetailPage', '所有接口刷新完成');
+    } catch (e) {
+      Logger.error('DetailPage', '并行刷新失败: $e');
+      // 可以在这里给一个统一的失败提示
+      toast.warn('刷新失败，请稍后重试');
+    } finally {
+      _refreshController.refreshCompleted();
+    }
   }
 
   /// 处理收藏按钮点击
@@ -145,7 +132,6 @@ class _DetailPageState extends ConsumerState<DetailPage> {
 
   /// 构建AppBar
   Widget _buildAppBar(ShopModel? shop, BuildContext context) {
-    final l10n = AppLocalizations.of(context)!;
     return CommonAppBar(
       backgroundColor: Colors.transparent,
       titleColor: Colors.white,
@@ -247,20 +233,7 @@ class _DetailPageState extends ConsumerState<DetailPage> {
     return PopScope(
       canPop: true,
       onPopInvokedWithResult: (bool didPop, dynamic result) {
-        if (didPop) {
-          // 页面已返回，触发批量同步（后台执行，不阻塞）
-          final cartState = ref.read(cartStateProvider(widget.id));
-          if (cartState.hasPendingChanges) {
-            Logger.info(
-              'DetailPage',
-              '页面返回，触发批量同步: shopId=${widget.id}, '
-              'pendingOps=${cartState.pendingOperations.length}',
-            );
-            unawaited(
-              ref.read(cartProvider.notifier).syncPendingOperations(widget.id),
-            );
-          }
-        }
+        // 页面返回时不需要额外操作，因为每次操作都已直接同步到服务端
       },
       child: Scaffold(
         body: Stack(

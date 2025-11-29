@@ -16,6 +16,7 @@ class SkuCounter extends ConsumerWidget {
     required this.productSpecId,
     required this.productSpecName,
     this.diningDate,
+    this.price,
   });
 
   final String shopId;
@@ -24,7 +25,7 @@ class SkuCounter extends ConsumerWidget {
   final String productSpecId;
   final String productSpecName;
   final String? diningDate; // 格式: YYYY-MM-DD
-
+  final double? price;
   bool get _isSpecValid => productSpecId.isNotEmpty;
 
   @override
@@ -37,7 +38,8 @@ class SkuCounter extends ConsumerWidget {
       productSpecId: productSpecId,
     );
     // 只有当正在操作的商品是当前商品时才禁用
-    final isBusy = cartState.operatingProductRef != null &&
+    final isBusy =
+        cartState.operatingProductRef != null &&
         cartState.operatingProductRef == currentProductRef;
     final canDecrease = quantity > 0 && !isBusy && _isSpecValid;
     final canIncrease = !isBusy && _isSpecValid;
@@ -47,9 +49,10 @@ class SkuCounter extends ConsumerWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12.r),
         border: Border.all(
-          color: canIncrease || canDecrease
-              ? AppTheme.primaryOrange
-              : Colors.grey[300]!,
+          color:
+              canIncrease || canDecrease
+                  ? AppTheme.primaryOrange
+                  : Colors.grey[300]!,
           width: 1.w,
         ),
         color: canIncrease || canDecrease ? Colors.white : Colors.grey[100],
@@ -92,12 +95,13 @@ class SkuCounter extends ConsumerWidget {
       onTap: enabled ? onTap : null,
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 4.h),
-        decoration: enabled
-            ? null
-            : BoxDecoration(
-                color: Colors.grey[200],
-                borderRadius: BorderRadius.circular(12.r),
-              ),
+        decoration:
+            enabled
+                ? null
+                : BoxDecoration(
+                  color: Colors.grey[200],
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
         child: Icon(
           icon,
           size: 16.w,
@@ -121,6 +125,7 @@ class SkuCounter extends ConsumerWidget {
           productName: productName,
           productSpecId: productSpecId,
           productSpecName: productSpecName,
+          price: price,
         );
   }
 

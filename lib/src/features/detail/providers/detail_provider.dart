@@ -9,17 +9,9 @@ class DetailState {
   final bool isLoading;
   final String? error;
 
-  DetailState({
-    this.shop,
-    this.isLoading = false,
-    this.error,
-  });
+  DetailState({this.shop, this.isLoading = false, this.error});
 
-  DetailState copyWith({
-    ShopModel? shop,
-    bool? isLoading,
-    String? error,
-  }) {
+  DetailState copyWith({ShopModel? shop, bool? isLoading, String? error}) {
     return DetailState(
       shop: shop ?? this.shop,
       isLoading: isLoading ?? this.isLoading,
@@ -90,26 +82,17 @@ class DetailNotifier extends StateNotifier<DetailState> {
 
   /// 加载店铺详情
   Future<void> loadShopDetail(String shopId) async {
-    state = state.copyWith(
-      isLoading: true,
-      error: null,
-    );
+    state = state.copyWith(isLoading: true, error: null);
 
     try {
       final shop = await _detailServices.getShop(shopId);
-      
-      state = state.copyWith(
-        shop: shop,
-        isLoading: false,
-      );
+
+      state = state.copyWith(shop: shop, isLoading: false);
 
       Logger.info('DetailNotifier', '店铺详情加载成功: ${shop.chineseShopName}');
     } catch (e) {
       Logger.error('DetailNotifier', '店铺详情加载失败: $e');
-      state = state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      );
+      state = state.copyWith(isLoading: false, error: e.toString());
     }
   }
 
@@ -123,10 +106,11 @@ class DetailNotifier extends StateNotifier<DetailState> {
   /// [isFavorite] 是否收藏
   void updateShopFavorite(String shopId, bool isFavorite) {
     if (state.shop?.id == shopId) {
-      state = state.copyWith(
-        shop: state.shop?.copyWith(favorite: isFavorite),
+      state = state.copyWith(shop: state.shop?.copyWith(favorite: isFavorite));
+      Logger.info(
+        'DetailNotifier',
+        '更新店铺收藏状态: shopId=$shopId, favorite=$isFavorite',
       );
-      Logger.info('DetailNotifier', '更新店铺收藏状态: shopId=$shopId, favorite=$isFavorite');
     }
   }
 
@@ -144,23 +128,14 @@ class CouponNotifier extends StateNotifier<CouponState> {
 
   /// 加载优惠券列表
   Future<void> loadCouponList(String shopId) async {
-    state = state.copyWith(
-      isLoading: true,
-      error: null,
-    );
+    state = state.copyWith(isLoading: true, error: null);
     try {
       final couponData = await _detailServices.getAvailableCouponList(shopId);
-      state = state.copyWith(
-        couponData: couponData,
-        isLoading: false,
-      );
+      state = state.copyWith(couponData: couponData, isLoading: false);
       Logger.info('CouponNotifier', '优惠券列表加载成功: shopId=$shopId');
     } catch (e) {
       Logger.error('CouponNotifier', '优惠券列表加载失败: $e');
-      state = state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      );
+      state = state.copyWith(isLoading: false, error: e.toString());
     }
   }
 
@@ -189,6 +164,7 @@ class CouponNotifier extends StateNotifier<CouponState> {
       state = state.copyWith(isClaiming: false);
     }
   }
+
   /// 刷新优惠券列表
   Future<void> refresh(String shopId) async {
     await loadCouponList(shopId);
@@ -208,10 +184,7 @@ class ProductListNotifier extends StateNotifier<ProductListState> {
 
   /// 加载商品列表
   Future<void> loadProductList(String shopId, int saleWeekDay) async {
-    state = state.copyWith(
-      isLoading: true,
-      error: null,
-    );
+    state = state.copyWith(isLoading: true, error: null);
 
     try {
       final query = SaleProductListQuery(
@@ -219,19 +192,16 @@ class ProductListNotifier extends StateNotifier<ProductListState> {
         saleWeekDay: saleWeekDay,
       );
       final products = await _detailServices.getSaleProductList(query);
-      
-      state = state.copyWith(
-        products: products,
-        isLoading: false,
-      );
 
-      Logger.info('ProductListNotifier', '商品列表加载成功: shopId=$shopId, saleWeekDay=$saleWeekDay, 共${products.length}个商品');
+      state = state.copyWith(products: products, isLoading: false);
+
+      Logger.info(
+        'ProductListNotifier',
+        '商品列表加载成功: shopId=$shopId, saleWeekDay=$saleWeekDay, 共${products.length}个商品',
+      );
     } catch (e) {
       Logger.error('ProductListNotifier', '商品列表加载失败: $e');
-      state = state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      );
+      state = state.copyWith(isLoading: false, error: e.toString());
     }
   }
 
@@ -247,9 +217,13 @@ class ProductListNotifier extends StateNotifier<ProductListState> {
 }
 
 /// 店铺详情数据 Provider（使用 family 支持多个店铺）
-final detailProvider = StateNotifierProvider.family<DetailNotifier, DetailState, String>((ref, shopId) {
-  return DetailNotifier();
-});
+final detailProvider =
+    StateNotifierProvider.family<DetailNotifier, DetailState, String>((
+      ref,
+      shopId,
+    ) {
+      return DetailNotifier();
+    });
 
 /// 店铺详情数据选择器
 final shopDetailProvider = Provider.family<ShopModel?, String>((ref, shopId) {
@@ -269,12 +243,19 @@ final shopDetailErrorProvider = Provider.family<String?, String>((ref, shopId) {
 // ============= 优惠券相关 Providers =============
 
 /// 优惠券数据 Provider（使用 family 支持多个店铺）
-final couponProvider = StateNotifierProvider.family<CouponNotifier, CouponState, String>((ref, shopId) {
-  return CouponNotifier();
-});
+final couponProvider =
+    StateNotifierProvider.family<CouponNotifier, CouponState, String>((
+      ref,
+      shopId,
+    ) {
+      return CouponNotifier();
+    });
 
 /// 优惠券数据选择器
-final couponDataProvider = Provider.family<AvailableCouponModel?, String>((ref, shopId) {
+final couponDataProvider = Provider.family<AvailableCouponModel?, String>((
+  ref,
+  shopId,
+) {
   return ref.watch(couponProvider(shopId)).couponData;
 });
 
@@ -298,12 +279,9 @@ final couponClaimingProvider = Provider.family<bool, String>((ref, shopId) {
 class ProductListParams {
   final String shopId;
   final int saleWeekDay;
-  
-  ProductListParams({
-    required this.shopId,
-    required this.saleWeekDay,
-  });
-  
+
+  ProductListParams({required this.shopId, required this.saleWeekDay});
+
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
@@ -311,28 +289,39 @@ class ProductListParams {
         other.shopId == shopId &&
         other.saleWeekDay == saleWeekDay;
   }
-  
+
   @override
   int get hashCode => shopId.hashCode ^ saleWeekDay.hashCode;
 }
 
 /// 商品列表数据 Provider（使用 family 支持多个店铺和星期）
-final productListProvider = StateNotifierProvider.family<ProductListNotifier, ProductListState, ProductListParams>((ref, params) {
+final productListProvider = StateNotifierProvider.family<
+  ProductListNotifier,
+  ProductListState,
+  ProductListParams
+>((ref, params) {
   return ProductListNotifier();
 });
 
 /// 商品列表数据选择器
-final productsProvider = Provider.family<List<SaleProductModel>, ProductListParams>((ref, params) {
-  return ref.watch(productListProvider(params)).products;
-});
+final productsProvider =
+    Provider.family<List<SaleProductModel>, ProductListParams>((ref, params) {
+      return ref.watch(productListProvider(params)).products;
+    });
 
 /// 商品列表加载状态选择器
-final productListLoadingProvider = Provider.family<bool, ProductListParams>((ref, params) {
+final productListLoadingProvider = Provider.family<bool, ProductListParams>((
+  ref,
+  params,
+) {
   return ref.watch(productListProvider(params)).isLoading;
 });
 
 /// 商品列表错误状态选择器
-final productListErrorProvider = Provider.family<String?, ProductListParams>((ref, params) {
+final productListErrorProvider = Provider.family<String?, ProductListParams>((
+  ref,
+  params,
+) {
   return ref.watch(productListProvider(params)).error;
 });
 
@@ -344,11 +333,7 @@ class ProductDetailState {
   final bool isLoading;
   final String? error;
 
-  ProductDetailState({
-    this.product,
-    this.isLoading = false,
-    this.error,
-  });
+  ProductDetailState({this.product, this.isLoading = false, this.error});
 
   ProductDetailState copyWith({
     SaleProductModel? product,
@@ -367,12 +352,9 @@ class ProductDetailState {
 class ProductDetailParams {
   final String productId;
   final String shopId;
-  
-  ProductDetailParams({
-    required this.productId,
-    required this.shopId,
-  });
-  
+
+  ProductDetailParams({required this.productId, required this.shopId});
+
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
@@ -380,7 +362,7 @@ class ProductDetailParams {
         other.productId == productId &&
         other.shopId == shopId;
   }
-  
+
   @override
   int get hashCode => productId.hashCode ^ shopId.hashCode;
 }
@@ -388,29 +370,23 @@ class ProductDetailParams {
 /// 商品详情数据状态管理
 class ProductDetailNotifier extends StateNotifier<ProductDetailState> {
   ProductDetailNotifier(this.ref) : super(ProductDetailState());
-  
+
   final Ref ref;
 
   /// 加载商品详情
   /// 优先从已加载的商品列表中查找
   Future<void> loadProductDetail(String productId, String shopId) async {
-    state = state.copyWith(
-      isLoading: true,
-      error: null,
-    );
+    state = state.copyWith(isLoading: true, error: null);
 
     try {
       // 尝试从当前星期（以及可能的其他星期）的商品列表中查找
       SaleProductModel? foundProduct;
       final currentWeekday = DateTime.now().weekday;
-      
+
       // 优先尝试当前星期
       for (int weekDay = 1; weekDay <= 7; weekDay++) {
-        final params = ProductListParams(
-          shopId: shopId,
-          saleWeekDay: weekDay,
-        );
-        
+        final params = ProductListParams(shopId: shopId, saleWeekDay: weekDay);
+
         // 检查该星期的商品列表是否已加载
         try {
           final productListState = ref.read(productListProvider(params));
@@ -419,7 +395,10 @@ class ProductDetailNotifier extends StateNotifier<ProductDetailState> {
             orElse: () => throw StateError('Not found'),
           );
           foundProduct = product;
-          Logger.info('ProductDetailNotifier', '从商品列表中找到商品: productId=$productId, weekDay=$weekDay');
+          Logger.info(
+            'ProductDetailNotifier',
+            '从商品列表中找到商品: productId=$productId, weekDay=$weekDay',
+          );
           break;
         } catch (e) {
           // 如果该星期的列表未加载或找不到商品，尝试下一个星期
@@ -428,38 +407,37 @@ class ProductDetailNotifier extends StateNotifier<ProductDetailState> {
       }
 
       if (foundProduct != null) {
-        state = state.copyWith(
-          product: foundProduct,
-          isLoading: false,
+        state = state.copyWith(product: foundProduct, isLoading: false);
+        Logger.info(
+          'ProductDetailNotifier',
+          '商品详情加载成功: ${foundProduct.chineseName}',
         );
-        Logger.info('ProductDetailNotifier', '商品详情加载成功: ${foundProduct.chineseName}');
       } else {
         // 如果找不到，尝试加载当前星期的商品列表
         final currentParams = ProductListParams(
           shopId: shopId,
           saleWeekDay: currentWeekday,
         );
-        await ref.read(productListProvider(currentParams).notifier).loadProductList(shopId, currentWeekday);
-        
+        await ref
+            .read(productListProvider(currentParams).notifier)
+            .loadProductList(shopId, currentWeekday);
+
         // 再次尝试查找
         final productListState = ref.read(productListProvider(currentParams));
         final product = productListState.products.firstWhere(
           (p) => p.id == productId,
           orElse: () => throw StateError('商品未找到'),
         );
-        
-        state = state.copyWith(
-          product: product,
-          isLoading: false,
+
+        state = state.copyWith(product: product, isLoading: false);
+        Logger.info(
+          'ProductDetailNotifier',
+          '商品详情加载成功: ${product.chineseName}',
         );
-        Logger.info('ProductDetailNotifier', '商品详情加载成功: ${product.chineseName}');
       }
     } catch (e) {
       Logger.error('ProductDetailNotifier', '商品详情加载失败: $e');
-      state = state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      );
+      state = state.copyWith(isLoading: false, error: e.toString());
     }
   }
 
@@ -475,22 +453,34 @@ class ProductDetailNotifier extends StateNotifier<ProductDetailState> {
 }
 
 /// 商品详情数据 Provider（使用 family 支持多个商品）
-final productDetailProvider = StateNotifierProvider.family<ProductDetailNotifier, ProductDetailState, ProductDetailParams>((ref, params) {
+final productDetailProvider = StateNotifierProvider.family<
+  ProductDetailNotifier,
+  ProductDetailState,
+  ProductDetailParams
+>((ref, params) {
   return ProductDetailNotifier(ref);
 });
 
 /// 商品详情数据选择器
-final productDetailDataProvider = Provider.family<SaleProductModel?, ProductDetailParams>((ref, params) {
-  return ref.watch(productDetailProvider(params)).product;
-});
+final productDetailDataProvider =
+    Provider.family<SaleProductModel?, ProductDetailParams>((ref, params) {
+      return ref.watch(productDetailProvider(params)).product;
+    });
 
 /// 商品详情加载状态选择器
-final productDetailLoadingProvider = Provider.family<bool, ProductDetailParams>((ref, params) {
-  return ref.watch(productDetailProvider(params)).isLoading;
-});
+final productDetailLoadingProvider = Provider.family<bool, ProductDetailParams>(
+  (ref, params) {
+    return ref.watch(productDetailProvider(params)).isLoading;
+  },
+);
 
 /// 商品详情错误状态选择器
-final productDetailErrorProvider = Provider.family<String?, ProductDetailParams>((ref, params) {
-  return ref.watch(productDetailProvider(params)).error;
-});
+final productDetailErrorProvider =
+    Provider.family<String?, ProductDetailParams>((ref, params) {
+      return ref.watch(productDetailProvider(params)).error;
+    });
 
+/// 当前选中的星期
+final selectedWeekdayProvider = StateProvider<int>((ref) {
+  return DateTime.now().weekday;
+});

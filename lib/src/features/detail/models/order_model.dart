@@ -1,7 +1,4 @@
-import 'package:hive/hive.dart';
 import '../../../core/utils/json_utils.dart';
-
-part 'order_model.g.dart';
 
 /// 将 DateTime 转换为 YYYY-MM-DD 格式的字符串
 String formatDiningDate(DateTime date) {
@@ -246,58 +243,44 @@ class UpdateCartParams {
 }
 
 // 购物车列表返回值
-@HiveType(typeId: 2)
 class CartItemModel {
   ///创建时间
-  @HiveField(0)
   final DateTime? createTime;
 
   ///用餐日期 (格式: YYYY-MM-DD)
-  @HiveField(1)
   final String? diningDate;
 
   ///主键ID
-  @HiveField(2)
   final String? id;
 
   ///商品缩略图（商品封面图）
-  @HiveField(3)
   final String? imageThumbnail;
 
   ///商品单价
-  @HiveField(4)
   final double? price;
 
   ///商品ID
-  @HiveField(5)
   final String? productId;
 
   ///商品名称
-  @HiveField(6)
   final String? productName;
 
   ///产品规格ID
-  @HiveField(7)
   final String? productSpecId;
 
   ///商品规格名称
-  @HiveField(8)
   final String? productSpecName;
 
   ///数量
-  @HiveField(9)
   final int? quantity;
 
   ///店铺ID
-  @HiveField(10)
   final String? shopId;
 
   ///SKU规格设置：0=不区分规格，1=区分规格
-  @HiveField(11)
   final int? skuSetting;
 
   ///用户ID
-  @HiveField(12)
   final int? userId;
 
   CartItemModel({

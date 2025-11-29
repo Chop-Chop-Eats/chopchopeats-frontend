@@ -7,6 +7,7 @@ import 'package:unified_popups/unified_popups.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/logger/logger.dart';
+import '../../../core/utils/pop/toast.dart';
 import '../../../core/widgets/common_image.dart';
 import '../../../core/widgets/common_spacing.dart';
 import '../models/order_model.dart';
@@ -106,15 +107,19 @@ class _ShopCartState extends ConsumerState<ShopCart> {
                   ),
                 )
               else
-              Expanded(
-                child:  ListView.builder(
-                  itemBuilder: (context, index) => Padding(
-                    padding: EdgeInsets.only(bottom: 12.h),
-                    child: _buildSheetItem(cartState, cartState.items[index] ),
+                Expanded(
+                  child: ListView.builder(
+                    itemBuilder:
+                        (context, index) => Padding(
+                          padding: EdgeInsets.only(bottom: 12.h),
+                          child: _buildSheetItem(
+                            cartState,
+                            cartState.items[index],
+                          ),
+                        ),
+                    itemCount: cartState.items.length,
                   ),
-                  itemCount: cartState.items.length,
                 ),
-              )
             ],
           ),
     );
@@ -129,7 +134,7 @@ class _ShopCartState extends ConsumerState<ShopCart> {
       );
       dismiss();
     } catch (e) {
-      _showSnackBar('清空失败，请稍后重试');
+      _toast('清空失败，请稍后重试');
     }
   }
 
@@ -181,6 +186,7 @@ class _ShopCartState extends ConsumerState<ShopCart> {
           productSpecId: item.productSpecId ?? '',
           productSpecName: specName.isEmpty ? productName : specName,
           diningDate: cartState.diningDate,
+          price: price,
         ),
       ],
     );
@@ -269,7 +275,7 @@ class _ShopCartState extends ConsumerState<ShopCart> {
     return GestureDetector(
       onTap: () {
         if (cartState.isEmpty) {
-          _showSnackBar('购物车为空，无法下单');
+          _toast('购物车为空，无法下单');
           return;
         }
         Logger.info('ShopCart', '点击下单 shopId=${widget.shopId}');
@@ -292,10 +298,7 @@ class _ShopCartState extends ConsumerState<ShopCart> {
     );
   }
 
-  void _showSnackBar(String message) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+  void _toast(String message) {
+    toast.warn(message);
   }
 }

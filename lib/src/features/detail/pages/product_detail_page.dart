@@ -135,7 +135,10 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
     final cartState = ref.watch(cartStateProvider(widget.shopId));
     final diningDate = cartState.diningDate;
     final selectedSku = _currentSku(product);
-    final isSku = product.skuSetting != 1 &&  selectedSku != null && selectedSku.id != null;
+    final isSku =
+        product.skuSetting != 1 &&
+        selectedSku != null &&
+        selectedSku.id != null;
     return Stack(
       children: [
         Positioned(
@@ -158,7 +161,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildProductInfo(product, selectedSku, diningDate , isSku),
+                    _buildProductInfo(product, selectedSku, diningDate, isSku),
                     CommonSpacing.medium,
                     if (product.skuSetting == 1 && product.skus.isNotEmpty)
                       _buildSkuInfo(product),
@@ -361,7 +364,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
         Row(
           children: [
             Expanded(
-              child:  Text(
+              child: Text(
                 product.localizedName,
                 style: TextStyle(
                   fontSize: 14.sp,
@@ -370,21 +373,19 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
                 ),
               ),
             ),
-            if (isSku)
-              
-              CommonSpacing.width(8.w),
-              SkuCounter(
-                shopId: widget.shopId,
-                productId: product.id,
-                productName: product.localizedName,
-                productSpecId: selectedSku!.id ?? '',
-                productSpecName: selectedSku.skuName ?? product.localizedName,
-                diningDate: diningDate,
-              ),
-            
+            if (isSku) CommonSpacing.width(8.w),
+            SkuCounter(
+              shopId: widget.shopId,
+              productId: product.id,
+              productName: product.localizedName,
+              productSpecId: selectedSku!.id ?? '',
+              productSpecName: selectedSku.skuName ?? product.localizedName,
+              diningDate: diningDate,
+              price: selectedSku.price,
+            ),
           ],
         ),
-        if (isSku ) 
+        if (isSku)
           Text(
             "\$${selectedSku.price}",
             style: TextStyle(

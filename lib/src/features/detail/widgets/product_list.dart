@@ -261,6 +261,7 @@ class _ProductListState extends ConsumerState<ProductList> {
       productSpecId: sku.id ?? '',
       productSpecName: sku.skuName ?? product.localizedName,
       diningDate: diningDate,
+      price: sku.price,
     );
   }
 
@@ -273,7 +274,12 @@ class _ProductListState extends ConsumerState<ProductList> {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 6.h),
       child: GestureDetector(
-        onTap: () => Navigate.push(context, Routes.productDetail, arguments: {"productId": product.id, "shopId": product.shopId},),
+        onTap:
+            () => Navigate.push(
+              context,
+              Routes.productDetail,
+              arguments: {"productId": product.id, "shopId": product.shopId},
+            ),
         child: Text(
           selectSpecification,
           style: TextStyle(

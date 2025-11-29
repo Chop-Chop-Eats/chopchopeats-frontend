@@ -1,54 +1,28 @@
 import 'dart:convert';
 import 'package:hive/hive.dart';
 import '../../../core/utils/logger/logger.dart';
-import '../../../features/detail/providers/cart_state.dart';
-import '../../../features/detail/models/pending_cart_operation.dart';
-import '../../../features/detail/models/order_model.dart';
 
 /// 本地缓存服务
 ///
 /// 基于 Hive 封装，提供统一的缓存读写接口。
 /// 支持基本类型和可序列化为 JSON 的复杂对象。
-/// 复杂对象（如购物车）使用 Hive TypeAdapter，性能提升 3-5 倍。
 class CacheService {
   // Hive Boxes
   Box<String>? _stringsBox;
   Box<int>? _intsBox;
   Box<double>? _doublesBox;
   Box<bool>? _boolsBox;
-  Box<CartState>? _cartsBox; // 购物车专用 Box，使用 TypeAdapter
 
   CacheService();
   
   /// 初始化 Hive Boxes
   Future<void> init() async {
     try {
-      // 注册 TypeAdapter
-      if (!Hive.isAdapterRegistered(0)) {
-        Hive.registerAdapter(CartOperationTypeAdapter());
-      }
-      if (!Hive.isAdapterRegistered(1)) {
-        Hive.registerAdapter(PendingCartOperationAdapter());
-      }
-      if (!Hive.isAdapterRegistered(2)) {
-        Hive.registerAdapter(CartItemModelAdapter());
-      }
-      if (!Hive.isAdapterRegistered(3)) {
-        Hive.registerAdapter(CartDataOriginAdapter());
-      }
-      if (!Hive.isAdapterRegistered(4)) {
-        Hive.registerAdapter(CartTotalsAdapter());
-      }
-      if (!Hive.isAdapterRegistered(5)) {
-        Hive.registerAdapter(CartStateAdapter());
-      }
-      
       // 打开 Boxes
       _stringsBox = await Hive.openBox<String>('strings');
       _intsBox = await Hive.openBox<int>('ints');
       _doublesBox = await Hive.openBox<double>('doubles');
       _boolsBox = await Hive.openBox<bool>('bools');
-      _cartsBox = await Hive.openBox<CartState>('carts');
       
       Logger.info('CacheService', 'Hive Boxes 初始化成功');
     } catch (e, s) {
@@ -98,24 +72,13 @@ class CacheService {
     }
   }
   
-  /// 保存复杂对象（使用 Hive TypeAdapter）
+  /// 保存复杂对象（序列化为 JSON 存储）
   /// 
   /// [key] - 缓存的键
-  /// [value] - 要缓存的对象（必须是已注册 TypeAdapter 的类型）
+  /// [value] - 要缓存的对象（会被序列化为 JSON）
   Future<bool> setObject<T>(String key, T value) async {
-    try {
-      if (_cartsBox != null && value is CartState) {
-        await _cartsBox!.put(key, value);
-        Logger.info("CacheService", "Set object cache for key: '$key'");
-        return true;
-      }
-      
-      // 如果不支持的类型，回退到 JSON 存储
-      return await set(key, value);
-    } catch (e, s) {
-      Logger.error("CacheService", "Failed to set object cache for key: $key", error: e, stackTrace: s);
-      return false;
-    }
+    // 回退到 JSON 存储
+    return await set(key, value);
   }
 
   /// 读取数据
@@ -179,25 +142,13 @@ class CacheService {
     }
   }
   
-  /// 读取复杂对象（使用 Hive TypeAdapter）
+  /// 读取复杂对象（从 JSON 反序列化）
   /// 
   /// [key] - 缓存的键
+  /// [fromJson] - 从 Map<String, dynamic> 转换回对象的工厂函数
   /// 返回缓存的对象，如果不存在则返回 null
-  Future<T?> getObject<T>(String key) async {
-    try {
-      if (_cartsBox != null && T == CartState) {
-        final value = _cartsBox!.get(key);
-        if (value != null) {
-          Logger.info("CacheService", "Get object cache for key: '$key'");
-          return value as T;
-        }
-      }
-      
-      return null;
-    } catch (e, s) {
-      Logger.error("CacheService", "Failed to get object cache for key: $key", error: e, stackTrace: s);
-      return null;
-    }
+  Future<T?> getObject<T>(String key, {required T Function(Map<String, dynamic> json) fromJson}) async {
+    return await get<T>(key, fromJson: fromJson);
   }
 
   /// 移除指定键的缓存
@@ -214,7 +165,6 @@ class CacheService {
       await _intsBox?.delete(key);
       await _doublesBox?.delete(key);
       await _boolsBox?.delete(key);
-      await _cartsBox?.delete(key);
       
       Logger.info("CacheService", "Removed cache for key: '$key'.");
       return true;
@@ -238,7 +188,6 @@ class CacheService {
       await _intsBox?.clear();
       await _doublesBox?.clear();
       await _boolsBox?.clear();
-      await _cartsBox?.clear();
       
       Logger.info("CacheService", "All cache cleared successfully.");
       return true;

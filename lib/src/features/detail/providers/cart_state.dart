@@ -1,17 +1,7 @@
-import 'package:hive/hive.dart';
 import '../models/order_model.dart' show formatDiningDate, CartItemModel;
-import '../models/pending_cart_operation.dart';
-
-part 'cart_state.g.dart';
 
 /// 标记购物车数据的来源
-@HiveType(typeId: 3)
-enum CartDataOrigin {
-  @HiveField(0)
-  local,
-  @HiveField(1)
-  remote,
-}
+enum CartDataOrigin { local, remote }
 
 /// 商品 + 规格引用，便于在 UI 中快速定位购物车条目
 class CartProductRef {
@@ -39,21 +29,13 @@ class CartProductRef {
 }
 
 /// 购物车费用明细
-@HiveType(typeId: 4)
 class CartTotals {
-  @HiveField(0)
   final double subtotal;
-  @HiveField(1)
   final double serviceFee;
-  @HiveField(2)
   final double taxAmount;
-  @HiveField(3)
   final double deliveryFee;
-  @HiveField(4)
   final double couponOffset;
-  @HiveField(5)
   final double tipAmount;
-  @HiveField(6)
   final double payable;
 
   const CartTotals({
@@ -124,42 +106,24 @@ class CartTotals {
 /// 单个店铺的购物车状态
 const _cartStateSentinel = Object();
 
-@HiveType(typeId: 5)
 class CartState {
-  @HiveField(0)
   final String shopId;
-  @HiveField(1)
   final String diningDate; // 格式: YYYY-MM-DD
-  @HiveField(2)
   final List<CartItemModel> items;
-  @HiveField(3)
   final CartTotals totals;
-  @HiveField(4)
   final DateTime? lastSyncedAt;
-  @HiveField(5)
   final CartDataOrigin dataOrigin;
-  @HiveField(6)
   final bool isSyncing;
-  @HiveField(7)
   final bool isUpdating;
-  @HiveField(8)
   final bool isOperating;
-  @HiveField(9)
   final String? error;
-  @HiveField(10)
   final String? lastError;
-  @HiveField(11)
-  final String? operatingProductId; // 存储 productId，因为 Hive 不支持复杂对象作为字段
-  @HiveField(12)
+  final String? operatingProductId; // 存储 productId
   final String? operatingProductSpecId; // 存储 productSpecId
-  @HiveField(13)
-  final List<PendingCartOperation> pendingOperations;
-  @HiveField(14)
-  final DateTime? lastSyncAttemptAt;
 
   // itemRefs 和 operatingProductRef 作为计算属性，不存储在 Hive 中
   Map<CartProductRef, CartItemModel> get itemRefs => _buildItemRefs(items);
-  
+
   CartProductRef? get operatingProductRef {
     if (operatingProductId != null && operatingProductSpecId != null) {
       return CartProductRef(
@@ -183,8 +147,6 @@ class CartState {
     this.error,
     this.lastError,
     CartProductRef? operatingProductRef,
-    this.pendingOperations = const [],
-    this.lastSyncAttemptAt,
   }) : operatingProductId = operatingProductRef?.productId,
        operatingProductSpecId = operatingProductRef?.productSpecId;
 
@@ -207,8 +169,6 @@ class CartState {
     Object? error = _cartStateSentinel,
     Object? lastError = _cartStateSentinel,
     Object? operatingProductRef = _cartStateSentinel,
-    List<PendingCartOperation>? pendingOperations,
-    DateTime? lastSyncAttemptAt,
   }) {
     final nextItems = items ?? this.items;
     final nextError =
@@ -234,8 +194,6 @@ class CartState {
       error: nextError,
       lastError: nextLastError,
       operatingProductRef: nextOperatingProductRef,
-      pendingOperations: pendingOperations ?? this.pendingOperations,
-      lastSyncAttemptAt: lastSyncAttemptAt ?? this.lastSyncAttemptAt,
     );
   }
 
@@ -243,9 +201,6 @@ class CartState {
 
   int get totalQuantity =>
       items.fold<int>(0, (sum, item) => sum + (item.quantity ?? 0));
-
-  /// 是否有待同步的变更
-  bool get hasPendingChanges => pendingOperations.isNotEmpty;
 
   CartItemModel? findItem(String productId, String productSpecId) {
     return itemRefs[CartProductRef(
@@ -257,49 +212,6 @@ class CartState {
   int quantityOf(String productId, String productSpecId) {
     final item = findItem(productId, productSpecId);
     return item?.quantity ?? 0;
-  }
-
-  Map<String, dynamic> toStorageJson({DateTime? savedAt}) {
-    return {
-      'shopId': shopId,
-      'diningDate': diningDate,
-      'items': items.map((item) => item.toJson()).toList(),
-      'totals': totals.toJson(),
-      'lastSyncedAt': (savedAt ?? lastSyncedAt)?.toIso8601String(),
-      'pendingOperations': pendingOperations.map((op) => op.toJson()).toList(),
-      'lastSyncAttemptAt': lastSyncAttemptAt?.toIso8601String(),
-    };
-  }
-
-  factory CartState.fromStorageJson(String shopId, Map<String, dynamic> json) {
-    final rawItems =
-        (json['items'] as List<dynamic>? ?? [])
-            .map(
-              (e) =>
-                  CartItemModel.fromJson(Map<String, dynamic>.from(e as Map)),
-            )
-            .toList();
-    final dateStr = json['diningDate'] as String? ?? '';
-    final defaultDate = formatDiningDate(DateTime.now());
-    
-    // 恢复待同步操作队列
-    final rawPendingOps = json['pendingOperations'] as List<dynamic>? ?? [];
-    final pendingOps = rawPendingOps
-        .map((e) => PendingCartOperation.fromJson(
-            Map<String, dynamic>.from(e as Map)))
-        .toList();
-    
-    return CartState(
-      shopId: shopId,
-      diningDate: dateStr.isNotEmpty ? dateStr : defaultDate,
-      items: rawItems,
-      totals: CartTotals.fromJson(json['totals'] as Map<String, dynamic>?),
-      lastSyncedAt: DateTime.tryParse(json['lastSyncedAt'] as String? ?? ''),
-      dataOrigin: CartDataOrigin.local,
-      pendingOperations: pendingOps,
-      lastSyncAttemptAt: DateTime.tryParse(
-          json['lastSyncAttemptAt'] as String? ?? ''),
-    );
   }
 
   static Map<CartProductRef, CartItemModel> _buildItemRefs(
