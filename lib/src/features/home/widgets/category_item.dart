@@ -44,14 +44,14 @@ class CategoryItem extends StatelessWidget {
               ),
               textAlign: TextAlign.left,
             ),
-            Text(
-              subtitle,
-              style: TextStyle(
-                fontSize: 10.sp,
-                color: Colors.grey[500],
-              ),
-              overflow: TextOverflow.ellipsis,
-            ),
+            // Text(
+            //   subtitle,
+            //   style: TextStyle(
+            //     fontSize: 10.sp,
+            //     color: Colors.grey[500],
+            //   ),
+            //   overflow: TextOverflow.ellipsis,
+            // ),
             CommonSpacing.height(8),
             if (imgToRight) ...[
               Row(

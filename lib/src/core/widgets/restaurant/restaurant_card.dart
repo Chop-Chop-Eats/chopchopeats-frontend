@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../l10n/app_localizations.dart';
-import '../../utils/formats.dart';
 import '../common_spacing.dart';
 import '../common_image.dart';
 import '../../../features/home/models/home_models.dart';

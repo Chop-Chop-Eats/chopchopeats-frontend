@@ -6,7 +6,6 @@ import 'package:pull_to_refresh/pull_to_refresh.dart';
 import '../../routing/navigate.dart';
 import '../../routing/routes.dart';
 import '../../utils/logger/logger.dart';
-import '../../utils/pop/toast.dart';
 import '../common_spacing.dart';
 import '../common_indicator.dart';
 import '../custom_refresh_footer.dart';

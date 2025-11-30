@@ -40,6 +40,7 @@ class CategoryGrid extends StatelessWidget {
         children: [
           // 第一行: 2个分类
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: topRowCategories.map((category) {
               final index = topRowCategories.indexOf(category);
               return Expanded(
@@ -61,6 +62,7 @@ class CategoryGrid extends StatelessWidget {
           CommonSpacing.height(10),
           // 第二行: 4个分类
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: bottomRowCategories.map((category) {
               final index = bottomRowCategories.indexOf(category);
               return Expanded(
