@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import '../../../core/l10n/app_localizations.dart';
 import '../../../core/routing/navigate.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/logger/logger.dart';
@@ -54,6 +55,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final params = ProductDetailParams(
       productId: widget.productId,
       shopId: widget.shopId,
@@ -65,11 +67,11 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
 
     return Scaffold(
       appBar: CommonAppBar(title: '', backgroundColor: Colors.transparent),
-      body: _buildBody(isLoading, error, product),
+      body: _buildBody(isLoading, error, product, l10n),
     );
   }
 
-  Widget _buildBody(bool isLoading, String? error, SaleProductModel? product) {
+  Widget _buildBody(bool isLoading, String? error, SaleProductModel? product, AppLocalizations l10n) {
     if (isLoading) {
       return const Center(child: CommonIndicator());
     }
@@ -84,7 +86,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
               Icon(Icons.error_outline, size: 48.w, color: Colors.red[300]),
               CommonSpacing.medium,
               Text(
-                '加载失败',
+                l10n.loadingFailedMessage(error),
                 style: TextStyle(fontSize: 14.sp, color: Colors.red[500]),
               ),
               CommonSpacing.small,
@@ -104,7 +106,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
                       .read(productDetailProvider(params).notifier)
                       .loadProductDetail(widget.productId, widget.shopId);
                 },
-                child: const Text('重试'),
+                child: Text(l10n.tryAgainText),
               ),
             ],
           ),
@@ -213,7 +215,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
                     ),
                   ],
                 ),
-                _buildCartButton(product, selectedSku, diningDate),
+                _buildCartButton(product, selectedSku, diningDate, l10n),
               ],
             ),
           ),
@@ -226,37 +228,25 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
     SaleProductModel product,
     SaleProductSku? selectedSku,
     String diningDate, // 格式: YYYY-MM-DD
+    AppLocalizations l10n,
   ) {
     final cartState = ref.watch(cartStateProvider(widget.shopId));
     final isBusy = cartState.isUpdating || cartState.isOperating;
-
     return GestureDetector(
-      onTap:
-          isBusy
-              ? null
-              : () => _handleAddToCart(product, selectedSku, diningDate),
+      onTap: isBusy? null : () => _handleAddToCart(product, selectedSku, diningDate, l10n),
       child: Container(
         decoration: BoxDecoration(
           color: isBusy ? Colors.grey[400] : AppTheme.primaryOrange,
           borderRadius: BorderRadius.circular(12.r),
         ),
         padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 12.h),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (isBusy) ...[
-              CommonIndicator(strokeWidth: 2, color: Colors.white, size: 14.w),
-              CommonSpacing.width(8.w),
-            ],
-            Text(
-              isBusy ? '添加中...' : '加入购物车',
-              style: TextStyle(
-                fontSize: 14.sp,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-          ],
+        child: isBusy ? CommonIndicator(strokeWidth: 2, color: Colors.white, size: 14.w) : Text(
+          l10n.addToCart,
+          style: TextStyle(
+            fontSize: 14.sp,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
         ),
       ),
     );
@@ -509,6 +499,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
     SaleProductModel product,
     SaleProductSku? selectedSku,
     String diningDate, // 格式: YYYY-MM-DD
+    AppLocalizations l10n,
   ) async {
     final cartState = ref.read(cartStateProvider(widget.shopId));
     final isBusy = cartState.isUpdating || cartState.isOperating;
@@ -551,7 +542,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
       }
 
       // 统一处理成功提示和页面关闭
-      toast.success('加入购物车成功');
+      toast.success(l10n.addToCartSuccess);
       if (mounted) {
         // 延迟一点时间让toast显示，然后再关闭页面
         await Future.delayed(const Duration(milliseconds: 300));

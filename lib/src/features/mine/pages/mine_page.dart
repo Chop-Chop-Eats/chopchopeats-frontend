@@ -6,9 +6,9 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:unified_popups/unified_popups.dart';
 
 import '../../../core/routing/routes.dart';
-import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/logger/logger.dart';
 import '../../../core/l10n/app_localizations.dart';
+import '../../../core/utils/pop/confirm.dart';
 import '../../../core/widgets/common_spacing.dart';
 import '../../auth/providers/auth_provider.dart';
 import '../providers/mine_provider.dart';
@@ -17,13 +17,17 @@ import '../widgets/setting_item.dart';
 import '../widgets/shop_enter.dart';
 import '../widgets/userinfo_card.dart';
 
-
 class SettingItemData {
   final String title;
   final String icon;
   final String? tip;
   final VoidCallback onTap;
-  SettingItemData({required this.title, required this.icon, this.tip, required this.onTap});
+  SettingItemData({
+    required this.title,
+    required this.icon,
+    this.tip,
+    required this.onTap,
+  });
 }
 
 class MinePage extends ConsumerStatefulWidget {
@@ -42,7 +46,6 @@ class _MinePageState extends ConsumerState<MinePage> {
       ref.read(userInfoProvider.notifier).loadUserInfo();
     });
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -78,79 +81,79 @@ class _MinePageState extends ConsumerState<MinePage> {
   }
 
   Widget _buildSettingsList(AppLocalizations l10n) {
-    final List<SettingItemData> settingsData  = [
+    final List<SettingItemData> settingsData = [
       SettingItemData(
-        title: l10n.profile, 
+        title: l10n.profile,
         icon: 'assets/images/setting_1.png',
         onTap: () {
           Navigate.push(context, Routes.profile);
-        }
+        },
       ),
       SettingItemData(
-        title: l10n.deliveryAddress, 
-        icon: 'assets/images/setting_2.png', 
+        title: l10n.deliveryAddress,
+        icon: 'assets/images/setting_2.png',
         onTap: () {
           Navigate.push(context, Routes.address);
-        }
+        },
       ),
       SettingItemData(
-        title: l10n.help, 
-        icon: 'assets/images/setting_3.png', 
+        title: l10n.help,
+        icon: 'assets/images/setting_3.png',
         onTap: () {
           Navigate.push(context, Routes.help);
-        }
+        },
       ),
       SettingItemData(
-        title: l10n.accountSettings, 
+        title: l10n.accountSettings,
         icon: 'assets/images/setting_4.png',
         onTap: () {
-        Logger.info('MinePage', '点击账号设置');
-        // TODO: 跳转到账号设置页面
-        }
-      ), 
+          Logger.info('MinePage', '点击账号设置');
+          // TODO: 跳转到账号设置页面
+        },
+      ),
       SettingItemData(
-        title: l10n.language, 
-        icon: 'assets/images/setting_5.png', 
-        tip: AppServices.appSettings.languageModeName, 
+        title: l10n.language,
+        icon: 'assets/images/setting_5.png',
+        tip: AppServices.appSettings.languageModeName,
         onTap: () async {
           Logger.info('MinePage', '点击语言设置');
           await Pop.sheet(
             childBuilder: (dismiss) => LanguageSheet(dismiss: dismiss),
             title: l10n.selectLanguage,
-            titlePadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+            titlePadding: EdgeInsets.symmetric(
+              horizontal: 16.w,
+              vertical: 16.h,
+            ),
           );
-        }
+        },
       ),
       SettingItemData(
-        title: l10n.privacyPolicy, 
-        icon: 'assets/images/setting_6.png', 
+        title: l10n.privacyPolicy,
+        icon: 'assets/images/setting_6.png',
         onTap: () {
           Logger.info('MinePage', '点击隐私政策');
           // TODO: 跳转到隐私政策页面
-        }
-      ), 
+        },
+      ),
       SettingItemData(
-        title: l10n.platformAgreement, 
-        icon: 'assets/images/setting_7.png', 
+        title: l10n.platformAgreement,
+        icon: 'assets/images/setting_7.png',
         onTap: () {
           Logger.info('MinePage', '点击平台协议');
           // TODO: 跳转到平台协议页面
-        }
+        },
       ),
       SettingItemData(
-        title: l10n.logout, 
-        icon: 'assets/images/setting_8.png', 
+        title: l10n.logout,
+        icon: 'assets/images/setting_8.png',
         onTap: () async {
-          final res = await Pop.confirm(
-            content: l10n.logoutConfirmMessage,
+          final res = await confirm(
+            l10n.logoutConfirmMessage,
             confirmText: l10n.btnConfirm,
-            confirmBgColor: AppTheme.primaryOrange,
-            cancelBorder: Border.all(color: AppTheme.primaryOrange),
-            cancelBgColor: Colors.white,
             cancelText: l10n.btnCancel,
           );
-          if(res != null && res == true){
-             try {
+          if (res != null && res == true) {
+            try {
               Pop.loading();
               await ref.read(authNotifierProvider.notifier).logout();
               if (!mounted) return;
@@ -162,17 +165,22 @@ class _MinePageState extends ConsumerState<MinePage> {
               if (!mounted) return;
             }
           }
-        }
+        },
       ),
     ];
 
     return Column(
-       children: settingsData.map((data) => SettingItem(
-        title: data.title,
-        icon: data.icon,
-        tip: data.tip,
-        onTap: data.onTap,
-      )).toList(),
+      children:
+          settingsData
+              .map(
+                (data) => SettingItem(
+                  title: data.title,
+                  icon: data.icon,
+                  tip: data.tip,
+                  onTap: data.onTap,
+                ),
+              )
+              .toList(),
     );
   }
 }

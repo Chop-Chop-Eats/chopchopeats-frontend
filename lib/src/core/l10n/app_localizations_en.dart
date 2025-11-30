@@ -15,7 +15,7 @@ class AppLocalizationsEn implements AppLocalizations {
   String get themeLight => 'Light Mode';
   @override
   String get themeSystem => 'System Default';
-  
+
   // ============== 底部导航 ==============
   @override
   String get tabHome => 'Home';
@@ -27,7 +27,7 @@ class AppLocalizationsEn implements AppLocalizations {
   String get tabOrder => 'Orders';
   @override
   String get tabMine => 'Mine';
-  
+
   // ============== 通用按钮 ==============
   @override
   String get btnConfirm => 'Confirm';
@@ -47,7 +47,7 @@ class AppLocalizationsEn implements AppLocalizations {
   String get btnClear => 'Clear';
   @override
   String get btnViewAll => 'View All';
-  
+
   // ============== 提示信息 ==============
   @override
   String get loadingText => 'Loading...';
@@ -59,7 +59,7 @@ class AppLocalizationsEn implements AppLocalizations {
   String get emptyListText => 'Empty List';
   @override
   String get tryAgainText => 'Try Again';
-  
+
   // ============== 业务文案 - 店铺相关 ==============
   @override
   String get distanceUnit => 'km';
@@ -77,13 +77,13 @@ class AppLocalizationsEn implements AppLocalizations {
   String get favorite => 'Favorite';
   @override
   String get unfavorite => 'Unfavorite';
-  
+
   // ============== 业务文案 - 分类相关 ==============
   @override
   String get allCategories => 'All Categories';
   @override
   String get selectedChef => 'Selected Chefs';
-  
+
   // ============== 业务文案 - 搜索相关 ==============
   @override
   String get searchPlaceholder => 'Search shops or products';
@@ -93,7 +93,7 @@ class AppLocalizationsEn implements AppLocalizations {
   String get hotSearchKeywords => 'Hot Search';
   @override
   String get clearHistory => 'Clear History';
-  
+
   // ============== 业务文案 - 详情页相关 ==============
   @override
   String get productDetail => 'Product Detail';
@@ -122,6 +122,15 @@ class AppLocalizationsEn implements AppLocalizations {
   @override
   String get orderNow => 'Order Now';
   @override
+  String get clearCartConfirmMessage =>
+      'Are you sure you want to clear the cart?';
+  @override
+  String get cartTitle => 'Cart';
+  @override
+  String get cartEmpty => 'Cart is empty';
+  @override
+  String get addToCartSuccess => 'Add to Cart Success';
+  @override
   String get noCoupon => 'No coupon';
   @override
   String get minSpend => 'Min Spend';
@@ -140,7 +149,7 @@ class AppLocalizationsEn implements AppLocalizations {
   String get languageChinese => 'Chinese';
   @override
   String get languageEnglish => 'English';
-  
+
   // ============== Splash 启动页 ==============
   @override
   String get locationPermissionTitle => 'Location Permission Required';
@@ -149,11 +158,13 @@ class AppLocalizationsEn implements AppLocalizations {
   @override
   String get findNearbyStores => 'Find Nearby Stores';
   @override
-  String get findNearbyStoresDesc => 'Discover restaurants and deals around you';
+  String get findNearbyStoresDesc =>
+      'Discover restaurants and deals around you';
   @override
   String get calculateDeliveryDistance => 'Calculate Delivery Distance';
   @override
-  String get calculateDeliveryDistanceDesc => 'Estimate accurate delivery fee and time';
+  String get calculateDeliveryDistanceDesc =>
+      'Estimate accurate delivery fee and time';
   @override
   String get planBestRoute => 'Plan Best Route';
   @override
@@ -162,7 +173,7 @@ class AppLocalizationsEn implements AppLocalizations {
   String get goToSettings => 'Go to Settings';
   @override
   String get returnAfterEnable => 'Please return to the app after enabling';
-  
+
   // ============== Home 首页 ==============
   @override
   String get searchHintHome => 'What would you like to eat?';
@@ -189,13 +200,17 @@ class AppLocalizationsEn implements AppLocalizations {
   @override
   String get mapUseMyLocation => 'Use current location';
   @override
-  String get mapLocationServicesDisabled => 'Location services are disabled, please enable them first';
+  String get mapLocationServicesDisabled =>
+      'Location services are disabled, please enable them first';
   @override
-  String get mapLocationPermissionDenied => 'Location permission denied, please enable it in system settings';
+  String get mapLocationPermissionDenied =>
+      'Location permission denied, please enable it in system settings';
   @override
-  String get mapLocationFetchFailed => 'Failed to get current location, please try again later';
+  String get mapLocationFetchFailed =>
+      'Failed to get current location, please try again later';
   @override
-  String get mapPlaceDetailFailed => 'Failed to parse place, please try again later';
+  String get mapPlaceDetailFailed =>
+      'Failed to parse place, please try again later';
   @override
   String get mapSearchFailed => 'Search failed, please check your network';
   @override
@@ -209,7 +224,7 @@ class AppLocalizationsEn implements AppLocalizations {
   String get searchContentHint => 'Search content';
   @override
   String get guessYouLike => 'You May Like';
-  
+
   // ============== Detail 详情页 ==============
   @override
   String get merchantDetail => 'Merchant Details';
@@ -221,7 +236,7 @@ class AppLocalizationsEn implements AppLocalizations {
   String get comments => 'comments';
   @override
   String get shopNotExist => 'Shop does not exist';
-  
+
   // 星期相关
   @override
   String get today => 'Today';
@@ -239,13 +254,13 @@ class AppLocalizationsEn implements AppLocalizations {
   String get saturday => 'Sat';
   @override
   String get sunday => 'Sun';
-  
+
   // ============== Heart 收藏页 ==============
   @override
   String get noFavoriteText => 'No favorite restaurants';
   @override
   String get goToShop => 'Go to shop';
-  
+
   // ============== Mine 我的页面 ==============
   @override
   String get profile => 'Profile';
@@ -272,7 +287,7 @@ class AppLocalizationsEn implements AppLocalizations {
   @override
   String get coupons => 'Coupons';
   @override
-  String get recharge => 'Recharge';    
+  String get recharge => 'Recharge';
   @override
   String get shopEnter => 'Shop Enter';
   @override
@@ -291,8 +306,8 @@ class AppLocalizationsEn implements AppLocalizations {
   @override
   String get helpEmailCopiedToast => 'Support email copied to clipboard';
   @override
-  String get helpDialerLaunchFailedToast => 'Unable to open dialer. Please try again later.';
-
+  String get helpDialerLaunchFailedToast =>
+      'Unable to open dialer. Please try again later.';
 
   // ============== ShopEnter 商家入驻页面 ==============
   @override
@@ -302,15 +317,18 @@ class AppLocalizationsEn implements AppLocalizations {
   @override
   String get shopEnterDownloadApp => 'Download Shop App';
   @override
-  String get shopEnterButtonDescription => 'App Store/Google Play download ChopChop Cooks';
+  String get shopEnterButtonDescription =>
+      'App Store/Google Play download ChopChop Cooks';
   @override
   String get shopEnterRegisterAccount => 'Register Account';
   @override
-  String get shopEnterRegisterAccountDescription => 'Register with your phone number and fill in basic information';
+  String get shopEnterRegisterAccountDescription =>
+      'Register with your phone number and fill in basic information';
   @override
   String get shopEnterApplyExam => 'Apply for Exam';
   @override
-  String get shopEnterApplyExamDescription => 'Apply for food handler\'s certificate, complete the application process after obtaining the certificate';
+  String get shopEnterApplyExamDescription =>
+      'Apply for food handler\'s certificate, complete the application process after obtaining the certificate';
   @override
   String get shopEnterDownloadButton => 'Download Chopchop Cooks';
   // ============== 业务文案 - 个人资料页 ==============
@@ -331,9 +349,11 @@ class AppLocalizationsEn implements AppLocalizations {
   @override
   String get modifyNicknameTips1 => 'Normative Suggestions:';
   @override
-  String get modifyNicknameTips2 => 'Nickname can only contain up to 15 characters';
+  String get modifyNicknameTips2 =>
+      'Nickname can only contain up to 15 characters';
   @override
-  String get modifyNicknameTips3 => 'Nickname can only contain English, numbers, and symbols';
+  String get modifyNicknameTips3 =>
+      'Nickname can only contain English, numbers, and symbols';
   @override
   String get modifyNicknameEmpty => 'Please enter a nickname';
   @override
@@ -397,7 +417,8 @@ class AppLocalizationsEn implements AppLocalizations {
   @override
   String get addressStreetFixedValue => '1600 Amphitheatre Pkwy, Mountain View';
   @override
-  String get addressDetailLabel => 'Building / Apartment / Floor / Unit (Optional)';
+  String get addressDetailLabel =>
+      'Building / Apartment / Floor / Unit (Optional)';
   @override
   String get addressStateLabel => 'City / State';
   @override
@@ -424,7 +445,6 @@ class AppLocalizationsEn implements AppLocalizations {
   @override
   String get addressDeleteSuccess => 'Address deleted successfully';
 
-  
   // ============== 通用文案 ==============
   @override
   String get loadingFailedWithError => 'Loading failed';

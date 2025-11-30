@@ -11,7 +11,8 @@ abstract class AppLocalizations {
   }
 
   // 定义一个 Delegate
-  static const LocalizationsDelegate<AppLocalizations> delegate = _AppLocalizationsDelegate();
+  static const LocalizationsDelegate<AppLocalizations> delegate =
+      _AppLocalizationsDelegate();
 
   // ============== App 文本 ==============
   String get appTitle;
@@ -21,14 +22,14 @@ abstract class AppLocalizations {
   String get themeLight;
   String get themeDark;
   String get themeSystem;
-  
+
   // ============== 底部导航 ==============
   String get tabHome;
   String get tabHeart;
   String get tabMessage;
   String get tabOrder;
   String get tabMine;
-  
+
   // ============== 通用按钮 ==============
   String get btnConfirm;
   String get btnCancel;
@@ -39,14 +40,14 @@ abstract class AppLocalizations {
   String get btnClose;
   String get btnClear;
   String get btnViewAll;
-  
+
   // ============== 提示信息 ==============
   String get loadingText;
   String get noDataText;
   String get networkErrorText;
   String get emptyListText;
   String get tryAgainText;
-  
+
   // ============== 业务文案 - 店铺相关 ==============
   String get distanceUnit; // km
   String get deliveryFee;
@@ -56,17 +57,17 @@ abstract class AppLocalizations {
   String get hotProduct;
   String get favorite;
   String get unfavorite;
-  
+
   // ============== 业务文案 - 分类相关 ==============
   String get allCategories;
   String get selectedChef;
-  
+
   // ============== 业务文案 - 搜索相关 ==============
   String get searchPlaceholder;
   String get searchHistory;
   String get hotSearchKeywords;
   String get clearHistory;
-  
+
   // ============== 业务文案 - 详情页相关 ==============
   String get productDetail;
   String get shopIntroduction;
@@ -81,13 +82,17 @@ abstract class AppLocalizations {
   String get estimatedDeliveryFee;
   String get totalPrice;
   String get orderNow;
-  
+  String get clearCartConfirmMessage;
+  String get cartTitle;
+  String get cartEmpty;
+  String get addToCartSuccess;
+
   // ============== 业务文案 - 语言设置 ==============
   String get languageSettings;
   String get languageSystem;
   String get languageChinese;
   String get languageEnglish;
-  
+
   // ============== Splash 启动页 ==============
   String get locationPermissionTitle;
   String get locationPermissionSubtitle;
@@ -99,14 +104,14 @@ abstract class AppLocalizations {
   String get planBestRouteDesc;
   String get goToSettings;
   String get returnAfterEnable;
-  
+
   // ============== Home 首页 ==============
   String get searchHintHome;
   String get noCategoryData;
   String get noBannerData;
   String get noRestaurantData;
   String get selectCurrentLocationHint;
-  
+
   // ============== 地图选址 ==============
   String get mapSelectLocationTitle;
   String get mapConfirmLocation;
@@ -125,7 +130,7 @@ abstract class AppLocalizations {
   // ============== Search 搜索页 ==============
   String get searchContentHint;
   String get guessYouLike;
-  
+
   // ============== Detail 详情页 ==============
   String get merchantDetail; // 商家详情
   String get noShopDescription; // 暂无店铺描述
@@ -137,8 +142,7 @@ abstract class AppLocalizations {
   String get claimCouponSuccess; // 领取优惠券成功
   String get claimCouponFailed; // 领取优惠券失败
   String get couponClaimLimitReached; // 已领取到上限
-  
-  
+
   // 星期相关
   String get today;
   String get monday;
@@ -152,7 +156,7 @@ abstract class AppLocalizations {
   // ============== Heart 收藏页 ==============
   String get noFavoriteText;
   String get goToShop;
-  
+
   // ============== Mine 我的页面 ==============
   String get profile; // 个人资料
   String get deliveryAddress; // 收货地址
@@ -188,7 +192,6 @@ abstract class AppLocalizations {
   String get shopEnterApplyExam; // 考证&申请
   String get shopEnterApplyExamDescription; // 考证&申请描述
   String get shopEnterDownloadButton; // 下载按钮
-
 
   // ============== 业务文案 - 个人资料页 ==============
   String get avatar; // 头像
@@ -247,14 +250,14 @@ abstract class AppLocalizations {
   String get addressDeleteConfirmDescription; // 删除确认描述
   String get addressDeleteSuccess; // 删除成功提示
 
-  
   // ============== 通用文案 ==============
   String get loadingFailedWithError;
   String loadingFailedMessage(String error);
 }
 
 // Delegate 类，Flutter 会用它来加载对应的语言类
-class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
+class _AppLocalizationsDelegate
+    extends LocalizationsDelegate<AppLocalizations> {
   const _AppLocalizationsDelegate();
 
   // 判断该 Delegate 是否支持给定的 Locale

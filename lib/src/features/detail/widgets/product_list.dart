@@ -224,13 +224,13 @@ class _ProductListState extends ConsumerState<ProductList> {
                 if (isSku)
                   Container(
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10.r),
+                      borderRadius: BorderRadius.circular(12.r),
                       border: Border.all(
                         color: AppTheme.primaryOrange,
                         width: 1.w,
                       ),
-                      color: AppTheme.primaryOrange,
                     ),
+                    padding: EdgeInsets.symmetric(vertical: 2.h, horizontal: 8.w),
                     child: _buildSelectButton(
                       selectSpecification,
                       product,
@@ -271,22 +271,17 @@ class _ProductListState extends ConsumerState<ProductList> {
     SaleProductModel product,
     String diningDate, // 格式: YYYY-MM-DD
   ) {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 6.h),
-      child: GestureDetector(
+    return GestureDetector(
         onTap:
-            () => Navigate.push(
-              context,
-              Routes.productDetail,
-              arguments: {"productId": product.id, "shopId": product.shopId},
-            ),
-        child: Text(
-          selectSpecification,
-          style: TextStyle(
-            fontSize: 12.sp,
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
+          () => Navigate.push(
+            context,
+            Routes.productDetail,
+            arguments: {"productId": product.id, "shopId": product.shopId},
           ),
+      child: Text(
+        "+",
+        style: TextStyle(
+          fontSize: 16.sp,
         ),
       ),
     );

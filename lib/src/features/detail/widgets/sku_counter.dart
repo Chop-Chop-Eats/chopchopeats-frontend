@@ -60,22 +60,25 @@ class SkuCounter extends ConsumerWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _buildButton(
-            icon: Icons.remove,
-            enabled: canDecrease,
-            onTap: () => _onDecrease(ref),
-          ),
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 8.w),
-            child: Text(
-              quantity.toString(),
-              style: TextStyle(
-                color: isBusy ? Colors.grey[400] : Colors.black,
-                fontSize: 12.sp,
-                fontWeight: FontWeight.normal,
+          if(quantity > 0)...[
+            _buildButton(
+              icon: Icons.remove,
+              enabled: canDecrease,
+              onTap: () => _onDecrease(ref),
+            ),
+            Container(
+              padding: EdgeInsets.symmetric(horizontal: 8.w),
+              child: Text(
+                quantity.toString(),
+                style: TextStyle(
+                  color: isBusy ? Colors.grey[400] : Colors.black,
+                  fontSize: 12.sp,
+                  fontWeight: FontWeight.normal,
+                ),
               ),
             ),
-          ),
+          ],
+          
           _buildButton(
             icon: Icons.add,
             enabled: canIncrease,

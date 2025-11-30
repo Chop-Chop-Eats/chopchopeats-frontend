@@ -7,6 +7,7 @@ import 'package:unified_popups/unified_popups.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/logger/logger.dart';
+import '../../../core/utils/pop/confirm.dart';
 import '../../../core/utils/pop/toast.dart';
 import '../../../core/widgets/common_image.dart';
 import '../../../core/widgets/common_spacing.dart';
@@ -32,7 +33,7 @@ class _ShopCartState extends ConsumerState<ShopCart> {
     final cartState = ref.watch(cartStateProvider(widget.shopId));
 
     return GestureDetector(
-      onTap: cartState.isEmpty ? null : () => _openCartSheet(cartState),
+      onTap: cartState.isEmpty ? null : () => _openCartSheet(cartState, l10n),
       child: Container(
         key: _shopCartKey,
         height: 80.h,
@@ -60,7 +61,10 @@ class _ShopCartState extends ConsumerState<ShopCart> {
     );
   }
 
-  Future<void> _openCartSheet(CartState cartState) async {
+  Future<void> _openCartSheet(
+    CartState cartState,
+    AppLocalizations l10n,
+  ) async {
     if (cartState.isEmpty) {
       return;
     }
@@ -80,7 +84,7 @@ class _ShopCartState extends ConsumerState<ShopCart> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    '购物车(${cartState.totalQuantity})',
+                    '${l10n.cartTitle} (${cartState.totalQuantity})',
                     style: TextStyle(
                       fontSize: 14.sp,
                       color: Colors.black,
@@ -88,9 +92,18 @@ class _ShopCartState extends ConsumerState<ShopCart> {
                     ),
                   ),
                   IconButton(
-                    onPressed: () => _clearCart(cartState, dismiss),
+                    onPressed: () async {
+                      final res = await confirm(
+                        l10n.clearCartConfirmMessage,
+                        confirmText: l10n.btnConfirm,
+                        cancelText: l10n.btnCancel,
+                      );
+                      if (res != null && res == true) {
+                        _clearCart(cartState, dismiss);
+                      }
+                    },
                     icon: Icon(
-                      Icons.delete_forever_outlined,
+                      Icons.delete,
                       color: Colors.black,
                       size: 16.sp,
                     ),
@@ -102,7 +115,7 @@ class _ShopCartState extends ConsumerState<ShopCart> {
                 Padding(
                   padding: EdgeInsets.symmetric(vertical: 24.h),
                   child: Text(
-                    '购物车为空',
+                    l10n.cartEmpty,
                     style: TextStyle(fontSize: 12.sp, color: Colors.grey[500]),
                   ),
                 )

@@ -15,7 +15,7 @@ class AppLocalizationsZh implements AppLocalizations {
   String get themeLight => '亮色模式';
   @override
   String get themeSystem => '跟随系统';
-  
+
   // ============== 底部导航 ==============
   @override
   String get tabHome => '首页';
@@ -27,7 +27,7 @@ class AppLocalizationsZh implements AppLocalizations {
   String get tabOrder => '订单';
   @override
   String get tabMine => '我的';
-  
+
   // ============== 通用按钮 ==============
   @override
   String get btnConfirm => '确认';
@@ -47,7 +47,7 @@ class AppLocalizationsZh implements AppLocalizations {
   String get btnClear => '清除';
   @override
   String get btnViewAll => '查看全部';
-  
+
   // ============== 提示信息 ==============
   @override
   String get loadingText => '加载中...';
@@ -59,7 +59,7 @@ class AppLocalizationsZh implements AppLocalizations {
   String get emptyListText => '列表为空';
   @override
   String get tryAgainText => '重试';
-  
+
   // ============== 业务文案 - 店铺相关 ==============
   @override
   String get distanceUnit => 'km';
@@ -77,13 +77,13 @@ class AppLocalizationsZh implements AppLocalizations {
   String get favorite => '收藏';
   @override
   String get unfavorite => '取消收藏';
-  
+
   // ============== 业务文案 - 分类相关 ==============
   @override
   String get allCategories => '全部分类';
   @override
   String get selectedChef => '甄选私厨';
-  
+
   // ============== 业务文案 - 搜索相关 ==============
   @override
   String get searchPlaceholder => '搜索店铺或商品';
@@ -93,7 +93,7 @@ class AppLocalizationsZh implements AppLocalizations {
   String get hotSearchKeywords => '热门搜索';
   @override
   String get clearHistory => '清空历史';
-  
+
   // ============== 业务文案 - 详情页相关 ==============
   @override
   String get productDetail => '商品详情';
@@ -121,6 +121,14 @@ class AppLocalizationsZh implements AppLocalizations {
   String get totalPrice => '总价';
   @override
   String get orderNow => '立即下单';
+  @override
+  String get clearCartConfirmMessage => '确定清空购物车吗？';
+  @override
+  String get cartTitle => '购物车';
+  @override
+  String get cartEmpty => '购物车为空';
+  @override
+  String get addToCartSuccess => '加入购物车成功';
   // ============== 业务文案 - 语言设置 ==============
   @override
   String get languageSettings => '语言设置';
@@ -130,7 +138,7 @@ class AppLocalizationsZh implements AppLocalizations {
   String get languageChinese => '中文';
   @override
   String get languageEnglish => 'Englist';
-  
+
   // ============== Splash 启动页 ==============
   @override
   String get locationPermissionTitle => '需要位置权限';
@@ -152,7 +160,7 @@ class AppLocalizationsZh implements AppLocalizations {
   String get goToSettings => '前往设置开启';
   @override
   String get returnAfterEnable => '开启后请返回应用继续使用';
-  
+
   // ============== Home 首页 ==============
   @override
   String get searchHintHome => '想吃点什么?';
@@ -193,13 +201,13 @@ class AppLocalizationsZh implements AppLocalizations {
   @override
   String mapCoordinateLabel(double latitude, double longitude) =>
       '纬度: ${latitude.toStringAsFixed(6)}\n经度: ${longitude.toStringAsFixed(6)}';
-  
+
   // ============== Search 搜索页 ==============
   @override
   String get searchContentHint => '搜索内容';
   @override
   String get guessYouLike => '猜你喜欢';
-  
+
   // ============== Detail 详情页 ==============
   @override
   String get merchantDetail => '商家详情';
@@ -221,7 +229,7 @@ class AppLocalizationsZh implements AppLocalizations {
   String get claimCouponFailed => '领取优惠券失败';
   @override
   String get couponClaimLimitReached => '已经领取到上限';
-  
+
   // 星期相关
   @override
   String get today => '今天';
@@ -239,13 +247,13 @@ class AppLocalizationsZh implements AppLocalizations {
   String get saturday => '周六';
   @override
   String get sunday => '周日';
-  
+
   // ============== Heart 收藏页 ==============
   @override
   String get noFavoriteText => '暂未收藏任何餐厅';
   @override
   String get goToShop => '去逛逛';
-  
+
   // ============== Mine 我的页面 ==============
   @override
   String get profile => '个人资料';
@@ -282,7 +290,8 @@ class AppLocalizationsZh implements AppLocalizations {
   @override
   String get helpShareFeedbackTitle => '分享你的反馈';
   @override
-  String get helpShareFeedbackDescription => '感谢您分享想法、提出问题或表达谢意。您可以通过以下方式联系到我们的用户支持团队。';
+  String get helpShareFeedbackDescription =>
+      '感谢您分享想法、提出问题或表达谢意。您可以通过以下方式联系到我们的用户支持团队。';
   @override
   String get helpSupportEmailLabel => '客服邮箱';
   @override
@@ -300,7 +309,8 @@ class AppLocalizationsZh implements AppLocalizations {
   @override
   String get shopEnterDownloadApp => '下载商家端 App';
   @override
-  String get shopEnterButtonDescription => 'App Store/Google Play下载 ChopChop Cooks';
+  String get shopEnterButtonDescription =>
+      'App Store/Google Play下载 ChopChop Cooks';
   @override
   String get shopEnterRegisterAccount => '注册账号';
   @override
@@ -308,7 +318,8 @@ class AppLocalizationsZh implements AppLocalizations {
   @override
   String get shopEnterApplyExam => '考证&申请';
   @override
-  String get shopEnterApplyExamDescription => '考取私厨证书，完成申请流程考取 food handler\'s certificate后在App内提交入驻申请';
+  String get shopEnterApplyExamDescription =>
+      '考取私厨证书，完成申请流程考取 food handler\'s certificate后在App内提交入驻申请';
   @override
   String get shopEnterDownloadButton => '下载 Chopchop Cooks';
   // ============== 业务文案 - 个人资料页 ==============
@@ -420,7 +431,7 @@ class AppLocalizationsZh implements AppLocalizations {
   String get addressDeleteConfirmDescription => '确定要删除该收货地址吗？';
   @override
   String get addressDeleteSuccess => '地址删除成功';
-  
+
   // ============== 通用文案 ==============
   @override
   String get loadingFailedWithError => '加载失败';
