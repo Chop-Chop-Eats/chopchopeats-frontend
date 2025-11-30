@@ -237,7 +237,8 @@ abstract class AppLocalizations {
   String get addressStreetLabel; // 街道
   String get addressStreetFixedValue; // 固定街道值
   String get addressDetailLabel; // 建筑/公寓/楼层/单元
-  String get addressStateLabel; // 城市/州
+  String get addressCityLabel; // 城市
+  String get addressStateLabel; // 州/省
   String get addressZipCodeLabel; // 邮政编码
   String get addressSetDefaultToggle; // 设置默认地址文案
   String get addressSelectStateSheetTitle; // 选择城市/州标题

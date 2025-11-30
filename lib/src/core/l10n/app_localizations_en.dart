@@ -420,7 +420,9 @@ class AppLocalizationsEn implements AppLocalizations {
   String get addressDetailLabel =>
       'Building / Apartment / Floor / Unit (Optional)';
   @override
-  String get addressStateLabel => 'City / State';
+  String get addressCityLabel => 'City';
+  @override
+  String get addressStateLabel => 'State';
   @override
   String get addressZipCodeLabel => 'Postal Code';
   @override

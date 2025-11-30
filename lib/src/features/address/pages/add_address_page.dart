@@ -12,7 +12,6 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/logger/logger.dart';
 import '../../../core/maps/pages/map_picker_page.dart';
 import '../../../core/widgets/common_app_bar.dart';
-import '../../../core/widgets/common_indicator.dart';
 import '../../../core/widgets/common_spacing.dart';
 import '../models/address_models.dart';
 import '../providers/address_provider.dart';
@@ -35,10 +34,10 @@ class _AddAddressPageState extends ConsumerState<AddAddressPage> {
   final _detailController = TextEditingController();
   final _zipCodeController = TextEditingController();
   final _stateController = TextEditingController();
+  final _cityController = TextEditingController();
   LatLng? _streetLatLng;
   String? _streetFromMap;
   bool _isDefault = false;
-  StateItem? _selectedState;
   late final _AddressFormLogic _logic;
 
   bool get _isEditing => _logic.mode == AddressFormMode.edit;
@@ -56,14 +55,11 @@ class _AddAddressPageState extends ConsumerState<AddAddressPage> {
       _detailController.text = initial.detailAddress ?? '';
       _zipCodeController.text = initial.zipCode;
       _stateController.text = initial.state;
+      // 注意：城市字段不在 AddressItem 模型中，编辑时无法从初始数据获取
       _isDefault = initial.defaultStatus;
-      _selectedState = StateItem(id: initial.id ?? -1, state: initial.state);
     } else {
       _streetController.text = '';
     }
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(stateListProvider.notifier).loadStates();
-    });
   }
 
   @override
@@ -84,6 +80,7 @@ class _AddAddressPageState extends ConsumerState<AddAddressPage> {
     _detailController.dispose();
     _zipCodeController.dispose();
     _stateController.dispose();
+    _cityController.dispose();
     super.dispose();
   }
 
@@ -116,15 +113,16 @@ class _AddAddressPageState extends ConsumerState<AddAddressPage> {
     final street = _streetController.text.trim();
     final detail = _detailController.text.trim();
     final zipCode = _zipCodeController.text.trim();
-    final state = _selectedState;
+    final state = _stateController.text.trim();
 
-    if (name.isEmpty || phone.isEmpty || street.isEmpty || zipCode.isEmpty) {
+    if (name.isEmpty || phone.isEmpty || street.isEmpty || zipCode.isEmpty || state.isEmpty) {
       Pop.toast(l10n.addressFormIncomplete, toastType: ToastType.warn);
       return;
     }
 
-    if (state == null) {
-      Pop.toast(l10n.addressSelectStateHint, toastType: ToastType.warn);
+    // 确保从地图选择了位置
+    if (_streetLatLng == null) {
+      Pop.toast(l10n.mapSelectLocationTitle, toastType: ToastType.warn);
       return;
     }
 
@@ -138,7 +136,7 @@ class _AddAddressPageState extends ConsumerState<AddAddressPage> {
         id: _logic.initial?.id,
         mobile: phone,
         name: name,
-        state: state.state,
+        state: state,
         zipCode: zipCode,
       );
 
@@ -183,21 +181,49 @@ class _AddAddressPageState extends ConsumerState<AddAddressPage> {
       }
 
       final latLng = result.position;
+      final addressComponents = result.addressComponents;
       final trimmedAddress = result.address?.trim() ?? '';
       final trimmedLabel = result.label?.trim() ?? '';
-      final formattedAddress = trimmedAddress.isNotEmpty
-          ? trimmedAddress
-          : trimmedLabel.isNotEmpty
-              ? trimmedLabel
-              : (l10n?.mapCoordinateLabel(latLng.latitude, latLng.longitude) ??
-                  '${latLng.latitude.toStringAsFixed(6)}, ${latLng.longitude.toStringAsFixed(6)}');
+      Logger.info('AddAddressPage', 'addressComponents: $addressComponents');
+      Logger.info('AddAddressPage', 'trimmedAddress: $trimmedAddress');
+      Logger.info('AddAddressPage', 'trimmedLabel: $trimmedLabel');
+      // 优先使用地址组件中的街道信息，否则使用格式化地址
+      String formattedAddress;
+      if (addressComponents?.street != null && addressComponents!.street!.isNotEmpty) {
+        formattedAddress = addressComponents.street!;
+      } else {
+        formattedAddress = trimmedAddress.isNotEmpty
+            ? trimmedAddress
+            : trimmedLabel.isNotEmpty
+                ? trimmedLabel
+                : (l10n?.mapCoordinateLabel(latLng.latitude, latLng.longitude) ??
+                    '${latLng.latitude.toStringAsFixed(6)}, ${latLng.longitude.toStringAsFixed(6)}');
+      }
+      Logger.info('AddAddressPage', 'formattedAddress: $formattedAddress');
 
       setState(() {
         _streetLatLng = latLng;
         _streetFromMap = formattedAddress;
       });
+      
+      // 填充街道地址
       _streetController.text = formattedAddress;
+      
+      // 填充城市、州和邮编（从地址组件中获取）
+      if (addressComponents != null) {
+        if (addressComponents.city != null && addressComponents.city!.isNotEmpty) {
+          _cityController.text = addressComponents.city!;
+        }
+        if (addressComponents.state != null && addressComponents.state!.isNotEmpty) {
+          _stateController.text = addressComponents.state!;
+        }
+        if (addressComponents.zipCode != null && addressComponents.zipCode!.isNotEmpty) {
+          _zipCodeController.text = addressComponents.zipCode!;
+        }
+      }
+      
       Logger.info('AddAddressPage', '地图选点成功: $formattedAddress (${latLng.latitude}, ${latLng.longitude})');
+      Logger.info('AddAddressPage', '地址组件: state=${addressComponents?.state}, zipCode=${addressComponents?.zipCode}');
     } catch (e, stack) {
       Logger.error('AddAddressPage', '地图选点失败: $e\n$stack');
       Pop.toast(
@@ -207,114 +233,6 @@ class _AddAddressPageState extends ConsumerState<AddAddressPage> {
     }
   }
 
-  Future<void> _selectState() async {
-    final l10n = AppLocalizations.of(context)!;
-    var stateState = ref.read(stateListProvider);
-
-    if (stateState.states.isEmpty && !stateState.isLoading) {
-      Pop.loading();
-      await ref.read(stateListProvider.notifier).loadStates();
-      Pop.hideLoading();
-      stateState = ref.read(stateListProvider);
-    }
-
-    if (stateState.error != null && stateState.states.isEmpty) {
-      Pop.toast(stateState.error!, toastType: ToastType.error);
-      return;
-    }
-
-    if (stateState.states.isEmpty) {
-      Pop.toast(l10n.addressSelectStateEmpty, toastType: ToastType.none);
-      return;
-    }
-
-    final result = await Pop.sheet<StateItem>(
-      maxHeight: SheetDimension.fraction(0.5),
-      title: l10n.addressSelectStateSheetTitle,
-      childBuilder: (dismiss) {
-        final currentState = ref.read(stateListProvider);
-        if (currentState.isLoading && currentState.states.isEmpty) {
-          return Padding(
-            padding: EdgeInsets.symmetric(vertical: 32.h),
-            child: const Center(child: CommonIndicator()),
-          );
-        }
-
-        if (currentState.error != null && currentState.states.isEmpty) {
-          return Padding(
-            padding: EdgeInsets.all(24.w),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  currentState.error!,
-                  style: TextStyle(
-                    fontSize: 14.sp,
-                    color: Colors.grey.shade600,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                CommonSpacing.medium,
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: () async {
-                      Pop.loading();
-                      await ref.read(stateListProvider.notifier).loadStates();
-                      Pop.hideLoading();
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primaryOrange,
-                      foregroundColor: Colors.white,
-                      padding: EdgeInsets.symmetric(vertical: 12.h),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12.r),
-                      ),
-                    ),
-                    child: Text(
-                      l10n.tryAgainText,
-                      style: TextStyle(fontSize: 14.sp),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          );
-        }
-
-        final states = currentState.states;
-        return ConstrainedBox(
-          constraints: BoxConstraints(maxHeight: 360.h),
-          child: ListView.separated(
-            shrinkWrap: true,
-            itemBuilder: (_, index) {
-              final item = states[index];
-              return ListTile(
-                title: Text(
-                  item.state,
-                  style: TextStyle(
-                    fontSize: 16.sp,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                onTap: () => dismiss(item),
-              );
-            },
-            separatorBuilder:
-                (_, __) => Divider(height: 1.h, color: Colors.grey.shade200),
-            itemCount: states.length,
-          ),
-        );
-      },
-    );
-
-    if (result != null && mounted) {
-      setState(() {
-        _selectedState = result;
-        _stateController.text = result.state;
-      });
-    }
-  }
 
   InputDecoration _inputDecoration(String hintText) {
     return InputDecoration(
@@ -333,18 +251,6 @@ class _AddAddressPageState extends ConsumerState<AddAddressPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    ref.listen<StateListState>(stateListProvider, (previous, next) {
-      if (!mounted) return;
-      if (next.error != null && next.states.isNotEmpty) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) {
-            Logger.error("AddAddressPage", "Error: ${next.error!}");
-            Pop.toast(next.error!, toastType: ToastType.error);
-          }
-        });
-      }
-    });
-    final stateState = ref.watch(stateListProvider);
 
     return Scaffold(
       appBar: CommonAppBar(
@@ -408,32 +314,6 @@ class _AddAddressPageState extends ConsumerState<AddAddressPage> {
                       ),
                     ),
                   ),
-                  if (_streetLatLng != null) ...[
-                    CommonSpacing.small,
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Icon(
-                          Icons.location_on_outlined,
-                          size: 16.w,
-                          color: AppTheme.primaryOrange,
-                        ),
-                        CommonSpacing.width(8),
-                        Expanded(
-                          child: Text(
-                            l10n.mapCoordinateLabel(
-                              _streetLatLng!.latitude,
-                              _streetLatLng!.longitude,
-                            ),
-                            style: TextStyle(
-                              fontSize: 12.sp,
-                              color: Colors.grey.shade500,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
                   CommonSpacing.standard,
                   _buildLabel(l10n.addressDetailLabel),
                   CommonSpacing.small,
@@ -443,52 +323,27 @@ class _AddAddressPageState extends ConsumerState<AddAddressPage> {
                     decoration: _inputDecoration(l10n.addressDetailLabel),
                   ),
                   CommonSpacing.standard,
+                  _buildLabel(l10n.addressCityLabel),
+                  CommonSpacing.small,
+                  TextFormField(
+                    controller: _cityController,
+                    readOnly: true,
+                    decoration: _inputDecoration(l10n.addressCityLabel),
+                  ),
+                  CommonSpacing.standard,
                   _buildLabel(l10n.addressStateLabel),
                   CommonSpacing.small,
-                  GestureDetector(
-                    onTap: _selectState,
-                    child: AbsorbPointer(
-                      child: TextFormField(
-                        controller: _stateController,
-                        decoration: _inputDecoration(
-                          _selectedState?.state ?? l10n.addressStateLabel,
-                        ).copyWith(
-                          suffixIcon: Icon(
-                            Icons.keyboard_arrow_down,
-                            size: 24.w,
-                            color: Colors.grey.shade500,
-                          ),
-                        ),
-                      ),
-                    ),
+                  TextFormField(
+                    controller: _stateController,
+                    readOnly: true,
+                    decoration: _inputDecoration(l10n.addressStateLabel),
                   ),
-                  if (stateState.isLoading && _selectedState == null) ...[
-                    CommonSpacing.small,
-                    Row(
-                      children: [
-                        SizedBox(
-                          height: 16,
-                          width: 16,
-                          child: CommonIndicator(size: 16),
-                        ),
-                        CommonSpacing.width(8.w),
-                        Text(
-                          l10n.loadingText,
-                          style: TextStyle(
-                            fontSize: 12.sp,
-                            color: Colors.grey.shade500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
                   CommonSpacing.standard,
                   _buildLabel(l10n.addressZipCodeLabel),
                   CommonSpacing.small,
                   TextFormField(
                     controller: _zipCodeController,
-                    keyboardType: TextInputType.number,
-                    textInputAction: TextInputAction.done,
+                    readOnly: true,
                     decoration: _inputDecoration(l10n.addressZipCodeLabel),
                   ),
                   CommonSpacing.extraLarge,

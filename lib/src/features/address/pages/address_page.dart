@@ -49,14 +49,16 @@ class _AddressPageState extends ConsumerState<AddressPage> {
 
   Future<void> _onDeleteAddress(AddressItem item) async {
     final action = await AddressActions.showDeleteConfirmSheet(context);
-    if (action == DeleteSheetAction.confirm) {
-      final success = await AddressActions.deleteAddress(
-        context: context,
-        item: item,
-      );
-      if (success) {
-        await _reload();
-      }
+    if( mounted && context.mounted) {
+      if (action == DeleteSheetAction.confirm) {
+        final success = await AddressActions.deleteAddress(
+          context: context,
+          item: item,
+        );
+        if (success) {
+            await _reload();
+          }
+        }
     }
   }
 

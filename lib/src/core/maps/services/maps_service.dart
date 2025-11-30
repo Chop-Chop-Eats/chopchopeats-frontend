@@ -35,16 +35,39 @@ class PlaceSuggestion {
   }
 }
 
+/// 地址组件
+class AddressComponents {
+  AddressComponents({
+    this.street,
+    this.city,
+    this.state,
+    this.zipCode,
+  });
+
+  final String? street;
+  final String? city;
+  final String? state;
+  final String? zipCode;
+
+  bool get isEmpty =>
+      (street?.isEmpty ?? true) &&
+      (city?.isEmpty ?? true) &&
+      (state?.isEmpty ?? true) &&
+      (zipCode?.isEmpty ?? true);
+}
+
 class PlaceDetails {
   PlaceDetails({
     required this.position,
     required this.formattedAddress,
     this.street,
+    this.addressComponents,
   });
 
   final LatLng position;
   final String? formattedAddress;
   final String? street;
+  final AddressComponents? addressComponents;
 }
 
 class MapsService {
@@ -142,7 +165,7 @@ class MapsService {
       '/maps/api/place/details/json',
       params: _createParams({
         'place_id': placeId,
-        'fields': 'geometry/location,formatted_address',
+        'fields': 'geometry/location,formatted_address,address_components',
       }),
     );
 
@@ -164,15 +187,32 @@ class MapsService {
     final formattedAddress = result['formatted_address'] as String?;
     final street = MapsService.extractStreetFromAddress(formattedAddress);
 
+    // 解析地址组件
+    final addressComponentsList = result['address_components'] as List<dynamic>?;
+    final addressComponents = addressComponentsList != null
+        ? _parseAddressComponents(addressComponentsList)
+        : null;
+
     return PlaceDetails(
       position: LatLng(lat, lng),
       formattedAddress: formattedAddress,
       street: street.isNotEmpty ? street : null,
+      addressComponents: addressComponents,
     );
   }
 
   /// 逆地理编码
+  /// 返回格式化地址字符串
   Future<String?> reverseGeocode(LatLng position) async {
+    final result = await reverseGeocodeWithComponents(position);
+    return result?.formattedAddress;
+  }
+
+  /// 逆地理编码（带地址组件）
+  /// 返回包含地址组件的详细信息
+  Future<ReverseGeocodeResult?> reverseGeocodeWithComponents(
+    LatLng position,
+  ) async {
     final data = await _get(
       '/maps/api/geocode/json',
       params: _createParams({
@@ -192,7 +232,65 @@ class MapsService {
     final results = data['results'] as List<dynamic>;
     if (results.isEmpty) return null;
     final first = results.first as Map<String, dynamic>;
-    return first['formatted_address'] as String?;
+    final formattedAddress = first['formatted_address'] as String?;
+
+    // 解析地址组件
+    final addressComponentsList = first['address_components'] as List<dynamic>?;
+    final addressComponents = addressComponentsList != null
+        ? _parseAddressComponents(addressComponentsList)
+        : null;
+
+    return ReverseGeocodeResult(
+      formattedAddress: formattedAddress,
+      addressComponents: addressComponents,
+    );
+  }
+
+  /// 解析地址组件
+  /// [components] 谷歌地图API返回的 address_components 数组
+  AddressComponents _parseAddressComponents(List<dynamic> components) {
+    String? streetNumber;
+    String? route;
+    String? city;
+    String? state;
+    String? zipCode;
+
+    for (final component in components) {
+      final map = component as Map<String, dynamic>;
+      final types = (map['types'] as List<dynamic>?) ?? [];
+      final longName = (map['long_name'] as String?)?.trim() ?? '';
+
+      if (types.contains('street_number')) {
+        streetNumber = longName;
+      } else if (types.contains('route')) {
+        route = longName;
+      } else if (types.contains('locality')) {
+        city = longName;
+      } else if (types.contains('administrative_area_level_2') && city == null) {
+        city = longName;
+      } else if (types.contains('administrative_area_level_1')) {
+        state = longName;
+      } else if (types.contains('postal_code')) {
+        zipCode = longName;
+      }
+    }
+
+    // 组合街道地址：street_number + route
+    String? street;
+    if (streetNumber != null && route != null) {
+      street = '$streetNumber $route'.trim();
+    } else if (route != null) {
+      street = route;
+    } else if (streetNumber != null) {
+      street = streetNumber;
+    }
+
+    return AddressComponents(
+      street: street?.isNotEmpty == true ? street : null,
+      city: city?.isNotEmpty == true ? city : null,
+      state: state?.isNotEmpty == true ? state : null,
+      zipCode: zipCode?.isNotEmpty == true ? zipCode : null,
+    );
   }
 
   /// 获取附近地点
@@ -285,6 +383,17 @@ class MapsService {
     }
     return trimmed;
   }
+}
+
+/// 逆地理编码结果
+class ReverseGeocodeResult {
+  ReverseGeocodeResult({
+    this.formattedAddress,
+    this.addressComponents,
+  });
+
+  final String? formattedAddress;
+  final AddressComponents? addressComponents;
 }
 
 final MapsService mapsService = MapsService();

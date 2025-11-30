@@ -408,7 +408,9 @@ class AppLocalizationsZh implements AppLocalizations {
   @override
   String get addressDetailLabel => '建筑/公寓/楼层/单元（选填）';
   @override
-  String get addressStateLabel => '城市/州';
+  String get addressCityLabel => '城市';
+  @override
+  String get addressStateLabel => '州/省';
   @override
   String get addressZipCodeLabel => '邮政编码';
   @override

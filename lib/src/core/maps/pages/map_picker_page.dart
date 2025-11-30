@@ -38,6 +38,7 @@ class MapPickerResult {
     this.label,
     this.primaryText,
     this.secondaryText,
+    this.addressComponents,
   });
 
   final LatLng position;
@@ -45,6 +46,7 @@ class MapPickerResult {
   final String? label;
   final String? primaryText;
   final String? secondaryText;
+  final AddressComponents? addressComponents;
 }
 
 class MapPickerPage extends ConsumerStatefulWidget {
@@ -211,6 +213,17 @@ class _MapPickerPageState extends ConsumerState<MapPickerPage> {
         return;
       }
       Logger.info('MapPickerPage', 'targetPosition: $targetPosition, targetAddress: $targetAddress');
+      
+      // 获取地址组件信息
+      AddressComponents? addressComponents;
+      try {
+        final geocodeResult = await mapsService.reverseGeocodeWithComponents(targetPosition);
+        addressComponents = geocodeResult?.addressComponents;
+      } catch (e, stack) {
+        Logger.error('MapPickerPage', '获取地址组件失败: $e\n$stack');
+        // 继续执行，即使获取地址组件失败也不影响返回结果
+      }
+      
       if (closePicker) {
         _isNavigatingBack = true;
         // 直接使用原始suggestion的primaryText和secondaryText
@@ -221,6 +234,7 @@ class _MapPickerPageState extends ConsumerState<MapPickerPage> {
             label: targetLabel,
             primaryText: activeSuggestion.primaryText,
             secondaryText: activeSuggestion.secondaryText,
+            addressComponents: addressComponents,
           ),
         );
       } else {
@@ -258,6 +272,35 @@ class _MapPickerPageState extends ConsumerState<MapPickerPage> {
       _searchFocusNode.unfocus();
       // 点击搜索结果后，清除搜索建议列表
       _clearSuggestions();
+      
+      // 获取地址组件信息
+      AddressComponents? addressComponents;
+      if (enrichedSuggestion.placeId.isNotEmpty) {
+        try {
+          final placeDetails = await mapsService.fetchPlaceDetails(enrichedSuggestion.placeId);
+          addressComponents = placeDetails?.addressComponents;
+        } catch (e, stack) {
+          Logger.error('MapPickerPage', '从PlaceDetails获取地址组件失败: $e\n$stack');
+          // 如果从PlaceDetails获取失败，尝试使用reverseGeocode
+          try {
+            final geocodeResult = await mapsService.reverseGeocodeWithComponents(targetPosition);
+            addressComponents = geocodeResult?.addressComponents;
+          } catch (e2, stack2) {
+            Logger.error('MapPickerPage', '从reverseGeocode获取地址组件失败: $e2\n$stack2');
+            // 继续执行，即使获取地址组件失败也不影响返回结果
+          }
+        }
+      } else {
+        // 如果没有placeId，使用reverseGeocode
+        try {
+          final geocodeResult = await mapsService.reverseGeocodeWithComponents(targetPosition);
+          addressComponents = geocodeResult?.addressComponents;
+        } catch (e, stack) {
+          Logger.error('MapPickerPage', '获取地址组件失败: $e\n$stack');
+          // 继续执行，即使获取地址组件失败也不影响返回结果
+        }
+      }
+      
       if (closePicker) {
         if (!mounted) return;
         _isNavigatingBack = true;
@@ -268,6 +311,7 @@ class _MapPickerPageState extends ConsumerState<MapPickerPage> {
             label: targetLabel,
             primaryText: enrichedSuggestion.primaryText,
             secondaryText: enrichedSuggestion.secondaryText,
+            addressComponents: addressComponents,
           ),
         );
       }
