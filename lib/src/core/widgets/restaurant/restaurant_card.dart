@@ -96,7 +96,11 @@ class RestaurantCard extends StatelessWidget {
                       children: [
                         Rating(rating: restaurant.rating?.toString() ?? '0.0'),
                         CommonSpacing.width(8),
-                        OperatingHours(operatingHours: formatOperatingHours(restaurant.operatingHours)),
+                        Expanded(
+                          child: Wrap(
+                            children: restaurant.operatingHours?.map((e) => OperatingHours(operatingHours: e.time ?? '')).toList() ?? [],
+                          ),
+                        ),
                       ],
                     ),
                     Row(

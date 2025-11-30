@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../core/utils/formats.dart';
 import '../../../core/widgets/common_image.dart';
 import '../../../core/widgets/common_spacing.dart';
 import '../../../core/widgets/restaurant/operating_hours.dart';
 import '../../../core/widgets/restaurant/rating.dart';
+import '../../home/models/home_models.dart';
 import '../models/detail_model.dart';
 import 'coupon_list.dart';
 
@@ -51,7 +51,7 @@ class ShopInfoCard extends StatelessWidget {
           // 评分和营业时间
           _buildRatingWithOperatingHours(
             rating: shop.rating?.toString() ?? '0.0',
-            operatingHours: formatOperatingHours(shop.operatingHours),
+            operatingHours: shop.operatingHours ?? [],
             distance: shop.distance != null ? '${shop.distance!.toStringAsFixed(1)}km' : l10n.unknownDistance,
             commentCount: shop.commentCount?.toString() ?? '0',
             context: context,
@@ -113,7 +113,7 @@ class ShopInfoCard extends StatelessWidget {
   /// 评分和营业时间
   Widget _buildRatingWithOperatingHours({
     required String rating,
-    required String operatingHours,
+    required List<OperatingHour> operatingHours,
     required String distance,
     required String commentCount,
     required BuildContext context,
@@ -157,7 +157,9 @@ class ShopInfoCard extends StatelessWidget {
                 ],
               ),
               CommonSpacing.medium,
-              OperatingHours(operatingHours: operatingHours),
+              Wrap(
+                children: operatingHours.map((e) => OperatingHours(operatingHours: e.time ?? '')).toList(),
+              ),
             ],
           ),
           Column(

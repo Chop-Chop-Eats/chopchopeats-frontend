@@ -13,11 +13,12 @@ class OperatingHours extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         CommonImage(imagePath: "assets/images/clock.png", height: 16.h),
-        CommonSpacing.width(4),
+        CommonSpacing.width(4.w),
         Text(
           operatingHours,
           style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold),
         ),
+        CommonSpacing.width(6.w),
       ],
     );
   }
