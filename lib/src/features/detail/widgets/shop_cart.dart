@@ -210,6 +210,8 @@ class _ShopCartState extends ConsumerState<ShopCart> {
     required int quantity,
     required CartTotals totals,
   }) {
+    final deliveryFee = totals.deliveryFee;
+    Logger.info('ShopCart', '配送费用: $deliveryFee');
     return Row(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -271,6 +273,7 @@ class _ShopCartState extends ConsumerState<ShopCart> {
                 ],
               ),
             ),
+
             Text(
               '${l10n.estimatedDeliveryFee} : \$${totals.deliveryFee.toStringAsFixed(2)}',
               style: TextStyle(fontSize: 11.sp, color: Colors.grey.shade600),

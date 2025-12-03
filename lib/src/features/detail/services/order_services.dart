@@ -80,9 +80,9 @@ class OrderServices {
 
   /// 计算配送预估费用
   Future<DeliveryFeeModel> getDeliveryFee(DeliveryFeeQuery query) async {
-    final response = await ApiClient().get(
+    final response = await ApiClient().post(
       ApiPaths.getDeliveryFeeEstimateApi,
-      queryParameters: query.toJson(),
+      data: query.toJson(),
     );
     Logger.info('OrderServices', '计算配送预估费用: ${response.data}');
     return DeliveryFeeModel.fromJson(response.data);

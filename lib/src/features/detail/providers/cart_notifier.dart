@@ -49,11 +49,35 @@ class CartNotifier extends StateNotifier<Map<String, CartState>> {
       final query = GetCartListQuery(diningDate: diningDate, shopId: shopId);
       final items = await _orderServices.getCartList(query);
 
-      final totals = CartTotals.fromItems(items);
-      final next = current.copyWith(
+      // 重新获取最新状态，避免覆盖更新后的费用（例如最新的配送费）
+      final latest = _ensureCart(shopId);
+
+      // 计算新的 subtotal
+      final newSubtotal = items.fold<double>(0, (sum, item) {
+        final price = item.price ?? 0;
+        final quantity = item.quantity ?? 0;
+        return sum + price * quantity;
+      });
+
+      // 使用最新的 totals 信息重新计算 payable
+      // payable = subtotal + serviceFee + taxAmount + deliveryFee + tipAmount - couponOffset
+      final preservedTotals = latest.totals;
+      final newPayable = newSubtotal +
+          preservedTotals.serviceFee +
+          preservedTotals.taxAmount +
+          preservedTotals.deliveryFee +
+          preservedTotals.tipAmount -
+          preservedTotals.couponOffset;
+
+      final updatedTotals = preservedTotals.copyWith(
+        subtotal: newSubtotal,
+        payable: newPayable,
+      );
+
+      final next = latest.copyWith(
         diningDate: diningDate,
         items: items,
-        totals: totals,
+        totals: updatedTotals,
         lastSyncedAt: DateTime.now(),
         dataOrigin: CartDataOrigin.remote,
         isSyncing: false,
@@ -336,6 +360,78 @@ class CartNotifier extends StateNotifier<Map<String, CartState>> {
       shopId: shopId,
       diningDate: resolvedDate,
     );
+  }
+
+  /// 更新配送预估费用
+  Future<void> updateDeliveryFee({
+    required String shopId,
+    required double latitude,
+    required double longitude,
+  }) async {
+    // 设置 loading 状态
+    final current = _ensureCart(shopId);
+    _commit(shopId, current.copyWith(isUpdating: true));
+    
+    try {
+      final query = DeliveryFeeQuery(
+        latitude: latitude,
+        longitude: longitude,
+        shopId: shopId,
+      );
+      final deliveryFeeModel = await _orderServices.getDeliveryFee(query);
+      
+      // 重新获取最新状态
+      final latest = _ensureCart(shopId);
+      final newDeliveryFee = deliveryFeeModel.estimatedDeliveryFee ?? 0;
+      
+      // 重新计算应付款（应付款 = subtotal + serviceFee + taxAmount + deliveryFee + tipAmount - couponOffset）
+      final newPayable = latest.totals.subtotal +
+          latest.totals.serviceFee +
+          latest.totals.taxAmount +
+          newDeliveryFee +
+          latest.totals.tipAmount -
+          latest.totals.couponOffset;
+      
+      // 创建新的 totals 对象（确保是新实例，不使用 const）
+      final updatedTotals = CartTotals(
+        subtotal: latest.totals.subtotal,
+        serviceFee: latest.totals.serviceFee,
+        taxAmount: latest.totals.taxAmount,
+        deliveryFee: newDeliveryFee,
+        couponOffset: latest.totals.couponOffset,
+        tipAmount: latest.totals.tipAmount,
+        payable: newPayable,
+      );
+      
+      // 创建新的 CartState 对象（确保是新实例）
+      final updatedState = CartState(
+        shopId: latest.shopId,
+        diningDate: latest.diningDate,
+        items: latest.items,
+        totals: updatedTotals,
+        lastSyncedAt: latest.lastSyncedAt,
+        dataOrigin: latest.dataOrigin,
+        isSyncing: false,
+        isUpdating: false,
+        isOperating: latest.isOperating,
+        error: latest.error,
+        lastError: latest.lastError,
+        operatingProductRef: latest.operatingProductRef,
+      );
+      
+      // 更新状态
+      _commit(shopId, updatedState);
+      
+      Logger.info(
+        'CartNotifier',
+        '配送费用更新成功: shopId=$shopId, deliveryFee=$newDeliveryFee',
+      );
+    } catch (e) {
+      Logger.error('CartNotifier', '更新配送费用失败: shopId=$shopId, error=$e');
+      // 清除 loading 状态
+      final latest = _ensureCart(shopId);
+      _commit(shopId, latest.copyWith(isUpdating: false));
+    }
   }
 }
 

@@ -101,6 +101,30 @@ class CartTotals {
     });
     return CartTotals(subtotal: subtotal, payable: subtotal);
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is CartTotals &&
+        other.subtotal == subtotal &&
+        other.serviceFee == serviceFee &&
+        other.taxAmount == taxAmount &&
+        other.deliveryFee == deliveryFee &&
+        other.couponOffset == couponOffset &&
+        other.tipAmount == tipAmount &&
+        other.payable == payable;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        subtotal,
+        serviceFee,
+        taxAmount,
+        deliveryFee,
+        couponOffset,
+        tipAmount,
+        payable,
+      );
 }
 
 /// 单个店铺的购物车状态
@@ -227,5 +251,50 @@ class CartState {
       map[CartProductRef(productId: productId, productSpecId: specId)] = item;
     }
     return map;
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is CartState &&
+        other.shopId == shopId &&
+        other.diningDate == diningDate &&
+        other.items.length == items.length &&
+        _listEquals(other.items, items) &&
+        other.totals == totals &&
+        other.lastSyncedAt == lastSyncedAt &&
+        other.dataOrigin == dataOrigin &&
+        other.isSyncing == isSyncing &&
+        other.isUpdating == isUpdating &&
+        other.isOperating == isOperating &&
+        other.error == error &&
+        other.lastError == lastError &&
+        other.operatingProductId == operatingProductId &&
+        other.operatingProductSpecId == operatingProductSpecId;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        shopId,
+        diningDate,
+        Object.hashAll(items),
+        totals,
+        lastSyncedAt,
+        dataOrigin,
+        isSyncing,
+        isUpdating,
+        isOperating,
+        error,
+        lastError,
+        operatingProductId,
+        operatingProductSpecId,
+      );
+
+  bool _listEquals(List<CartItemModel> a, List<CartItemModel> b) {
+    if (a.length != b.length) return false;
+    for (int i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
   }
 }

@@ -455,11 +455,11 @@ class DeliveryFeeModel {
 
   factory DeliveryFeeModel.fromJson(Map<String, dynamic> json) {
     return DeliveryFeeModel(
-      deliveryFeePerMile: json['deliveryFeePerMile'],
-      distance: json['distance'],
-      estimatedDeliveryFee: json['estimatedDeliveryFee'],
-      shopId: json['shopId'],
-      shopName: json['shopName'],
+      deliveryFeePerMile: JsonUtils.parseDouble(json, 'deliveryFeePerMile'),
+      distance: JsonUtils.parseDouble(json, 'distance'),
+      estimatedDeliveryFee: JsonUtils.parseDouble(json, 'estimatedDeliveryFee'),
+      shopId: JsonUtils.parseString(json, 'shopId'),
+      shopName: JsonUtils.parseString(json, 'shopName'),
     );
   }
 }

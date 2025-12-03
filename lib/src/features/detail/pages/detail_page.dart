@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
+import '../../../core/config/app_services.dart';
 import '../../../core/utils/logger/logger.dart';
 import '../../../core/utils/pop/toast.dart';
 import '../../../core/widgets/common_indicator.dart';
@@ -54,6 +55,7 @@ class _DetailPageState extends ConsumerState<DetailPage> {
 
       final cartNotifier = ref.read(cartProvider.notifier);
       final diningDate = formatDiningDate(DateTime.now());
+      final appSettings = AppServices.appSettings;
 
       // 直接刷新购物车数据（从服务端获取最新数据）
       unawaited(
@@ -72,6 +74,15 @@ class _DetailPageState extends ConsumerState<DetailPage> {
                 '购物车刷新失败: shopId=${widget.id}, error=$e',
               );
             }),
+      );
+
+      // 更新配送预估费用（静默更新，不阻塞初始化）
+      unawaited(
+        cartNotifier.updateDeliveryFee(
+          shopId: widget.id,
+          latitude: appSettings.latitude,
+          longitude: appSettings.longitude,
+        ),
       );
     });
   }
@@ -92,15 +103,23 @@ class _DetailPageState extends ConsumerState<DetailPage> {
       shopId: widget.id,
       saleWeekDay: currentWeekday,
     );
+    final appSettings = AppServices.appSettings;
+    final cartNotifier = ref.read(cartProvider.notifier);
+    final detailNotifier = ref.read(detailProvider(widget.id).notifier);
+    final couponNotifier = ref.read(couponProvider(widget.id).notifier);
+    final productListNotifier = ref.read(productListProvider(productListParams).notifier);
 
     // 使用 Future.wait 并行刷新所有接口
     try {
       await Future.wait([
-        ref.read(detailProvider(widget.id).notifier).refresh(widget.id),
-        ref.read(couponProvider(widget.id).notifier).refresh(widget.id),
-        ref
-            .read(productListProvider(productListParams).notifier)
-            .refresh(widget.id, currentWeekday),
+        detailNotifier.refresh(widget.id),
+        couponNotifier.refresh(widget.id),
+        productListNotifier.refresh(widget.id, currentWeekday),
+        cartNotifier.updateDeliveryFee(
+          shopId: widget.id,
+          latitude: appSettings.latitude,
+          longitude: appSettings.longitude,
+        ),
       ]);
       Logger.info('DetailPage', '所有接口刷新完成');
     } catch (e) {
