@@ -1,3 +1,4 @@
+import 'package:chop_user/src/core/routing/navigate.dart';
 import 'package:chop_user/src/features/detail/widgets/sku_counter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -5,6 +6,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:unified_popups/unified_popups.dart';
 
 import '../../../core/l10n/app_localizations.dart';
+import '../../../core/routing/routes.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/logger/logger.dart';
 import '../../../core/utils/pop/confirm.dart';
@@ -14,6 +16,7 @@ import '../../../core/widgets/common_spacing.dart';
 import '../models/order_model.dart';
 import '../providers/cart_notifier.dart';
 import '../providers/cart_state.dart';
+import 'bottom_arc_container.dart';
 
 class ShopCart extends ConsumerStatefulWidget {
   const ShopCart({super.key, required this.shopId});
@@ -34,17 +37,8 @@ class _ShopCartState extends ConsumerState<ShopCart> {
 
     return GestureDetector(
       onTap: cartState.isEmpty ? null : () => _openCartSheet(cartState, l10n),
-      child: Container(
-        key: _shopCartKey,
-        height: 80.h,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(16.r),
-            topRight: Radius.circular(16.r),
-          ),
-        ),
-        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+      key: _shopCartKey,
+      child: BottomArcContainer(
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -295,6 +289,7 @@ class _ShopCartState extends ConsumerState<ShopCart> {
           return;
         }
         Logger.info('ShopCart', '点击下单 shopId=${widget.shopId}');
+        Navigate.push(context, Routes.confirmOrder);
       },
       child: Container(
         decoration: BoxDecoration(

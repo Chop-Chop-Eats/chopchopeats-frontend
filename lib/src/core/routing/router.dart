@@ -8,6 +8,7 @@ import '../../features/auth/pages/set_new_password_page.dart';
 import '../../features/auth/pages/verification_code_page.dart';
 import '../../features/category/pages/category_detail_page.dart';
 import '../../features/coupon/pages/coupon_page.dart';
+import '../../features/detail/pages/confirm_order_page.dart';
 import '../../features/detail/pages/detail_page.dart';
 import '../../features/detail/pages/product_detail_page.dart';
 import '../../features/error_page.dart';
@@ -98,6 +99,7 @@ class AppRouter {
       }
       return const ErrorPage(message: "商品参数错误或缺失");
     },
+    Routes.confirmOrder: (settings) => const ConfirmOrderPage(),
   };
 
   /// 创建路由方法
