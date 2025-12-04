@@ -153,6 +153,28 @@ abstract class AppLocalizations {
   String get saturday;
   String get sunday;
 
+
+  // ============== Confirm Order 确认订单页 ==============
+  String get confirmOrder; // 确认订单
+  String get confirmOrderAddress; // 选择地址
+  String get confirmOrderPrivateChef; // 下单私厨
+  String get confirmOrderDistance; // 距离
+  String get confirmOrderPlan; // 计划
+  String get confirmOrderStartDelivery; // 开始配送
+  String get confirmOrderMealDetail; // 餐品详情
+  String get confirmOrderDeliveryFee; // 配送费
+  String get confirmOrderDeliveryFeeTip; // 配送费提示
+  String get confirmOrderOrderAmount; // 订单金额
+  String get confirmOrderMealSubtotal; // 餐品小记
+  String get confirmOrderTaxAndServiceFee; // 税费&服务费
+  String get confirmOrderCouponDiscount; // 优惠券折扣
+  String get confirmOrderTotal; // 合计
+  String get confirmOrderPaymentMethod; // 支付方式
+  String get confirmOrderSelectPaymentMethod; // 选择支付方式
+  String get confirmOrderRemark; // 备注
+  String confirmOrderSettlementTip(String value); // 结算小费
+  String get confirmOrderSettlement; // 结算
+
   // ============== Heart 收藏页 ==============
   String get noFavoriteText;
   String get goToShop;
@@ -280,3 +302,4 @@ class _AppLocalizationsDelegate
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
 }
+

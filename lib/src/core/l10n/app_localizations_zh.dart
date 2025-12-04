@@ -248,6 +248,46 @@ class AppLocalizationsZh implements AppLocalizations {
   @override
   String get sunday => '周日';
 
+  // ============== Confirm Order 确认订单页 ==============
+  @override
+  String get confirmOrder => '确认订单';
+  @override
+  String get confirmOrderAddress => '请选择或添加配送地址';
+  @override
+  String get confirmOrderPrivateChef => '下单私厨';
+  @override
+  String get confirmOrderDistance => '距离';
+  @override
+  String get confirmOrderPlan => '计划';
+  @override
+  String get confirmOrderStartDelivery => '开始配送';
+  @override
+  String get confirmOrderMealDetail => '餐品详情';
+  @override
+  String get confirmOrderDeliveryFee => '配送费';
+  @override
+  String get confirmOrderDeliveryFeeTip => '配送费提示';
+  @override
+  String get confirmOrderOrderAmount => '订单金额';
+  @override
+  String get confirmOrderMealSubtotal => '餐品小记';
+  @override
+  String get confirmOrderTaxAndServiceFee => '税费&服务费';
+  @override
+  String get confirmOrderCouponDiscount => '优惠券折扣';
+  @override
+  String get confirmOrderTotal => '合计';
+  @override
+  String get confirmOrderPaymentMethod => '支付方式';
+  @override
+  String get confirmOrderSelectPaymentMethod => '选择支付方式';
+  @override
+  String get confirmOrderRemark => '备注（选填）';
+  @override
+  String confirmOrderSettlementTip(String value) => '含小费$value后的总价';
+  @override
+  String get confirmOrderSettlement => '结算';
+
   // ============== Heart 收藏页 ==============
   @override
   String get noFavoriteText => '暂未收藏任何餐厅';
@@ -440,3 +480,4 @@ class AppLocalizationsZh implements AppLocalizations {
   @override
   String loadingFailedMessage(String error) => '加载失败: $error';
 }
+

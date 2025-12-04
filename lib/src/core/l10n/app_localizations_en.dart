@@ -255,6 +255,45 @@ class AppLocalizationsEn implements AppLocalizations {
   @override
   String get sunday => 'Sun';
 
+  // ============== Confirm Order 确认订单页 ==============
+  @override
+  String get confirmOrder => 'Confirm Order';
+  @override
+  String get confirmOrderAddress => 'Select Address';
+  @override
+  String get confirmOrderPrivateChef => 'Order Private Chef';
+  @override   
+  String get confirmOrderDistance => 'Distance';
+  @override
+  String get confirmOrderPlan => 'Plan';
+  @override
+  String get confirmOrderStartDelivery => 'Start Delivery';
+  @override
+  String get confirmOrderMealDetail => 'Meal Detail';
+  @override
+  String get confirmOrderDeliveryFeeTip => 'Delivery Fee Tip';
+  @override
+  String get confirmOrderOrderAmount => 'Order Amount';
+  @override
+  String get confirmOrderMealSubtotal => 'Meal Subtotal';
+  @override
+  String get confirmOrderTaxAndServiceFee => 'Tax & Service Fee';
+  @override
+  String get confirmOrderDeliveryFee => 'Delivery Fee';
+  @override
+  String get confirmOrderCouponDiscount => 'Coupon Discount';
+  @override
+  String get confirmOrderTotal => 'Total';
+  @override
+  String get confirmOrderPaymentMethod => 'Payment Method';
+  @override
+  String get confirmOrderSelectPaymentMethod => 'Select Payment Method';
+  @override
+  String get confirmOrderRemark => 'Remark';
+  @override
+  String confirmOrderSettlementTip(String value) => 'Total after tip $value';
+  @override
+  String get confirmOrderSettlement => 'Settlement';
   // ============== Heart 收藏页 ==============
   @override
   String get noFavoriteText => 'No favorite restaurants';
@@ -453,3 +492,4 @@ class AppLocalizationsEn implements AppLocalizations {
   @override
   String loadingFailedMessage(String error) => 'Loading failed: $error';
 }
+
