@@ -143,7 +143,7 @@ class _ConfirmOrderPageState extends State<ConfirmOrderPage> {
             Text("${l10n.confirmOrderDistance}10km", style: textStyle),
             Icon(Icons.directions_car_outlined, size: 24.w, color: Colors.black),
             Text(l10n.confirmOrderPlan, style: textStyle),
-            Text("7月11日 12:00 ~ 14:00", style: textStyle.copyWith(color: AppTheme.primaryOrange)),
+            Text("7.11 12:00 ", style: textStyle.copyWith(color: AppTheme.primaryOrange)),
             Text(l10n.confirmOrderStartDelivery, style: textStyle),
           ],
         )
@@ -171,7 +171,7 @@ class _ConfirmOrderPageState extends State<ConfirmOrderPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         CommonSpacing.standard,
-        Text(l10n.confirmOrderDeliveryFee, style: titleText),
+        Text(l10n.confirmOrderDeliveryTip, style: titleText),
         CommonSpacing.medium,
         Text(l10n.confirmOrderDeliveryFeeTip, style: textStyle),
         CommonSpacing.small,
@@ -306,6 +306,7 @@ class _ConfirmOrderPageState extends State<ConfirmOrderPage> {
 
 
   Widget _buildApplyContainer() {
+    final l10n = AppLocalizations.of(context)!;
     return BottomArcContainer(
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -343,12 +344,12 @@ class _ConfirmOrderPageState extends State<ConfirmOrderPage> {
                   ],
                 ),
               ),
-              Text("含小费\$8.17后的总价", style: TextStyle(fontSize: 12.sp, color: Color(0xFF86909C))),
+              Text( l10n.confirmOrderSettlementTip("\$8.17"), style: TextStyle(fontSize: 12.sp, color: Color(0xFF86909C))),
             ],
           ),
           // 按钮区域
           CommonButton(
-            text: "结算",
+            text: l10n.confirmOrderSettlement,
             padding: EdgeInsets.symmetric(horizontal: 48.w, vertical: 12.h),
             onPressed: () {}
           ),
@@ -357,3 +358,4 @@ class _ConfirmOrderPageState extends State<ConfirmOrderPage> {
     );
   }
 }
+

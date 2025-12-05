@@ -48,6 +48,8 @@ class _ShopCartState extends ConsumerState<ShopCart> {
               quantity: cartState.totalQuantity,
               totals: cartState.totals,
             ),
+            
+            
             _buildOrder(l10n: l10n, cartState: cartState),
           ],
         ),
@@ -204,8 +206,6 @@ class _ShopCartState extends ConsumerState<ShopCart> {
     required int quantity,
     required CartTotals totals,
   }) {
-    final deliveryFee = totals.deliveryFee;
-    Logger.info('ShopCart', '配送费用: $deliveryFee');
     return Row(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -215,7 +215,7 @@ class _ShopCartState extends ConsumerState<ShopCart> {
           children: [
             Positioned(
               right: -8.w,
-              top: -8.h,
+              top: -10.h,
               child: Container(
                 width: 16.w,
                 height: 16.h,
@@ -242,9 +242,10 @@ class _ShopCartState extends ConsumerState<ShopCart> {
             ),
           ],
         ),
-        CommonSpacing.width(12.w),
+        CommonSpacing.width(10.w),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
             Text.rich(
               TextSpan(
@@ -267,10 +268,9 @@ class _ShopCartState extends ConsumerState<ShopCart> {
                 ],
               ),
             ),
-
             Text(
-              '${l10n.estimatedDeliveryFee} : \$${totals.deliveryFee.toStringAsFixed(2)}',
-              style: TextStyle(fontSize: 11.sp, color: Colors.grey.shade600),
+              '${l10n.estimatedDeliveryFee}:\$${totals.deliveryFee.toStringAsFixed(2)}',
+              style: TextStyle(fontSize: 10.sp, color: Colors.grey.shade600),
             ),
           ],
         ),
@@ -313,3 +313,4 @@ class _ShopCartState extends ConsumerState<ShopCart> {
     toast.warn(message);
   }
 }
+

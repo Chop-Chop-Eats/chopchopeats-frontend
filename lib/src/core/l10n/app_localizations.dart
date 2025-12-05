@@ -162,11 +162,12 @@ abstract class AppLocalizations {
   String get confirmOrderPlan; // 计划
   String get confirmOrderStartDelivery; // 开始配送
   String get confirmOrderMealDetail; // 餐品详情
-  String get confirmOrderDeliveryFee; // 配送费
-  String get confirmOrderDeliveryFeeTip; // 配送费提示
+  String get confirmOrderDeliveryTip; // 配送小费提示
+  String get confirmOrderDeliveryFeeTip; // 配送小费提示
   String get confirmOrderOrderAmount; // 订单金额
   String get confirmOrderMealSubtotal; // 餐品小记
   String get confirmOrderTaxAndServiceFee; // 税费&服务费
+  String get confirmOrderDeliveryFee; // 配送费
   String get confirmOrderCouponDiscount; // 优惠券折扣
   String get confirmOrderTotal; // 合计
   String get confirmOrderPaymentMethod; // 支付方式
@@ -302,4 +303,5 @@ class _AppLocalizationsDelegate
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
 }
+
 

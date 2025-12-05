@@ -271,6 +271,8 @@ class AppLocalizationsEn implements AppLocalizations {
   @override
   String get confirmOrderMealDetail => 'Meal Detail';
   @override
+  String get confirmOrderDeliveryTip => 'Delivery Tip';
+  @override
   String get confirmOrderDeliveryFeeTip => 'Delivery Fee Tip';
   @override
   String get confirmOrderOrderAmount => 'Order Amount';
@@ -289,7 +291,7 @@ class AppLocalizationsEn implements AppLocalizations {
   @override
   String get confirmOrderSelectPaymentMethod => 'Select Payment Method';
   @override
-  String get confirmOrderRemark => 'Remark';
+  String get confirmOrderRemark => 'Remark(Optional)';
   @override
   String confirmOrderSettlementTip(String value) => 'Total after tip $value';
   @override
@@ -492,4 +494,5 @@ class AppLocalizationsEn implements AppLocalizations {
   @override
   String loadingFailedMessage(String error) => 'Loading failed: $error';
 }
+
 

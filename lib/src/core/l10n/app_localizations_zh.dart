@@ -264,9 +264,11 @@ class AppLocalizationsZh implements AppLocalizations {
   @override
   String get confirmOrderMealDetail => '餐品详情';
   @override
+  String get confirmOrderDeliveryTip => '配送小费';
+  @override
   String get confirmOrderDeliveryFee => '配送费';
   @override
-  String get confirmOrderDeliveryFeeTip => '配送费提示';
+  String get confirmOrderDeliveryFeeTip => '您的小费将全部给配送员';
   @override
   String get confirmOrderOrderAmount => '订单金额';
   @override
@@ -480,4 +482,5 @@ class AppLocalizationsZh implements AppLocalizations {
   @override
   String loadingFailedMessage(String error) => '加载失败: $error';
 }
+
 
