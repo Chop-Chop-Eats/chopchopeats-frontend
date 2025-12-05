@@ -134,4 +134,42 @@ class ApiPaths {
   // 检查当前是否在配送时间范围内
   static const String checkDeliveryTimeApi = "/app-api/merchant/shop/check-delivery-time";
 
+  // 获得充值卡列表
+  static const String getRechargeCardListApi = "/app-api/trade/recharge-card/list";  
+
+  // 创建充值卡订单
+  static const String createRechargeCardOrderApi = "/app-api/trade/recharge-order/create";
+
+  // 获取最近的钱包交易记录
+  static const String getRecentWalletHistoryApi = "/app-api/trade/wallet/history/recent";
+
+  // 获取全部钱包交易记录（按日期分组）
+  static const String getAllWalletHistoryApi = "/app-api/trade/wallet/history/all";
+
+  // 钱包支付
+  static const String payWalletApi = "/app-api/trade/wallet-payment/pay";
+
+  // 获取退款原因列表（按分类）
+  static const String getRefundReasonListByCategoryApi = "/app-api/trade/refund-reason/list-by-category";
+
+  // 创建退款申请
+  static const String createRefundApi = "/app-api/trade/refund/create";
+
+  // 获取退款申请列表
+  static const String getRefundListApi = "/app-api/trade/refund/list";
+
+  // 获取退款申请详情
+  static const String getRefundDetailApi = "/app-api/trade/refund/detail";
+
+  // 取消订单
+  static const String cancelOrderApi = "/app-api/trade/app-order/cancel";
+
+  // 我的订单分页列表
+  static const String getOrderListApi = "/app-api/trade/app-order/page";
+
+  // 获得交易订单详情
+  static const String getOrderDetailApi = "/app-api/trade/app-order/get";
+
+  // 申请退款
+  static const String applyRefundApi = "/app-api/trade/app-order/apply-refund";
 }
