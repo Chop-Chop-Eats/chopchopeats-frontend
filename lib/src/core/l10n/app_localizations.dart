@@ -158,6 +158,7 @@ abstract class AppLocalizations {
   String get confirmOrder; // 确认订单
   String get confirmOrderAddress; // 选择地址
   String get confirmOrderPrivateChef; // 下单私厨
+  String get confirmOrderDeliveryTime; // 配送时间
   String get confirmOrderDistance; // 距离
   String get confirmOrderPlan; // 计划
   String get confirmOrderStartDelivery; // 开始配送
@@ -303,5 +304,6 @@ class _AppLocalizationsDelegate
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
 }
+
 
 

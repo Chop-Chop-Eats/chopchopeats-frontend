@@ -1,5 +1,4 @@
 import 'package:chop_user/src/core/routing/navigate.dart';
-import 'package:chop_user/src/features/detail/widgets/sku_counter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -13,10 +12,10 @@ import '../../../core/utils/pop/confirm.dart';
 import '../../../core/utils/pop/toast.dart';
 import '../../../core/widgets/common_image.dart';
 import '../../../core/widgets/common_spacing.dart';
-import '../models/order_model.dart';
 import '../providers/cart_notifier.dart';
 import '../providers/cart_state.dart';
 import 'bottom_arc_container.dart';
+import 'cart_item_list.dart';
 
 class ShopCart extends ConsumerStatefulWidget {
   const ShopCart({super.key, required this.shopId});
@@ -117,16 +116,10 @@ class _ShopCartState extends ConsumerState<ShopCart> {
                 )
               else
                 Expanded(
-                  child: ListView.builder(
-                    itemBuilder:
-                        (context, index) => Padding(
-                          padding: EdgeInsets.only(bottom: 12.h),
-                          child: _buildSheetItem(
-                            cartState,
-                            cartState.items[index],
-                          ),
-                        ),
-                    itemCount: cartState.items.length,
+                  child: CartItemList(
+                    shopId: widget.shopId,
+                    items: cartState.items,
+                    diningDate: cartState.diningDate,
                   ),
                 ),
             ],
@@ -145,60 +138,6 @@ class _ShopCartState extends ConsumerState<ShopCart> {
     } catch (e) {
       _toast('清空失败，请稍后重试');
     }
-  }
-
-  Widget _buildSheetItem(CartState cartState, CartItemModel item) {
-    final specName = item.productSpecName ?? '';
-    final productName = item.productName ?? '';
-    final image = item.imageThumbnail ?? 'assets/images/shop_cart.png';
-    final price = item.price ?? 0;
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        CommonImage(
-          imagePath: image,
-          width: 40.w,
-          height: 40.h,
-          borderRadius: 8.r,
-        ),
-        CommonSpacing.width(12.w),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                productName,
-                style: TextStyle(fontSize: 14.sp, color: Colors.black),
-              ),
-              CommonSpacing.small,
-              Text(
-                specName,
-                style: TextStyle(fontSize: 12.sp, color: Colors.grey[600]),
-              ),
-              CommonSpacing.small,
-              Text(
-                '\$${price.toStringAsFixed(2)}',
-                style: TextStyle(
-                  fontSize: 14.sp,
-                  color: AppTheme.primaryOrange,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-        ),
-        CommonSpacing.width(8.w),
-        SkuCounter(
-          shopId: widget.shopId,
-          productId: item.productId ?? '',
-          productName: productName,
-          productSpecId: item.productSpecId ?? '',
-          productSpecName: specName.isEmpty ? productName : specName,
-          diningDate: cartState.diningDate,
-          price: price,
-        ),
-      ],
-    );
   }
 
   Widget _buildPriceInfo({
@@ -289,7 +228,11 @@ class _ShopCartState extends ConsumerState<ShopCart> {
           return;
         }
         Logger.info('ShopCart', '点击下单 shopId=${widget.shopId}');
-        Navigate.push(context, Routes.confirmOrder);
+        Navigate.push(
+          context,
+          Routes.confirmOrder,
+          arguments: {"shopId": widget.shopId},
+        );
       },
       child: Container(
         decoration: BoxDecoration(
@@ -313,4 +256,5 @@ class _ShopCartState extends ConsumerState<ShopCart> {
     toast.warn(message);
   }
 }
+
 

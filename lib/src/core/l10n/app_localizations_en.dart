@@ -118,7 +118,7 @@ class AppLocalizationsEn implements AppLocalizations {
   @override
   String get estimatedDeliveryFee => 'Estimated Delivery Fee';
   @override
-  String get totalPrice => 'Total Price';
+  String get totalPrice => 'Total Price';   
   @override
   String get orderNow => 'Order Now';
   @override
@@ -262,6 +262,8 @@ class AppLocalizationsEn implements AppLocalizations {
   String get confirmOrderAddress => 'Select Address';
   @override
   String get confirmOrderPrivateChef => 'Order Private Chef';
+  @override
+  String get confirmOrderDeliveryTime => 'Select Delivery Time';
   @override   
   String get confirmOrderDistance => 'Distance';
   @override
@@ -494,5 +496,6 @@ class AppLocalizationsEn implements AppLocalizations {
   @override
   String loadingFailedMessage(String error) => 'Loading failed: $error';
 }
+
 
 

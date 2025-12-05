@@ -1,24 +1,35 @@
 import 'package:chop_user/src/core/widgets/common_app_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../core/l10n/app_localizations.dart';
-import '../../../core/routing/navigate.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/logger/logger.dart';
 import '../../../core/widgets/common_button.dart';
 import '../../../core/widgets/common_image.dart';
 import '../../../core/widgets/common_spacing.dart';
+import '../../home/models/home_models.dart';
+import '../providers/cart_notifier.dart';
+import '../providers/detail_provider.dart';
 import '../widgets/bottom_arc_container.dart';
+import '../widgets/cart_item_list.dart';
 
-class ConfirmOrderPage extends StatefulWidget {
-  const ConfirmOrderPage({super.key});
+/// 选中的配送时间 Provider
+final selectedDeliveryTimeProvider = StateProvider.family<OperatingHour?, String>((ref, shopId) {
+  return null;
+});
+
+class ConfirmOrderPage extends ConsumerStatefulWidget {
+  const ConfirmOrderPage({super.key, required this.shopId});
+
+  final String shopId;
 
   @override
-  State<ConfirmOrderPage> createState() => _ConfirmOrderPageState();
+  ConsumerState<ConfirmOrderPage> createState() => _ConfirmOrderPageState();
 }
 
-class _ConfirmOrderPageState extends State<ConfirmOrderPage> {
+class _ConfirmOrderPageState extends ConsumerState<ConfirmOrderPage> {
   final TextStyle titleText = TextStyle(fontSize: 16.sp, fontWeight: FontWeight.w600, color: Colors.black);
   final TextStyle textStyle = TextStyle(fontSize: 12.sp, color: Colors.grey[600]);
   final TextStyle valueText = TextStyle(fontSize: 14.sp, color: Colors.black, fontWeight: FontWeight.w600);
@@ -130,37 +141,120 @@ class _ConfirmOrderPageState extends State<ConfirmOrderPage> {
 
   Widget _buildPrivateChef(){
     final l10n = AppLocalizations.of(context)!;
+    final shop = ref.watch(shopDetailProvider(widget.shopId));
+    final selectedDeliveryTime = ref.watch(selectedDeliveryTimeProvider(widget.shopId));
+    
+    // 如果没有店铺数据，显示占位
+    if (shop == null) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CommonSpacing.standard,
+          Text(l10n.confirmOrderPrivateChef, style: titleText),
+          CommonSpacing.medium,
+          Text("加载中...", style: textStyle),
+        ],
+      );
+    }
+
+    // 处理配送时间
+    final operatingHours = shop.operatingHours ?? [];
+    Logger.info('ConfirmOrderPage', 'operatingHours: $operatingHours');
+    OperatingHour? displayDeliveryTime;
+    if (selectedDeliveryTime != null) {
+      displayDeliveryTime = selectedDeliveryTime;
+    } else if (operatingHours.isNotEmpty) {
+      // 如果没有选中，默认选择第一个
+      displayDeliveryTime = operatingHours.first;
+      // 初始化选中状态
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(selectedDeliveryTimeProvider(widget.shopId).notifier).state = displayDeliveryTime;
+      });
+    }
+
+    // 格式化距离
+    final distanceText = shop.distance != null 
+        ? "${shop.distance!.toStringAsFixed(1)}km" 
+        : "";
+
+    // 格式化配送时间
+    final deliveryTimeText = displayDeliveryTime?.time ?? "";
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         CommonSpacing.standard,
         Text(l10n.confirmOrderPrivateChef, style: titleText),
         CommonSpacing.medium,
-        Text("粤飨·私宴 | YUE's Atelier", style: titleText.copyWith(fontSize: 14.sp)),
+        Text(shop.localizedShopName, style: titleText.copyWith(fontSize: 14.sp)),
         CommonSpacing.height(4.h),
         Row(
           children: [
-            Text("${l10n.confirmOrderDistance}10km", style: textStyle),
-            Icon(Icons.directions_car_outlined, size: 24.w, color: Colors.black),
-            Text(l10n.confirmOrderPlan, style: textStyle),
-            Text("7.11 12:00 ", style: textStyle.copyWith(color: AppTheme.primaryOrange)),
-            Text(l10n.confirmOrderStartDelivery, style: textStyle),
+            if (distanceText.isNotEmpty) ...[
+              Text("${l10n.confirmOrderDistance}$distanceText", style: textStyle),
+              Icon(Icons.directions_car_outlined, size: 24.w, color: Colors.black),
+            ],
+            if (deliveryTimeText.isNotEmpty) ...[
+              Text(l10n.confirmOrderPlan, style: textStyle),
+              Text("$deliveryTimeText ", style: textStyle.copyWith(color: AppTheme.primaryOrange)),
+              Text(l10n.confirmOrderStartDelivery, style: textStyle),
+            ],
           ],
-        )
+        ),
+        // 如果有多个配送时间选项，显示选择器
+        if (operatingHours.length > 1) ...[
+          CommonSpacing.small,
+          Text(l10n.confirmOrderDeliveryTime, style: textStyle),
+          CommonSpacing.small,
+          _buildDeliveryTimeSelector(operatingHours),
+        ],
       ],
+    );
+  }
+
+  Widget _buildDeliveryTimeSelector(List<OperatingHour> operatingHours) {
+    final selectedDeliveryTime = ref.watch(selectedDeliveryTimeProvider(widget.shopId));
+    
+    return Row(
+      children: operatingHours.map((hour) {
+        final isSelected = selectedDeliveryTime?.time == hour.time;
+        return Expanded(
+          child: GestureDetector(
+            onTap: () {
+              ref.read(selectedDeliveryTimeProvider(widget.shopId).notifier).state = hour;
+            },
+            child: _buildDeliverItem(
+              title: hour.time ?? "",
+              isSelected: isSelected,
+            ),
+          ),
+        );
+      }).toList(),
     );
   }
 
   Widget _buildMealDetail(){
     final l10n = AppLocalizations.of(context)!;
+    final cartState = ref.watch(cartStateProvider(widget.shopId));
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
         CommonSpacing.standard,
         Text(l10n.confirmOrderMealDetail, style: titleText),
         CommonSpacing.medium,
-        Text("购物车里面的item", style: textStyle), // 从provider获取
-       
+        if (cartState.items.isEmpty)
+          Text("购物车为空", style: textStyle)
+        else
+          
+          CartItemList(
+              shopId: widget.shopId,
+              items: cartState.items,
+              diningDate: cartState.diningDate,
+            ),
+          
+        
       ],
     );
   }
@@ -299,7 +393,6 @@ class _ConfirmOrderPageState extends State<ConfirmOrderPage> {
         ),
         style: textStyle,
         maxLines: 3,
-     
       ),
     );
   }
@@ -358,4 +451,5 @@ class _ConfirmOrderPageState extends State<ConfirmOrderPage> {
     );
   }
 }
+
 

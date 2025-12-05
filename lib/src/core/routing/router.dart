@@ -99,7 +99,16 @@ class AppRouter {
       }
       return const ErrorPage(message: "商品参数错误或缺失");
     },
-    Routes.confirmOrder: (settings) => const ConfirmOrderPage(),
+    Routes.confirmOrder: (settings) {
+      if (settings.arguments is Map<String, dynamic>) {
+        final args = settings.arguments as Map<String, dynamic>;
+        final shopId = args["shopId"];
+        if (shopId is String) {
+          return ConfirmOrderPage(shopId: shopId);
+        }
+      }
+      return const ErrorPage(message: "店铺ID参数错误或缺失");
+    },
   };
 
   /// 创建路由方法
@@ -248,3 +257,4 @@ class CustomPagePeterRoute<T> extends PageRouteBuilder<T> {
       );
 }
 */
+

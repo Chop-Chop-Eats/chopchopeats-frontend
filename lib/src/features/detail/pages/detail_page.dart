@@ -264,7 +264,7 @@ class _DetailPageState extends ConsumerState<DetailPage> {
               enablePullUp: false,
               onRefresh: _onRefresh,
               header: CustomHeader(
-                height: 60.h + MediaQuery.of(context).padding.top, // 测试ios灵动岛
+                height: 60.h + MediaQuery.of(context).padding.top,
                 builder:
                     (context, mode) => Container(
                       color: Colors.black,
@@ -301,3 +301,4 @@ class _DetailPageState extends ConsumerState<DetailPage> {
     );
   }
 }
+

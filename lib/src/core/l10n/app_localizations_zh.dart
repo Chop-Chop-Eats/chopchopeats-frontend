@@ -256,6 +256,8 @@ class AppLocalizationsZh implements AppLocalizations {
   @override
   String get confirmOrderPrivateChef => '下单私厨';
   @override
+  String get confirmOrderDeliveryTime => '选择配送时间';
+  @override
   String get confirmOrderDistance => '距离';
   @override
   String get confirmOrderPlan => '计划';
@@ -482,5 +484,6 @@ class AppLocalizationsZh implements AppLocalizations {
   @override
   String loadingFailedMessage(String error) => '加载失败: $error';
 }
+
 
 
