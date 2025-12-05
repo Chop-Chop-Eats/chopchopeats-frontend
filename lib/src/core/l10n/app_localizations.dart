@@ -86,7 +86,9 @@ abstract class AppLocalizations {
   String get cartTitle;
   String get cartEmpty;
   String get addToCartSuccess;
-
+  String get other;
+  String get pleaseEnter0To100;
+  String get pleaseEnterValidNumber;
   // ============== 业务文案 - 语言设置 ==============
   String get languageSettings;
   String get languageSystem;
@@ -170,12 +172,16 @@ abstract class AppLocalizations {
   String get confirmOrderTaxAndServiceFee; // 税费&服务费
   String get confirmOrderDeliveryFee; // 配送费
   String get confirmOrderCouponDiscount; // 优惠券折扣
+  String get confirmOrderAvailableCoupons; // 可用优惠券
   String get confirmOrderTotal; // 合计
   String get confirmOrderPaymentMethod; // 支付方式
   String get confirmOrderSelectPaymentMethod; // 选择支付方式
   String get confirmOrderRemark; // 备注
   String confirmOrderSettlementTip(String value); // 结算小费
   String get confirmOrderSettlement; // 结算
+  String get confirmOrderEmptyCart; // 购物车为空
+  String get confirmOrderSelectAddress; // 请选择地址
+  String get confirmOrderSelectDeliveryTime; // 请选择配送时间
 
   // ============== Heart 收藏页 ==============
   String get noFavoriteText;
@@ -304,6 +310,3 @@ class _AppLocalizationsDelegate
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
 }
-
-
-

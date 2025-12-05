@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../core/routing/navigate.dart';
 import '../../../core/routing/routes.dart';
-import '../../../core/utils/logger/logger.dart';
 import '../../../core/utils/pop/toast.dart';
 import '../../../core/widgets/keyboard_aware_page.dart';
 import '../providers/auth_provider.dart';

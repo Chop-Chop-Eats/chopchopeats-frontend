@@ -254,7 +254,8 @@ class AppLocalizationsEn implements AppLocalizations {
   String get saturday => 'Sat';
   @override
   String get sunday => 'Sun';
-
+  @override
+  String get other => 'Other';
   // ============== Confirm Order 确认订单页 ==============
   @override
   String get confirmOrder => 'Confirm Order';
@@ -281,11 +282,23 @@ class AppLocalizationsEn implements AppLocalizations {
   @override
   String get confirmOrderMealSubtotal => 'Meal Subtotal';
   @override
+  String get confirmOrderEmptyCart => 'Empty Cart';
+  @override
+  String get pleaseEnter0To100 => 'Please enter 0-100';
+  @override
+  String get pleaseEnterValidNumber => 'Please enter a valid number';
+  @override
+  String get confirmOrderSelectAddress => 'Select Address';
+  @override
+  String get confirmOrderSelectDeliveryTime => 'Select Delivery Time';
+  @override
   String get confirmOrderTaxAndServiceFee => 'Tax & Service Fee';
   @override
   String get confirmOrderDeliveryFee => 'Delivery Fee';
   @override
   String get confirmOrderCouponDiscount => 'Coupon Discount';
+  @override
+  String get confirmOrderAvailableCoupons => 'Available Coupons';
   @override
   String get confirmOrderTotal => 'Total';
   @override
@@ -496,6 +509,3 @@ class AppLocalizationsEn implements AppLocalizations {
   @override
   String loadingFailedMessage(String error) => 'Loading failed: $error';
 }
-
-
-

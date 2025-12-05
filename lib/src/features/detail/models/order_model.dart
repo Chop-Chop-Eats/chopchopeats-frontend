@@ -1,5 +1,13 @@
 import '../../../core/utils/json_utils.dart';
 
+/// 优惠券选择结果
+class CouponSelectionResult {
+  final String couponId;
+  final double discountAmount;
+  
+  CouponSelectionResult({required this.couponId, required this.discountAmount});
+}
+
 /// 将 DateTime 转换为 YYYY-MM-DD 格式的字符串
 String formatDiningDate(DateTime date) {
   return '${date.year.toString().padLeft(4, '0')}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
@@ -37,7 +45,7 @@ class CreateOrderParams {
   ///配送费
   final double deliveryFee;
 
-  ///配送方式：1-门店配送；2-到店自取
+  ///配送方式：1-门店配送；2-到店自取 固定为1
   final int deliveryMethod;
 
   ///配送时间
@@ -55,13 +63,13 @@ class CreateOrderParams {
   ///餐品小计
   final double mealSubtotal;
 
-  ///订单来源：1-APP；2-PC
+  ///订单来源：1-APP；2-PC 固定为1
   final int orderSource;
 
   ///应付款金额（即订单金额）
   final double payAmount;
 
-  ///支付方式：1-Stripe
+  ///支付方式：1-Stripe 暂不处理 固定为1
   final int payType;
 
   ///服务费

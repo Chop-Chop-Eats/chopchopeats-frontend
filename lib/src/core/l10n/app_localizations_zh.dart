@@ -247,6 +247,8 @@ class AppLocalizationsZh implements AppLocalizations {
   String get saturday => '周六';
   @override
   String get sunday => '周日';
+  @override
+  String get other => '其他';
 
   // ============== Confirm Order 确认订单页 ==============
   @override
@@ -258,6 +260,10 @@ class AppLocalizationsZh implements AppLocalizations {
   @override
   String get confirmOrderDeliveryTime => '选择配送时间';
   @override
+  String get pleaseEnter0To100 => '请输入0-100之间的数字';
+  @override
+  String get pleaseEnterValidNumber => '请输入有效的数字';
+  @override
   String get confirmOrderDistance => '距离';
   @override
   String get confirmOrderPlan => '计划';
@@ -267,6 +273,14 @@ class AppLocalizationsZh implements AppLocalizations {
   String get confirmOrderMealDetail => '餐品详情';
   @override
   String get confirmOrderDeliveryTip => '配送小费';
+  @override
+  String get confirmOrderAvailableCoupons => '可用优惠券';
+  @override
+  String get confirmOrderEmptyCart => '购物车为空';
+  @override
+  String get confirmOrderSelectAddress => '请选择地址';
+  @override
+  String get confirmOrderSelectDeliveryTime => '请选择配送时间';
   @override
   String get confirmOrderDeliveryFee => '配送费';
   @override
@@ -484,6 +498,3 @@ class AppLocalizationsZh implements AppLocalizations {
   @override
   String loadingFailedMessage(String error) => '加载失败: $error';
 }
-
-
-

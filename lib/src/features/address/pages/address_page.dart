@@ -13,6 +13,7 @@ import '../../../core/widgets/common_indicator.dart';
 import '../../../core/widgets/common_spacing.dart';
 import '../widgets/address_list_item.dart';
 import '../widgets/address_actions.dart';
+import '../widgets/address_card.dart';
 import '../models/address_models.dart';
 import '../providers/address_provider.dart';
 
@@ -244,12 +245,6 @@ class _AddressPageState extends ConsumerState<AddressPage> {
     AppLocalizations l10n,
     AddressItem item,
   ) {
-    final detailParts = [
-      item.address,
-      if (item.detailAddress?.isNotEmpty ?? false) item.detailAddress!,
-      item.state,
-    ].where((element) => element.isNotEmpty).toList();
-
     return AddressListItem(
       actionsWidth: 160.w,
       actions: [
@@ -266,93 +261,11 @@ class _AddressPageState extends ConsumerState<AddressPage> {
           onTap: () => _onDeleteAddress(item),
         ),
       ],
-      child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 12.h),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16.r),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 12.r,
-              offset: Offset(0, 6.h),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                CommonImage(
-                  imagePath: 'assets/images/location.png',
-                  width: 40.w,
-                  height: 40.w,
-                  fit: BoxFit.contain,
-                ),
-                CommonSpacing.width(12.w),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Text(
-                            item.name,
-                            style: TextStyle(
-                              fontSize: 16.sp,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.black,
-                            ),
-                          ),
-                          if (item.defaultStatus)
-                            Container(
-                              margin: EdgeInsets.only(left: 6.w),
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 6.w,
-                                vertical: 4.h,
-                              ),
-                              decoration: BoxDecoration(
-                                color: AppTheme.primaryOrange.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(6.r),
-                              ),
-                              child: Text(
-                                l10n.defaultAddress,
-                                style: TextStyle(
-                                  fontSize: 12.sp,
-                                  color: AppTheme.primaryOrange,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                      CommonSpacing.small,
-                      Text(
-                        item.mobile,
-                        style: TextStyle(
-                          fontSize: 14.sp,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      CommonSpacing.small,
-                      Text(
-                        detailParts.join(' · '),
-                        style: TextStyle(
-                          fontSize: 13.sp,
-                          color: Colors.grey.shade500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
+      child: AddressCard(
+        address: item,
+        showDefaultBadge: true,
       ),
     );
   }
 }
+

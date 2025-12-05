@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:unified_popups/unified_popups.dart';
 import '../l10n/app_localizations.dart';
 import '../l10n/locale_service.dart';
 import '../routing/router.dart';
@@ -8,6 +9,8 @@ import '../routing/routes.dart';
 import '../theme/app_theme.dart';
 import 'app_services.dart';
 
+/// 弹窗路由观察器
+final PopupRouteObserver popupRouteObserver = PopupRouteObserver();
 class App extends StatelessWidget {
   final GlobalKey<NavigatorState> navigatorKey;
   const App({super.key, required this.navigatorKey});
@@ -30,6 +33,9 @@ class App extends StatelessWidget {
               // themeMode: AppServices.appSettings.themeMode,
               themeMode: ThemeMode.light,
               locale: AppServices.appSettings.locale,
+              navigatorObservers: [
+                 popupRouteObserver,
+              ],
               localizationsDelegates: const [
                 AppLocalizations.delegate,
                 GlobalMaterialLocalizations.delegate,
@@ -73,3 +79,4 @@ class App extends StatelessWidget {
     );
   }
 }
+

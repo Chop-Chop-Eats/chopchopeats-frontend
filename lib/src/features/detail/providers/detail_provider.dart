@@ -47,6 +47,10 @@ class CouponState {
       error: error ?? this.error,
     );
   }
+  @override
+  String toString() {
+    return 'CouponState(couponData: $couponData, isLoading: $isLoading, isClaiming: $isClaiming, error: $error)';
+  }
 }
 
 /// 商品列表数据状态

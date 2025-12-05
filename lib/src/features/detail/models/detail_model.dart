@@ -92,6 +92,9 @@ class ShopModel {
   ///平台抽成比例-用户计算服务费
   final double? platformCommissionRate;
 
+  /// 服务费率-用户计算服务费 
+  final double? serviceFeeRate;
+
   ///店铺评分
   final double? rating;
 
@@ -137,6 +140,7 @@ class ShopModel {
     this.newShopMark,
     this.operatingHours,
     this.platformCommissionRate,
+    this.serviceFeeRate,
     this.rating,
     this.salesVolume,
     this.shopLogo,
@@ -198,6 +202,7 @@ class ShopModel {
         json,
         'platformCommissionRate',
       ),
+      serviceFeeRate: JsonUtils.parseDouble(json, 'serviceFeeRate'),
       rating: JsonUtils.parseDouble(json, 'rating'),
       salesVolume: json['salesVolume'],
       shopLogo: json['shopLogo'],
@@ -611,3 +616,4 @@ class AvailableCouponItem {
     );
   }
 }
+

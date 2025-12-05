@@ -16,9 +16,10 @@ import '../../detail/services/detail_services.dart';
 import '../../detail/providers/detail_provider.dart';
 
 /// 优惠券项组件
-/// 支持两种模式：
+/// 支持三种模式：
 /// 1. 可领取模式（showClaimButton = true）：显示"领取"按钮
-/// 2. 已领取模式（ showClaimButton = false）：仅展示信息
+/// 2. 已领取模式（showClaimButton = false）：仅展示信息
+/// 3. 使用模式（showUseButton = true）：显示"使用"按钮
 class CoupoonItem extends ConsumerStatefulWidget {
   /// 优惠券显示数据
   final CouponDisplayModel coupon;
@@ -26,11 +27,17 @@ class CoupoonItem extends ConsumerStatefulWidget {
   /// 是否显示领取按钮（默认 true，用于可领取优惠券）
   final bool showClaimButton;
 
+  /// 是否显示使用按钮（默认 false，用于确认订单页面选择优惠券）
+  final bool showUseButton;
+
   /// 店铺ID（用于领取成功后刷新列表）
   final String? shopId;
 
   /// 领取成功回调
   final VoidCallback? onClaimSuccess;
+
+  /// 使用回调（点击使用按钮时调用）
+  final VoidCallback? onUse;
 
   /// 领取状态监听器（用于管理多个优惠券的领取状态）
   final ValueNotifier<Set<String>>? claimingIds;
@@ -39,8 +46,10 @@ class CoupoonItem extends ConsumerStatefulWidget {
     super.key,
     required this.coupon,
     this.showClaimButton = true,
+    this.showUseButton = false,
     this.shopId,
     this.onClaimSuccess,
+    this.onUse,
     this.claimingIds,
   });
 
@@ -291,6 +300,24 @@ class _CoupoonItemState extends ConsumerState<CoupoonItem> {
 
   /// 构建操作按钮（根据模式显示不同的按钮）
   Widget _buildActionButton(AppLocalizations l10n) {
+    // 使用模式：显示"使用"按钮
+    if (widget.showUseButton) {
+      return GestureDetector(
+        onTap: widget.onUse,
+        child: Container(
+          padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
+          decoration: BoxDecoration(
+            color: AppTheme.primaryOrange,
+            borderRadius: BorderRadius.circular(12.r),
+          ),
+          child: Text(
+            '使用',
+            style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold, color: Colors.white),
+          ),
+        ),
+      );
+    }
+    
     // 可领取模式：显示"领取"按钮
     if (widget.showClaimButton) {
       return _buildClaimButton(l10n);
