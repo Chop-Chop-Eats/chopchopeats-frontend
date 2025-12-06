@@ -49,7 +49,7 @@ class _CommonButtonState extends State<CommonButton> {
                 : Text(
                   widget.text,
                   style: TextStyle(
-                    fontSize: 16.sp,
+                    fontSize: 14.sp,
                     color: widget.textColor ?? Colors.white,
                   ),
                 ),

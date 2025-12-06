@@ -41,10 +41,6 @@ class _MinePageState extends ConsumerState<MinePage> {
   @override
   void initState() {
     super.initState();
-    // 加载用户信息
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(userInfoProvider.notifier).loadUserInfo();
-    });
   }
 
   @override

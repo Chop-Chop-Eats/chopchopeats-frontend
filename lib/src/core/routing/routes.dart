@@ -19,4 +19,5 @@ class Routes {
   static const String coupon = '/coupon'; // 优惠券页面
   static const String productDetail = '/productDetail'; // 商品详情页面
   static const String confirmOrder = '/confirmOrder'; // 确认订单页面
+  static const String wallet = '/wallet'; // 钱包页面
 }

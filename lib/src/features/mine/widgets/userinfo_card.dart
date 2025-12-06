@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../core/routing/navigate.dart';
-import '../../../core/utils/logger/logger.dart';
 import '../../../core/widgets/common_image.dart';
 import '../../../core/widgets/common_spacing.dart';
 import '../../../core/widgets/common_indicator.dart';
@@ -178,8 +177,8 @@ class _UserinfoCardState extends ConsumerState<UserinfoCard> {
                             : "\$0.00",
                     tip: l10n.recharge,
                     onTap: () {
-                      Logger.info("UserinfoCard", "点击充值");
-                    },
+                      Navigate.push(context, Routes.wallet);
+                      },
                   ),
                 ),
                 Container(

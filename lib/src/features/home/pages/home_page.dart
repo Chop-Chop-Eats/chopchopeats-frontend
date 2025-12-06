@@ -15,6 +15,7 @@ import '../../../core/widgets/common_image.dart';
 import '../../../core/widgets/common_indicator.dart';
 import '../../../core/widgets/custom_sliver_app_bar.dart';
 import '../../../core/widgets/restaurant/restaurant_list.dart';
+import '../../mine/providers/mine_provider.dart';
 import '../models/home_models.dart';
 import '../providers/home_provider.dart';
 import '../widgets/banner_carousel.dart';
@@ -51,6 +52,9 @@ class _HomePageState extends ConsumerState<HomePage> {
         longitude: settings.longitude,
       );
       ref.read(bannerProvider.notifier).loadBannerList();
+
+      // 加载用户信息
+      ref.read(userInfoProvider.notifier).loadUserInfo();
     });
   }
 

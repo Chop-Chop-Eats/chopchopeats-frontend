@@ -143,6 +143,9 @@ class ApiPaths {
   // 获取最近的钱包交易记录
   static const String getRecentWalletHistoryApi = "/app-api/trade/wallet/history/recent";
 
+  // 获取我的钱包信息
+  static const String getMyWalletInfoApi = "/app-api/trade/wallet/my-wallet";
+
   // 获取全部钱包交易记录（按日期分组）
   static const String getAllWalletHistoryApi = "/app-api/trade/wallet/history/all";
 
