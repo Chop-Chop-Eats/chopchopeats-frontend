@@ -11,6 +11,7 @@ class CommonButton extends StatefulWidget {
   final BorderRadius? borderRadius;
   final Color? textColor;
   final VoidCallback onPressed;
+  final double? width;
   const CommonButton({
     super.key,
     this.isLoading = false,
@@ -19,6 +20,7 @@ class CommonButton extends StatefulWidget {
     this.padding,
     this.borderRadius,
     this.textColor,
+    this.width,
   });
 
   @override
@@ -31,6 +33,7 @@ class _CommonButtonState extends State<CommonButton> {
     return GestureDetector(
       onTap: widget.onPressed,
       child: Container(
+        width: widget.width,
         padding: widget.padding ?? EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
         decoration: BoxDecoration(
           color:
@@ -46,11 +49,13 @@ class _CommonButtonState extends State<CommonButton> {
                   color: Colors.white,
                   size: 14.w,
                 )
-                : Text(
-                  widget.text,
-                  style: TextStyle(
-                    fontSize: 14.sp,
-                    color: widget.textColor ?? Colors.white,
+                : Center(
+                  child: Text(
+                    widget.text,
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      color: widget.textColor ?? Colors.white,
+                    ),
                   ),
                 ),
       ),

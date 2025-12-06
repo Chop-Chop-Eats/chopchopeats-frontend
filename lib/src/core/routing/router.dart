@@ -19,6 +19,8 @@ import '../../features/mine/pages/profile_page.dart';
 import '../../features/mine/pages/shop_enter_page.dart';
 import '../../features/search/pages/search_page.dart';
 import '../../features/splash/pages/splash_page.dart';
+import '../../features/wallet/pages/recharge_page.dart';
+import '../../features/wallet/pages/wallet_detail_page.dart';
 import '../../features/wallet/pages/wallet_page.dart';
 import '../maps/pages/map_picker_page.dart';
 import 'routes.dart';
@@ -111,6 +113,8 @@ class AppRouter {
       return const ErrorPage(message: "店铺ID参数错误或缺失");
     },
     Routes.wallet: (settings) => const WalletPage(),
+    Routes.walletDetail: (settings) => const WalletDetailPage(),
+    Routes.recharge: (settings) => const RechargePage(),
   };
 
   /// 创建路由方法

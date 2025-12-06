@@ -5,8 +5,11 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../core/constants/app_values.dart';
 import '../../../core/l10n/app_localizations.dart';
+import '../../../core/routing/navigate.dart';
+import '../../../core/routing/routes.dart';
 import '../../../core/utils/logger/logger.dart';
 import '../../../core/widgets/common_spacing.dart';
+import '../widgets/balance_item.dart';
 
 class WalletPage extends StatefulWidget {
   const WalletPage({super.key});
@@ -73,7 +76,7 @@ class _WalletPageState extends State<WalletPage> {
                 padding: EdgeInsets.symmetric(horizontal:  24.w, vertical: 8.h),
                 borderRadius: BorderRadius.circular(8.r),
                 onPressed:(){
-                  Logger.info("WalletPage", "充值");
+                  Navigate.push(context, Routes.recharge);
                 }
               )
             ],
@@ -113,7 +116,7 @@ class _WalletPageState extends State<WalletPage> {
           GestureDetector(
             behavior: HitTestBehavior.opaque,
             onTap: () {
-              Logger.info("WalletPage", "查看全部");
+              Navigate.push(context, Routes.walletDetail);
             },
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -156,26 +159,11 @@ class _WalletPageState extends State<WalletPage> {
     required String time,
     required String balance,
   }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(title , style: AppValues.labelTitle.copyWith(fontWeight: FontWeight.w500),),
-            Text(value , style: AppValues.labelTitle.copyWith(fontWeight: FontWeight.w500),),
-          ],
-        ),
-        CommonSpacing.small,
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(time , style: AppValues.labelValue,),
-            Text(balance , style: AppValues.labelValue,),
-          ],
-        ),
-        CommonSpacing.medium,
-      ],
+    return BalanceItem(
+      title: title,
+      value: value,
+      time: time,
+      balance: balance,
     );
   }
 }
