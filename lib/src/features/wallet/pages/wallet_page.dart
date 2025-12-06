@@ -19,24 +19,28 @@ class _WalletPageState extends State<WalletPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea( 
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16.w),
-          child: Column(
-            children: [
-              CommonAppBar(title: "钱包" , backgroundColor: Colors.transparent),
-              CommonSpacing.large,
-              // 钱包信息
-              _buildWalletInfo(),
-              // 支付方式
-              _buildPaymentMethod(),
-              // 余额明细
-              Expanded(
-                child: _buildBalanceDetail(),
-              )
-            ],
+      body: Column(
+        children: [
+          CommonAppBar(title: "钱包" , backgroundColor: Colors.transparent),
+          Expanded(child: 
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16.w),
+              child: Column(
+                children: [
+                  CommonSpacing.large,
+                  // 钱包信息
+                  _buildWalletInfo(),
+                  // 支付方式
+                  _buildPaymentMethod(),
+                  // 余额明细
+                  Expanded(
+                    child: _buildBalanceDetail(),
+                  )
+                ],
+              ),
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -82,19 +86,22 @@ class _WalletPageState extends State<WalletPage> {
   Widget _buildPaymentMethod() {
     final l10n = AppLocalizations.of(context)!;
     return _buildCard(
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(l10n.confirmOrderPaymentMethod , style: AppValues.labelTitle,),
-          Row(
-            children: [
-              Text("管理绑定卡片" , style: AppValues.labelValue,),
-              CommonSpacing.width(4.w),
-              Icon(Icons.arrow_forward_ios, size: 16.sp, color: Colors.grey.shade600),
-            ],
-          )
-
-        ],
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () {
+          Logger.info("WalletPage", "管理绑定卡片");
+        },
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(l10n.confirmOrderPaymentMethod , style: AppValues.labelTitle,),
+            Row(
+              children: [
+                Text("管理绑定卡片" , style: AppValues.labelValue,),
+              ],
+            )
+          ],
+        ),
       ),
     );
   }
@@ -103,19 +110,26 @@ class _WalletPageState extends State<WalletPage> {
     return _buildCard(
       child: Column(
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text("余额明细" , style: AppValues.labelTitle,),
-              Row(
-                children: [
-                  Text("查看全部" , style: AppValues.labelValue,),
-                  CommonSpacing.width(4.w),
-                  Icon(Icons.arrow_forward_ios, size: 16.sp, color: Colors.grey.shade600),
-                ],
-              ),
-            ],
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () {
+              Logger.info("WalletPage", "查看全部");
+            },
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text("余额明细" , style: AppValues.labelTitle,),
+                Row(
+                  children: [
+                    Text("查看全部" , style: AppValues.labelValue,),
+                    CommonSpacing.width(4.w),
+                    Icon(Icons.arrow_forward_ios, size: 16.sp, color: Colors.grey.shade600),
+                  ],
+                ),
+              ],
+            ),
           ),
+          
           CommonSpacing.medium,
           Expanded(
             child: ListView.builder(
