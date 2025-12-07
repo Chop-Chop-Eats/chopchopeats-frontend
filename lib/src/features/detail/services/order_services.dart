@@ -5,7 +5,7 @@ import '../models/order_model.dart';
 
 class OrderServices {
   /// 创建订单
-  Future<void> createOrder(CreateOrderParams params) async {
+  Future<String> createOrder(CreateOrderParams params) async {
     final response = await ApiClient().post(
       ApiPaths.createOrderApi,
       data: params.toJson(),

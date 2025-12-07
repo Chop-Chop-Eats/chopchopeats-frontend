@@ -72,13 +72,16 @@ class OrderPriceCalculator {
     // 订单总价：餐品小记 + 配送费 + 税费&服务费 - 优惠券折扣
     final orderTotal = mealSubtotal + deliveryFee + taxAndServiceFee - couponDiscount;
     
-    // 小费：订单总价 * 小费比例
+
+    // 小费：餐品小记 * 小费比例
     // 优先使用自定义小费比例，否则使用预设比例
     final customTipRate = ref.read(customTipRateProvider(shopId));
     final selectedTipRate = customTipRate != null 
         ? (customTipRate / 100.0) 
         : (ref.read(selectedTipRateProvider(shopId)) ?? 0.10);
-    final tipAmount = orderTotal * selectedTipRate;
+    final tipAmount = mealSubtotal  * selectedTipRate;
+
+
     
     return OrderPriceResult(
       mealSubtotal: mealSubtotal,

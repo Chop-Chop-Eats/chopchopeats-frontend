@@ -1,3 +1,4 @@
+import 'package:chop_user/src/core/utils/logger/logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -113,9 +114,10 @@ class _OrderInfoViewState extends ConsumerState<OrderInfoView> {
   Widget _buildAddress() {
     final l10n = AppLocalizations.of(context)!;
     final selectedAddress = ref.watch(selectedAddressProvider(widget.shopId));
-    final addressText = selectedAddress != null
-        ? _formatAddressForDisplay(selectedAddress)
-        : l10n.confirmOrderAddress;
+    final addressText =
+        selectedAddress != null
+            ? _formatAddressForDisplay(selectedAddress)
+            : l10n.confirmOrderAddress;
 
     return CapsuleButton(
       title: addressText,
@@ -125,7 +127,8 @@ class _OrderInfoViewState extends ConsumerState<OrderInfoView> {
           ref: ref,
         );
         if (result != null) {
-          ref.read(selectedAddressProvider(widget.shopId).notifier).state = result;
+          ref.read(selectedAddressProvider(widget.shopId).notifier).state =
+              result;
         }
       },
       imagePath: "assets/images/location_b.png",
@@ -134,16 +137,19 @@ class _OrderInfoViewState extends ConsumerState<OrderInfoView> {
 
   String _formatAddressForDisplay(AddressItem address) {
     // 第一行：姓名和电话
-    final firstLine = [address.name, address.mobile]
-        .where((element) => element.isNotEmpty)
-        .join(' · ');
+    final firstLine = [
+      address.name,
+      address.mobile,
+    ].where((element) => element.isNotEmpty).join(' · ');
 
     // 第二行：地址信息
-    final secondLineParts = [
-      address.address,
-      if (address.detailAddress?.isNotEmpty ?? false) address.detailAddress!,
-      address.state,
-    ].where((element) => element.isNotEmpty).toList();
+    final secondLineParts =
+        [
+          address.address,
+          if (address.detailAddress?.isNotEmpty ?? false)
+            address.detailAddress!,
+          address.state,
+        ].where((element) => element.isNotEmpty).toList();
     final secondLine = secondLineParts.join(' · ');
 
     return '$firstLine\n$secondLine';
@@ -152,7 +158,9 @@ class _OrderInfoViewState extends ConsumerState<OrderInfoView> {
   Widget _buildPrivateChef() {
     final l10n = AppLocalizations.of(context)!;
     final shop = ref.watch(shopDetailProvider(widget.shopId));
-    final selectedDeliveryTime = ref.watch(selectedDeliveryTimeProvider(widget.shopId));
+    final selectedDeliveryTime = ref.watch(
+      selectedDeliveryTimeProvider(widget.shopId),
+    );
 
     // 如果没有店铺数据，显示占位
     if (shop == null) {
@@ -183,9 +191,8 @@ class _OrderInfoViewState extends ConsumerState<OrderInfoView> {
     }
 
     // 格式化距离
-    final distanceText = shop.distance != null
-        ? "${shop.distance!.toStringAsFixed(1)}km"
-        : "";
+    final distanceText =
+        shop.distance != null ? "${shop.distance!.toStringAsFixed(1)}km" : "";
 
     // 格式化配送时间
     final deliveryTimeText = displayDeliveryTime?.time ?? "";
@@ -207,7 +214,11 @@ class _OrderInfoViewState extends ConsumerState<OrderInfoView> {
                 "${l10n.confirmOrderDistance}$distanceText",
                 style: textStyle,
               ),
-              Icon(Icons.directions_car_outlined, size: 24.w, color: Colors.black),
+              Icon(
+                Icons.directions_car_outlined,
+                size: 24.w,
+                color: Colors.black,
+              ),
             ],
             if (deliveryTimeText.isNotEmpty) ...[
               Text(l10n.confirmOrderPlan, style: textStyle),
@@ -231,26 +242,37 @@ class _OrderInfoViewState extends ConsumerState<OrderInfoView> {
   }
 
   Widget _buildDeliveryTimeSelector(List<OperatingHour> operatingHours) {
-    final selectedDeliveryTime = ref.watch(selectedDeliveryTimeProvider(widget.shopId));
+    final selectedDeliveryTime = ref.watch(
+      selectedDeliveryTimeProvider(widget.shopId),
+    );
 
     return Row(
-      children: operatingHours.map((hour) {
-        final isSelected = selectedDeliveryTime?.time == hour.time;
-        return Expanded(
-          child: GestureDetector(
-            onTap: () {
-              ref.read(selectedDeliveryTimeProvider(widget.shopId).notifier).state = hour;
-            },
-            child: SelectableCapsuleItem(
-              title: hour.time ?? "",
-              isSelected: isSelected,
-              onTap: () {
-                ref.read(selectedDeliveryTimeProvider(widget.shopId).notifier).state = hour;
-              },
-            ),
-          ),
-        );
-      }).toList(),
+      children:
+          operatingHours.map((hour) {
+            final isSelected = selectedDeliveryTime?.time == hour.time;
+            return Expanded(
+              child: GestureDetector(
+                onTap: () {
+                  ref
+                      .read(
+                        selectedDeliveryTimeProvider(widget.shopId).notifier,
+                      )
+                      .state = hour;
+                },
+                child: SelectableCapsuleItem(
+                  title: hour.time ?? "",
+                  isSelected: isSelected,
+                  onTap: () {
+                    ref
+                        .read(
+                          selectedDeliveryTimeProvider(widget.shopId).notifier,
+                        )
+                        .state = hour;
+                  },
+                ),
+              ),
+            );
+          }).toList(),
     );
   }
 
@@ -280,8 +302,11 @@ class _OrderInfoViewState extends ConsumerState<OrderInfoView> {
   Widget _buildDeliveryTip() {
     final l10n = AppLocalizations.of(context)!;
     final customTipRate = ref.watch(customTipRateProvider(widget.shopId));
-    final selectedTipRate = ref.watch(selectedTipRateProvider(widget.shopId)) ?? 0.10;
-    final isEditingCustomTip = ref.watch(isEditingCustomTipProvider(widget.shopId));
+    final selectedTipRate =
+        ref.watch(selectedTipRateProvider(widget.shopId)) ?? 0.10;
+    final isEditingCustomTip = ref.watch(
+      isEditingCustomTipProvider(widget.shopId),
+    );
 
     // 判断是否选中了自定义小费
     final isCustomTipSelected = customTipRate != null;
@@ -308,22 +333,35 @@ class _OrderInfoViewState extends ConsumerState<OrderInfoView> {
             Expanded(
               child: GestureDetector(
                 onTap: () {
-                  ref.read(selectedTipRateProvider(widget.shopId).notifier).state = 0.10;
-                  ref.read(customTipRateProvider(widget.shopId).notifier).state = null;
-                  ref.read(isEditingCustomTipProvider(widget.shopId).notifier).state =
-                      false;
+                  ref
+                      .read(selectedTipRateProvider(widget.shopId).notifier)
+                      .state = 0.10;
+                  ref
+                      .read(customTipRateProvider(widget.shopId).notifier)
+                      .state = null;
+                  ref
+                      .read(isEditingCustomTipProvider(widget.shopId).notifier)
+                      .state = false;
                   widget.customTipFocusNode.unfocus();
                 },
                 child: SelectableCapsuleItem(
                   title: "10%",
-                  isSelected: !isCustomTipSelected &&
+                  isSelected:
+                      !isCustomTipSelected &&
                       !isEditingCustomTip &&
                       selectedTipRate == 0.10,
                   onTap: () {
-                    ref.read(selectedTipRateProvider(widget.shopId).notifier).state = 0.10;
-                    ref.read(customTipRateProvider(widget.shopId).notifier).state = null;
-                    ref.read(isEditingCustomTipProvider(widget.shopId).notifier).state =
-                        false;
+                    ref
+                        .read(selectedTipRateProvider(widget.shopId).notifier)
+                        .state = 0.10;
+                    ref
+                        .read(customTipRateProvider(widget.shopId).notifier)
+                        .state = null;
+                    ref
+                        .read(
+                          isEditingCustomTipProvider(widget.shopId).notifier,
+                        )
+                        .state = false;
                     widget.customTipFocusNode.unfocus();
                   },
                 ),
@@ -332,22 +370,35 @@ class _OrderInfoViewState extends ConsumerState<OrderInfoView> {
             Expanded(
               child: GestureDetector(
                 onTap: () {
-                  ref.read(selectedTipRateProvider(widget.shopId).notifier).state = 0.12;
-                  ref.read(customTipRateProvider(widget.shopId).notifier).state = null;
-                  ref.read(isEditingCustomTipProvider(widget.shopId).notifier).state =
-                      false;
+                  ref
+                      .read(selectedTipRateProvider(widget.shopId).notifier)
+                      .state = 0.12;
+                  ref
+                      .read(customTipRateProvider(widget.shopId).notifier)
+                      .state = null;
+                  ref
+                      .read(isEditingCustomTipProvider(widget.shopId).notifier)
+                      .state = false;
                   widget.customTipFocusNode.unfocus();
                 },
                 child: SelectableCapsuleItem(
                   title: "12%",
-                  isSelected: !isCustomTipSelected &&
+                  isSelected:
+                      !isCustomTipSelected &&
                       !isEditingCustomTip &&
                       selectedTipRate == 0.12,
                   onTap: () {
-                    ref.read(selectedTipRateProvider(widget.shopId).notifier).state = 0.12;
-                    ref.read(customTipRateProvider(widget.shopId).notifier).state = null;
-                    ref.read(isEditingCustomTipProvider(widget.shopId).notifier).state =
-                        false;
+                    ref
+                        .read(selectedTipRateProvider(widget.shopId).notifier)
+                        .state = 0.12;
+                    ref
+                        .read(customTipRateProvider(widget.shopId).notifier)
+                        .state = null;
+                    ref
+                        .read(
+                          isEditingCustomTipProvider(widget.shopId).notifier,
+                        )
+                        .state = false;
                     widget.customTipFocusNode.unfocus();
                   },
                 ),
@@ -356,22 +407,35 @@ class _OrderInfoViewState extends ConsumerState<OrderInfoView> {
             Expanded(
               child: GestureDetector(
                 onTap: () {
-                  ref.read(selectedTipRateProvider(widget.shopId).notifier).state = 0.15;
-                  ref.read(customTipRateProvider(widget.shopId).notifier).state = null;
-                  ref.read(isEditingCustomTipProvider(widget.shopId).notifier).state =
-                      false;
+                  ref
+                      .read(selectedTipRateProvider(widget.shopId).notifier)
+                      .state = 0.15;
+                  ref
+                      .read(customTipRateProvider(widget.shopId).notifier)
+                      .state = null;
+                  ref
+                      .read(isEditingCustomTipProvider(widget.shopId).notifier)
+                      .state = false;
                   widget.customTipFocusNode.unfocus();
                 },
                 child: SelectableCapsuleItem(
                   title: "15%",
-                  isSelected: !isCustomTipSelected &&
+                  isSelected:
+                      !isCustomTipSelected &&
                       !isEditingCustomTip &&
                       selectedTipRate == 0.15,
                   onTap: () {
-                    ref.read(selectedTipRateProvider(widget.shopId).notifier).state = 0.15;
-                    ref.read(customTipRateProvider(widget.shopId).notifier).state = null;
-                    ref.read(isEditingCustomTipProvider(widget.shopId).notifier).state =
-                        false;
+                    ref
+                        .read(selectedTipRateProvider(widget.shopId).notifier)
+                        .state = 0.15;
+                    ref
+                        .read(customTipRateProvider(widget.shopId).notifier)
+                        .state = null;
+                    ref
+                        .read(
+                          isEditingCustomTipProvider(widget.shopId).notifier,
+                        )
+                        .state = false;
                     widget.customTipFocusNode.unfocus();
                   },
                 ),
@@ -380,50 +444,77 @@ class _OrderInfoViewState extends ConsumerState<OrderInfoView> {
             Expanded(
               child: GestureDetector(
                 onTap: () {
-                  ref.read(selectedTipRateProvider(widget.shopId).notifier).state = 0.20;
-                  ref.read(customTipRateProvider(widget.shopId).notifier).state = null;
-                  ref.read(isEditingCustomTipProvider(widget.shopId).notifier).state =
-                      false;
+                  ref
+                      .read(selectedTipRateProvider(widget.shopId).notifier)
+                      .state = 0.20;
+                  ref
+                      .read(customTipRateProvider(widget.shopId).notifier)
+                      .state = null;
+                  ref
+                      .read(isEditingCustomTipProvider(widget.shopId).notifier)
+                      .state = false;
                   widget.customTipFocusNode.unfocus();
                 },
                 child: SelectableCapsuleItem(
                   title: "20%",
-                  isSelected: !isCustomTipSelected &&
+                  isSelected:
+                      !isCustomTipSelected &&
                       !isEditingCustomTip &&
                       selectedTipRate == 0.20,
                   onTap: () {
-                    ref.read(selectedTipRateProvider(widget.shopId).notifier).state = 0.20;
-                    ref.read(customTipRateProvider(widget.shopId).notifier).state = null;
-                    ref.read(isEditingCustomTipProvider(widget.shopId).notifier).state =
-                        false;
+                    ref
+                        .read(selectedTipRateProvider(widget.shopId).notifier)
+                        .state = 0.20;
+                    ref
+                        .read(customTipRateProvider(widget.shopId).notifier)
+                        .state = null;
+                    ref
+                        .read(
+                          isEditingCustomTipProvider(widget.shopId).notifier,
+                        )
+                        .state = false;
                     widget.customTipFocusNode.unfocus();
                   },
                 ),
               ),
             ),
             Expanded(
-              child: ref.watch(isEditingCustomTipProvider(widget.shopId))
-                  ? _buildCustomTipInput()
-                  : GestureDetector(
-                      onTap: () {
-                        ref.read(isEditingCustomTipProvider(widget.shopId).notifier).state =
-                            true;
-                        WidgetsBinding.instance.addPostFrameCallback((_) {
-                          widget.customTipFocusNode.requestFocus();
-                        });
-                      },
-                      child: SelectableCapsuleItem(
-                        title: isCustomTipSelected ? "$customTipRate%" : l10n.other,
-                        isSelected: isCustomTipSelected,
+              child:
+                  ref.watch(isEditingCustomTipProvider(widget.shopId))
+                      ? _buildCustomTipInput()
+                      : GestureDetector(
                         onTap: () {
-                          ref.read(isEditingCustomTipProvider(widget.shopId).notifier).state =
-                              true;
+                          ref
+                              .read(
+                                isEditingCustomTipProvider(
+                                  widget.shopId,
+                                ).notifier,
+                              )
+                              .state = true;
                           WidgetsBinding.instance.addPostFrameCallback((_) {
                             widget.customTipFocusNode.requestFocus();
                           });
                         },
+                        child: SelectableCapsuleItem(
+                          title:
+                              isCustomTipSelected
+                                  ? "$customTipRate%"
+                                  : l10n.other,
+                          isSelected: isCustomTipSelected,
+                          onTap: () {
+                            ref
+                                .read(
+                                  isEditingCustomTipProvider(
+                                    widget.shopId,
+                                  ).notifier,
+                                )
+                                .state = true;
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              widget.customTipFocusNode.requestFocus();
+                            });
+                          },
+                        ),
                       ),
-                    ),
             ),
           ],
         ),
@@ -447,10 +538,7 @@ class _OrderInfoViewState extends ConsumerState<OrderInfoView> {
         textInputAction: TextInputAction.done,
         keyboardType: TextInputType.number,
         textAlign: TextAlign.center,
-        style: TextStyle(
-          fontSize: 12.sp,
-          color: Colors.white,
-        ),
+        style: TextStyle(fontSize: 12.sp, color: Colors.white),
         decoration: InputDecoration(
           hintText: '',
           hintStyle: TextStyle(
@@ -462,10 +550,7 @@ class _OrderInfoViewState extends ConsumerState<OrderInfoView> {
           isDense: true,
           suffix: Text(
             '%',
-            style: TextStyle(
-              fontSize: 12.sp,
-              color: Colors.white,
-            ),
+            style: TextStyle(fontSize: 12.sp, color: Colors.white),
           ),
         ),
         onSubmitted: (value) {
@@ -483,7 +568,8 @@ class _OrderInfoViewState extends ConsumerState<OrderInfoView> {
     final l10n = AppLocalizations.of(context)!;
     if (value.trim().isEmpty) {
       // 如果输入为空，取消编辑状态
-      ref.read(isEditingCustomTipProvider(widget.shopId).notifier).state = false;
+      ref.read(isEditingCustomTipProvider(widget.shopId).notifier).state =
+          false;
       ref.read(customTipRateProvider(widget.shopId).notifier).state = null;
       widget.customTipController.clear();
       widget.customTipFocusNode.unfocus();
@@ -497,7 +583,8 @@ class _OrderInfoViewState extends ConsumerState<OrderInfoView> {
       return;
     }
 
-    if (tipValue <= 0 || tipValue >= 100) {
+
+    if (tipValue < 0 || tipValue > 100) {
       toast(l10n.pleaseEnter0To100);
       widget.customTipFocusNode.requestFocus();
       return;
@@ -511,7 +598,10 @@ class _OrderInfoViewState extends ConsumerState<OrderInfoView> {
 
   Widget _buildOrderAmount() {
     final l10n = AppLocalizations.of(context)!;
-    final prices = OrderPriceCalculator.calculate(ref: ref, shopId: widget.shopId);
+    final prices = OrderPriceCalculator.calculate(
+      ref: ref,
+      shopId: widget.shopId,
+    );
     final pricesMap = prices.toMap();
     final selectedCoupon = ref.watch(selectedCouponProvider(widget.shopId));
 
@@ -549,9 +639,10 @@ class _OrderInfoViewState extends ConsumerState<OrderInfoView> {
               toast(l10n.noCoupon);
               return;
             }
-            final availableCoupons = couponData.list!
-                .where((item) => (item.status ?? 0) == 1)
-                .toList();
+            final availableCoupons =
+                couponData.list!
+                    .where((item) => (item.status ?? 0) == 1)
+                    .toList();
             if (availableCoupons.isEmpty) {
               toast(l10n.noCoupon);
               return;
@@ -566,14 +657,13 @@ class _OrderInfoViewState extends ConsumerState<OrderInfoView> {
             );
 
             if (result != null) {
-              ref.read(selectedCouponProvider(widget.shopId).notifier).state = result;
+              ref.read(selectedCouponProvider(widget.shopId).notifier).state =
+                  result;
             }
           },
         ),
         Container(
-          decoration: BoxDecoration(
-            color: Colors.grey[200],
-          ),
+          decoration: BoxDecoration(color: Colors.grey[200]),
           height: 0.5.h,
           margin: EdgeInsets.symmetric(vertical: 10.h),
         ),
@@ -603,9 +693,8 @@ class _OrderInfoViewState extends ConsumerState<OrderInfoView> {
     if (couponData != null &&
         couponData.list != null &&
         couponData.list!.isNotEmpty) {
-      final availableCoupons = couponData.list!
-          .where((item) => (item.status ?? 0) == 1)
-          .toList();
+      final availableCoupons =
+          couponData.list!.where((item) => (item.status ?? 0) == 1).toList();
       if (availableCoupons.isNotEmpty) {
         final l10n = AppLocalizations.of(context)!;
         return l10n.confirmOrderAvailableCoupons;
@@ -629,9 +718,8 @@ class _OrderInfoViewState extends ConsumerState<OrderInfoView> {
     if (couponData != null &&
         couponData.list != null &&
         couponData.list!.isNotEmpty) {
-      final availableCoupons = couponData.list!
-          .where((item) => (item.status ?? 0) == 1)
-          .toList();
+      final availableCoupons =
+          couponData.list!.where((item) => (item.status ?? 0) == 1).toList();
       if (availableCoupons.isNotEmpty) {
         return true;
       }
@@ -662,9 +750,10 @@ class _OrderInfoViewState extends ConsumerState<OrderInfoView> {
                 Text(
                   value,
                   style: valueText.copyWith(
-                    color: (couponUsed != null && couponUsed) || isCouponHint
-                        ? AppTheme.primaryOrange
-                        : Colors.black,
+                    color:
+                        (couponUsed != null && couponUsed) || isCouponHint
+                            ? AppTheme.primaryOrange
+                            : Colors.black,
                   ),
                 ),
                 if (isCouponHint) ...[

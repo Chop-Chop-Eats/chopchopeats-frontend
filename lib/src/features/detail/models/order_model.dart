@@ -55,7 +55,7 @@ class CreateOrderParams {
   final double deliveryTip;
 
   ///用餐日期
-  final DateTime diningDate;
+  final String diningDate;
 
   ///订单商品列表
   final List<OrderItem> items;
@@ -117,7 +117,7 @@ class CreateOrderParams {
     'deliveryMethod': deliveryMethod,
     'deliveryTime': deliveryTime,
     'deliveryTip': deliveryTip,
-    'diningDate': diningDate.toIso8601String(),
+    'diningDate': diningDate,
     if (items.isNotEmpty) 'items': items.map((e) => e.toJson()).toList(),
     'mealSubtotal': mealSubtotal,
     'orderSource': orderSource,
