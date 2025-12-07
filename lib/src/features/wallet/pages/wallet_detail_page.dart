@@ -7,6 +7,7 @@ import '../../../core/constants/app_values.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../../../core/utils/logger/logger.dart';
 import '../../../core/widgets/common_app_bar.dart';
+import '../../../core/widgets/common_empty.dart';
 import '../../../core/widgets/common_indicator.dart';
 import '../providers/wallet_provider.dart';
 import '../widgets/balance_item.dart';
@@ -76,12 +77,7 @@ class _WalletDetailPageState extends ConsumerState<WalletDetailPage> {
             child: isLoading
                 ? const Center(child: CommonIndicator())
                 : history.isEmpty
-                    ? Center(
-                        child: Text(
-                          l10n.noDataText,
-                          style: AppValues.labelValue,
-                        ),
-                      )
+                    ? CommonEmpty()
                     : Padding(
                         padding: EdgeInsets.symmetric(horizontal: 16.w),
                         child: ListView.builder(

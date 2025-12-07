@@ -10,6 +10,7 @@ import '../../../core/l10n/app_localizations.dart';
 import '../../../core/routing/navigate.dart';
 import '../../../core/routing/routes.dart';
 import '../../../core/utils/logger/logger.dart';
+import '../../../core/widgets/common_empty.dart';
 import '../../../core/widgets/common_indicator.dart';
 import '../../../core/widgets/common_spacing.dart';
 import '../providers/wallet_provider.dart';
@@ -164,12 +165,7 @@ class _WalletPageState extends ConsumerState<WalletPage> {
           CommonSpacing.medium,
           Expanded(
             child: recentHistory.isEmpty
-                ? Center(
-                    child: Text(
-                      l10n.noDataText,
-                      style: AppValues.labelValue,
-                    ),
-                  )
+                ? CommonEmpty()
                 : ListView.builder(
                     padding: EdgeInsets.zero,
                     itemCount: recentHistory.length,
