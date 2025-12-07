@@ -96,22 +96,26 @@ class RechargeCardListState {
   final List<RechargeCardItem> cards;
   final bool isLoading;
   final String? error;
+  final bool hasLoaded;
 
   RechargeCardListState({
     this.cards = const [],
     this.isLoading = false,
     this.error,
+    this.hasLoaded = false,
   });
 
   RechargeCardListState copyWith({
     List<RechargeCardItem>? cards,
     bool? isLoading,
     String? error,
+    bool? hasLoaded,
   }) {
     return RechargeCardListState(
       cards: cards ?? this.cards,
       isLoading: isLoading ?? this.isLoading,
       error: error ?? this.error,
+      hasLoaded: hasLoaded ?? this.hasLoaded,
     );
   }
 }
@@ -125,14 +129,14 @@ class RechargeCardListNotifier extends StateNotifier<RechargeCardListState> {
     state = state.copyWith(isLoading: true, error: null);
     try {
       final cards = await WalletServices.getRechargeCardList();
-      state = state.copyWith(cards: cards, isLoading: false);
+      state = state.copyWith(cards: cards, isLoading: false, hasLoaded: true);
       Logger.info(
         'RechargeCardListNotifier',
         '充值卡列表加载成功: count=${cards.length}',
       );
     } catch (e) {
       Logger.error('RechargeCardListNotifier', '充值卡列表加载失败: $e');
-      state = state.copyWith(isLoading: false, error: e.toString());
+      state = state.copyWith(isLoading: false, error: e.toString(), hasLoaded: true);
     }
   }
 
@@ -170,22 +174,26 @@ class WalletHistoryState {
   final List<AllWalletHistoryItem> history;
   final bool isLoading;
   final String? error;
+  final bool hasLoaded;
 
   WalletHistoryState({
     this.history = const [],
     this.isLoading = false,
     this.error,
+    this.hasLoaded = false,
   });
 
   WalletHistoryState copyWith({
     List<AllWalletHistoryItem>? history,
     bool? isLoading,
     String? error,
+    bool? hasLoaded,
   }) {
     return WalletHistoryState(
       history: history ?? this.history,
       isLoading: isLoading ?? this.isLoading,
       error: error ?? this.error,
+      hasLoaded: hasLoaded ?? this.hasLoaded,
     );
   }
 }
@@ -199,14 +207,14 @@ class WalletHistoryNotifier extends StateNotifier<WalletHistoryState> {
     state = state.copyWith(isLoading: true, error: null);
     try {
       final history = await WalletServices.getAllWalletHistory();
-      state = state.copyWith(history: history, isLoading: false);
+      state = state.copyWith(history: history, isLoading: false, hasLoaded: true);
       Logger.info(
         'WalletHistoryNotifier',
         '全部钱包交易记录加载成功: count=${history.length}',
       );
     } catch (e) {
       Logger.error('WalletHistoryNotifier', '全部钱包交易记录加载失败: $e');
-      state = state.copyWith(isLoading: false, error: e.toString());
+      state = state.copyWith(isLoading: false, error: e.toString(), hasLoaded: true);
     }
   }
 

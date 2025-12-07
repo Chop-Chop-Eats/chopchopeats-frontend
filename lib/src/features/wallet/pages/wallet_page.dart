@@ -136,7 +136,6 @@ class _WalletPageState extends ConsumerState<WalletPage> {
   }
 
   Widget _buildBalanceDetail(List recentHistory, AppLocalizations l10n) {
-    // getRecentWalletHistory 接口
     final dateFormat = DateFormat('yyyy-MM-dd');
     
     return _buildCard(

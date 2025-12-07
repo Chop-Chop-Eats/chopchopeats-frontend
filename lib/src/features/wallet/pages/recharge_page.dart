@@ -25,11 +25,11 @@ class _RechargePageState extends ConsumerState<RechargePage> {
   @override
   void initState() {
     super.initState();
-    // 加载充值卡列表（如果还没有数据）
+    // 加载充值卡列表（如果还没有加载过）
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final currentState = ref.read(rechargeCardListProvider);
-      // 如果已有数据且不在加载中，则不重新加载
-      if (currentState.cards.isEmpty && !currentState.isLoading) {
+      // 如果未加载过且不在加载中，则加载
+      if (!currentState.hasLoaded && !currentState.isLoading) {
         ref.read(rechargeCardListProvider.notifier).loadRechargeCardList();
       }
     });

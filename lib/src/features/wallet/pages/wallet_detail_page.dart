@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import '../../../core/constants/app_values.dart';
 import '../../../core/l10n/app_localizations.dart';
+import '../../../core/utils/logger/logger.dart';
 import '../../../core/widgets/common_app_bar.dart';
 import '../../../core/widgets/common_indicator.dart';
 import '../providers/wallet_provider.dart';
@@ -23,7 +24,13 @@ class _WalletDetailPageState extends ConsumerState<WalletDetailPage> {
     super.initState();
     // 加载全部钱包交易记录
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(walletHistoryProvider.notifier).loadWalletHistory();
+      // 检查是否已加载过，避免重复加载
+      final currentState = ref.read(walletHistoryProvider);
+      Logger.info("WalletDetailPage", "加载全部钱包交易记录 hasLoaded=${currentState.hasLoaded}, isLoading=${currentState.isLoading}");
+      // 如果未加载过且不在加载中，则加载
+      if (!currentState.hasLoaded && !currentState.isLoading) {
+        ref.read(walletHistoryProvider.notifier).loadWalletHistory();
+      }
     });
   }
 
