@@ -492,6 +492,22 @@ class AppLocalizationsZh implements AppLocalizations {
   @override
   String get addressDeleteSuccess => '地址删除成功';
 
+  // ============== 钱包模块 ==============
+  @override
+  String get walletTitle => '钱包';
+  @override
+  String get walletBalance => '钱包余额';
+  @override
+  String get walletRecharge => '钱包充值';
+  @override
+  String get selectOrEnterRechargeAmount => '选择或输入充值金额';
+  @override
+  String get enterRechargeAmount => '请输入充值金额';
+  @override
+  String get balanceDetail => '余额明细';
+  @override
+  String get manageBoundCards => '管理绑定卡片';
+
   // ============== 通用文案 ==============
   @override
   String get loadingFailedWithError => '加载失败';

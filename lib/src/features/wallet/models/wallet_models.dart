@@ -227,15 +227,15 @@ class MyWalletInfo {
 
   factory MyWalletInfo.fromJson(Map<String, dynamic> json) {
     return MyWalletInfo(
-      balance: json['balance'],
-      currency: json['currency'],
-      lastTxTime: json['lastTxTime'],
-      status: json['status'],
-      totalBonus: json['totalBonus'],
-      totalRecharge: json['totalRecharge'],
-      totalRefund: json['totalRefund'],
-      totalSpent: json['totalSpent'],
-      userId: json['userId'],
+      balance: JsonUtils.parseDouble(json, 'balance') ?? 0.0,
+      currency: JsonUtils.parseString(json, 'currency'),
+      lastTxTime: JsonUtils.parseDateTime(json, 'lastTxTime'),
+      status: JsonUtils.parseInt(json, 'status') ?? 0,
+      totalBonus: JsonUtils.parseDouble(json, 'totalBonus'),
+      totalRecharge: JsonUtils.parseDouble(json, 'totalRecharge'),
+      totalRefund: JsonUtils.parseDouble(json, 'totalRefund'),
+      totalSpent: JsonUtils.parseDouble(json, 'totalSpent'),
+      userId: JsonUtils.parseInt(json, 'userId') ?? 0,
     );
   }
 

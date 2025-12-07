@@ -503,6 +503,22 @@ class AppLocalizationsEn implements AppLocalizations {
   @override
   String get addressDeleteSuccess => 'Address deleted successfully';
 
+  // ============== Wallet Module ==============
+  @override
+  String get walletTitle => 'Wallet';
+  @override
+  String get walletBalance => 'Wallet Balance';
+  @override
+  String get walletRecharge => 'Wallet Recharge';
+  @override
+  String get selectOrEnterRechargeAmount => 'Select or Enter Recharge Amount';
+  @override
+  String get enterRechargeAmount => 'Enter Recharge Amount';
+  @override
+  String get balanceDetail => 'Balance Detail';
+  @override
+  String get manageBoundCards => 'Manage Bound Cards';
+
   // ============== 通用文案 ==============
   @override
   String get loadingFailedWithError => 'Loading failed';

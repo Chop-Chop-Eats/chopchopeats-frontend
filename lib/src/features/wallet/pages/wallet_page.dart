@@ -1,47 +1,69 @@
 import 'package:chop_user/src/core/widgets/common_app_bar.dart';
 import 'package:chop_user/src/core/widgets/common_button.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:intl/intl.dart';
 
 import '../../../core/constants/app_values.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../../../core/routing/navigate.dart';
 import '../../../core/routing/routes.dart';
 import '../../../core/utils/logger/logger.dart';
+import '../../../core/widgets/common_indicator.dart';
 import '../../../core/widgets/common_spacing.dart';
+import '../providers/wallet_provider.dart';
 import '../widgets/balance_item.dart';
 
-class WalletPage extends StatefulWidget {
+class WalletPage extends ConsumerStatefulWidget {
   const WalletPage({super.key});
 
   @override
-  State<WalletPage> createState() => _WalletPageState();
+  ConsumerState<WalletPage> createState() => _WalletPageState();
 }
 
-class _WalletPageState extends State<WalletPage> {
+class _WalletPageState extends ConsumerState<WalletPage> {
+  @override
+  void initState() {
+    super.initState();
+    // 加载钱包信息（如果还没有数据）
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final currentState = ref.read(walletInfoProvider);
+      // 如果已有数据且不在加载中，则不重新加载
+      if (currentState.walletInfo == null && !currentState.isLoading) {
+        ref.read(walletInfoProvider.notifier).loadWalletInfo();
+      }
+    });
+  }
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final walletInfoState = ref.watch(walletInfoProvider);
+    final isLoading = ref.watch(walletInfoLoadingProvider);
+
     return Scaffold(
       body: Column(
         children: [
-          CommonAppBar(title: "钱包" , backgroundColor: Colors.transparent),
-          Expanded(child: 
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16.w),
-              child: Column(
-                children: [
-                  CommonSpacing.large,
-                  // 钱包信息
-                  _buildWalletInfo(),
-                  // 支付方式
-                  _buildPaymentMethod(),
-                  // 余额明细
-                  Expanded(
-                    child: _buildBalanceDetail(),
-                  )
-                ],
-              ),
-            ),
+          CommonAppBar(title: l10n.walletTitle, backgroundColor: Colors.transparent),
+          Expanded(
+            child: isLoading
+                ? const Center(child: CommonIndicator())
+                : Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16.w),
+                    child: Column(
+                      children: [
+                        CommonSpacing.large,
+                        // 钱包信息 getMyWalletInfo 接口
+                        _buildWalletInfo(walletInfoState.walletInfo, l10n),
+                        // 支付方式
+                        _buildPaymentMethod(l10n),
+                        // 余额明细
+                        Expanded(
+                          child: _buildBalanceDetail(walletInfoState.recentHistory, l10n),
+                        )
+                      ],
+                    ),
+                  ),
           ),
         ],
       ),
@@ -60,24 +82,29 @@ class _WalletPageState extends State<WalletPage> {
     );
   }
 
-  Widget _buildWalletInfo() {
+  Widget _buildWalletInfo(walletInfo, AppLocalizations l10n) {
+    final balance = walletInfo?.balance ?? 0.0;
     return _buildCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text("钱包余额" , style: AppValues.labelValue,),
+          Text(l10n.walletBalance, style: AppValues.labelValue),
           CommonSpacing.medium,
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text("1000" , style: AppValues.labelTitle.copyWith(fontSize: 20.sp, fontWeight: FontWeight.w500),),
+              // balance 字段
+              Text(
+                '\$${balance.toStringAsFixed(2)}',
+                style: AppValues.labelTitle.copyWith(fontSize: 20.sp, fontWeight: FontWeight.w500),
+              ),
               CommonButton(
-                text: "充值", 
-                padding: EdgeInsets.symmetric(horizontal:  24.w, vertical: 8.h),
+                text: l10n.recharge,
+                padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 8.h),
                 borderRadius: BorderRadius.circular(8.r),
-                onPressed:(){
+                onPressed: () {
                   Navigate.push(context, Routes.recharge);
-                }
+                },
               )
             ],
           )
@@ -86,8 +113,7 @@ class _WalletPageState extends State<WalletPage> {
     );
   }
 
-  Widget _buildPaymentMethod() {
-    final l10n = AppLocalizations.of(context)!;
+  Widget _buildPaymentMethod(AppLocalizations l10n) {
     return _buildCard(
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
@@ -97,10 +123,10 @@ class _WalletPageState extends State<WalletPage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(l10n.confirmOrderPaymentMethod , style: AppValues.labelTitle,),
+            Text(l10n.confirmOrderPaymentMethod, style: AppValues.labelTitle),
             Row(
               children: [
-                Text("管理绑定卡片" , style: AppValues.labelValue,),
+                Text(l10n.manageBoundCards, style: AppValues.labelValue),
               ],
             )
           ],
@@ -109,7 +135,10 @@ class _WalletPageState extends State<WalletPage> {
     );
   }
 
-  Widget _buildBalanceDetail() {
+  Widget _buildBalanceDetail(List recentHistory, AppLocalizations l10n) {
+    // getRecentWalletHistory 接口
+    final dateFormat = DateFormat('yyyy-MM-dd');
+    
     return _buildCard(
       child: Column(
         children: [
@@ -121,10 +150,10 @@ class _WalletPageState extends State<WalletPage> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text("余额明细" , style: AppValues.labelTitle,),
+                Text(l10n.balanceDetail, style: AppValues.labelTitle),
                 Row(
                   children: [
-                    Text("查看全部" , style: AppValues.labelValue,),
+                    Text(l10n.btnViewAll, style: AppValues.labelValue),
                     CommonSpacing.width(4.w),
                     Icon(Icons.arrow_forward_ios, size: 16.sp, color: Colors.grey.shade600),
                   ],
@@ -135,18 +164,26 @@ class _WalletPageState extends State<WalletPage> {
           
           CommonSpacing.medium,
           Expanded(
-            child: ListView.builder(
-              padding: EdgeInsets.zero,
-              itemCount: 10,
-              itemBuilder: (context, index) {
-                return _buildBalanceDetailItem(
-                  title: "余额明细$index",
-                  value: "1000",
-                  time: "2021-01-01",
-                  balance: "1000",
-                );
-              },
-            ),
+            child: recentHistory.isEmpty
+                ? Center(
+                    child: Text(
+                      l10n.noDataText,
+                      style: AppValues.labelValue,
+                    ),
+                  )
+                : ListView.builder(
+                    padding: EdgeInsets.zero,
+                    itemCount: recentHistory.length,
+                    itemBuilder: (context, index) {
+                      final item = recentHistory[index];
+                      return _buildBalanceDetailItem(
+                        title: item.payTypeName,
+                        value: '\$${item.transactionAmount.toStringAsFixed(2)}',
+                        time: dateFormat.format(item.recordDate),
+                        balance: '\$${item.balanceAfter.toStringAsFixed(2)}',
+                      );
+                    },
+                  ),
           )
         ],
       ),

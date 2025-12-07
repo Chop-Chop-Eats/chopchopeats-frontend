@@ -11,7 +11,6 @@ import '../../../core/l10n/app_localizations.dart';
 import '../../../core/utils/pop/confirm.dart';
 import '../../../core/widgets/common_spacing.dart';
 import '../../auth/providers/auth_provider.dart';
-import '../providers/mine_provider.dart';
 import '../widgets/language_sheet.dart';
 import '../widgets/setting_item.dart';
 import '../widgets/shop_enter.dart';

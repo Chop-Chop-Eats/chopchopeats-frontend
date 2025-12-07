@@ -281,6 +281,15 @@ abstract class AppLocalizations {
   String get addressDeleteConfirmDescription; // 删除确认描述
   String get addressDeleteSuccess; // 删除成功提示
 
+  // ============== 钱包模块 ==============
+  String get walletTitle; // 钱包
+  String get walletBalance; // 钱包余额
+  String get walletRecharge; // 钱包充值
+  String get selectOrEnterRechargeAmount; // 选择或输入充值金额
+  String get enterRechargeAmount; // 请输入充值金额
+  String get balanceDetail; // 余额明细
+  String get manageBoundCards; // 管理绑定卡片
+
   // ============== 通用文案 ==============
   String get loadingFailedWithError;
   String loadingFailedMessage(String error);
