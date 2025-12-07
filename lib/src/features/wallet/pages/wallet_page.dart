@@ -30,7 +30,7 @@ class _WalletPageState extends ConsumerState<WalletPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final currentState = ref.read(walletInfoProvider);
       // 如果已有数据且不在加载中，则不重新加载
-      if (currentState.walletInfo == null && !currentState.isLoading) {
+      if (!currentState.hasLoaded && !currentState.isLoading) {
         ref.read(walletInfoProvider.notifier).loadWalletInfo();
       }
     });

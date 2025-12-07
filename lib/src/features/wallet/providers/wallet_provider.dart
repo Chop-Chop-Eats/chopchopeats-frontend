@@ -8,6 +8,7 @@ class WalletInfoState {
   final MyWalletInfo? walletInfo;
   final List<RecentWalletHistoryItem> recentHistory;
   final bool isLoading;
+  final bool hasLoaded;
   final String? error;
 
   WalletInfoState({
@@ -15,6 +16,7 @@ class WalletInfoState {
     this.recentHistory = const [],
     this.isLoading = false,
     this.error,
+    this.hasLoaded = false,
   });
 
   WalletInfoState copyWith({
@@ -22,12 +24,14 @@ class WalletInfoState {
     List<RecentWalletHistoryItem>? recentHistory,
     bool? isLoading,
     String? error,
+    bool? hasLoaded,
   }) {
     return WalletInfoState(
       walletInfo: walletInfo ?? this.walletInfo,
       recentHistory: recentHistory ?? this.recentHistory,
       isLoading: isLoading ?? this.isLoading,
       error: error ?? this.error,
+      hasLoaded: hasLoaded ?? this.hasLoaded,
     );
   }
 }
@@ -46,6 +50,7 @@ class WalletInfoNotifier extends StateNotifier<WalletInfoState> {
         walletInfo: walletInfo,
         recentHistory: recentHistory,
         isLoading: false,
+        hasLoaded: true,
       );
       Logger.info(
         'WalletInfoNotifier',
