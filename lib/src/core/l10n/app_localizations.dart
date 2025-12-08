@@ -182,6 +182,7 @@ abstract class AppLocalizations {
   String get confirmOrderEmptyCart; // 购物车为空
   String get confirmOrderSelectAddress; // 请选择地址
   String get confirmOrderSelectDeliveryTime; // 请选择配送时间
+  String get confirmOrderTodayNotDelivery; // 今日不可配送
 
   // ============== Heart 收藏页 ==============
   String get noFavoriteText;

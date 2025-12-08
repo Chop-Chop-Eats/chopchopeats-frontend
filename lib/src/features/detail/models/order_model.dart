@@ -31,6 +31,12 @@ DateTime? parseDiningDate(String? dateStr) {
   return null;
 }
 
+double formatPrice(double? price) {
+  if (price == null) return 0.0;
+  return double.parse(price.toStringAsFixed(2));
+}
+
+
 /// 创建订单参数
 class CreateOrderParams {
   ///订单备注（可选）

@@ -265,7 +265,9 @@ class AppLocalizationsEn implements AppLocalizations {
   String get confirmOrderPrivateChef => 'Order Private Chef';
   @override
   String get confirmOrderDeliveryTime => 'Select Delivery Time';
-  @override   
+  @override
+  String get confirmOrderTodayNotDelivery => 'Today is not delivery day';
+  @override
   String get confirmOrderDistance => 'Distance';
   @override
   String get confirmOrderPlan => 'Plan';

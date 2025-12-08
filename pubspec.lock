@@ -826,6 +826,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.1.0"
+  omni_calendar_view:
+    dependency: "direct main"
+    description:
+      name: omni_calendar_view
+      sha256: b24f49bb61e264da299b8669ed3c897cb560476e4b39db617e802027f07dfb65
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.7"
   package_config:
     dependency: transitive
     description:

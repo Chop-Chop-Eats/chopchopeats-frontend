@@ -260,6 +260,8 @@ class AppLocalizationsZh implements AppLocalizations {
   @override
   String get confirmOrderDeliveryTime => '选择配送时间';
   @override
+  String get confirmOrderTodayNotDelivery => '今日不可配送';
+  @override
   String get pleaseEnter0To100 => '请输入0-100之间的数字';
   @override
   String get pleaseEnterValidNumber => '请输入有效的数字';
@@ -514,3 +516,4 @@ class AppLocalizationsZh implements AppLocalizations {
   @override
   String loadingFailedMessage(String error) => '加载失败: $error';
 }
+

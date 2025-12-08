@@ -192,7 +192,7 @@ class _ProductListState extends ConsumerState<ProductList> {
               )
             else
               CommonImage(
-                imagePath: "assets/images/restaurant2.png.png",
+                imagePath: "assets/images/restaurant2.png",
                 width: 48.w,
                 height: 48.h,
               ),

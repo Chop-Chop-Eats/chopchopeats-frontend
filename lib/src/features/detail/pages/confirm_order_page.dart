@@ -106,6 +106,9 @@ class _ConfirmOrderPageState extends ConsumerState<ConfirmOrderPage> {
     final selectedDeliveryTime = ref.read(
       selectedDeliveryTimeProvider(widget.shopId),
     );
+    final selectedDiningDate = ref.read(
+      selectedDiningDateProvider(widget.shopId),
+    );
     final prices = OrderPriceCalculator.calculate(
       ref: ref,
       shopId: widget.shopId,
@@ -123,6 +126,11 @@ class _ConfirmOrderPageState extends ConsumerState<ConfirmOrderPage> {
       return;
     }
 
+    if (selectedDiningDate == null || selectedDiningDate.isEmpty) {
+      toast(l10n.confirmOrderSelectDeliveryTime);
+      return;
+    }
+
     if (selectedDeliveryTime == null || selectedDeliveryTime.time == null) {
       toast(l10n.confirmOrderSelectDeliveryTime);
       return;
@@ -133,7 +141,7 @@ class _ConfirmOrderPageState extends ConsumerState<ConfirmOrderPage> {
     final orderItems =
         cartState.items.map((item) {
           return OrderItem(
-            price: item.price ?? 0,
+            price: formatPrice(item.price),
             productId: item.productId ?? '',
             productName: item.productName ?? '',
             productSpecId: item.productSpecId ?? '',
@@ -142,55 +150,38 @@ class _ConfirmOrderPageState extends ConsumerState<ConfirmOrderPage> {
           );
         }).toList();
 
-    // 组装CreateOrderParams
+    // 组装CreateOrderParams，所有价格字段都格式化为两位小数
     final orderParams = CreateOrderParams(
       comment:
           remarkController.text.trim().isEmpty
               ? null
               : remarkController.text.trim(),
-      couponAmount: selectedCoupon?.discountAmount,
+      couponAmount: selectedCoupon?.discountAmount != null
+          ? formatPrice(selectedCoupon!.discountAmount)
+          : null,
       deliveryAddressId: selectedAddress.id,
-      deliveryFee: pricesMap['deliveryFee']!,
+      deliveryFee: formatPrice(pricesMap['deliveryFee']),
       deliveryMethod: 1, // 固定为1（门店配送）
       deliveryTime: selectedDeliveryTime.time!,
-      deliveryTip: double.parse(pricesMap['tipAmount']!.toStringAsFixed(2)),
-      diningDate: '2025-12-08', // 用餐日期 固定为当前日期(临时)
+      deliveryTip: formatPrice(pricesMap['tipAmount']),
+      diningDate: selectedDiningDate,
       items: orderItems,
-      mealSubtotal: pricesMap['mealSubtotal']!,
+      mealSubtotal: formatPrice(pricesMap['mealSubtotal']),
       orderSource: 1, // 固定为1（APP）
-      payAmount:
-          pricesMap['orderTotal']! + pricesMap['tipAmount']!, // 订单总价 + 小费
+      payAmount: formatPrice(
+        (pricesMap['orderTotal'] ?? 0) + (pricesMap['tipAmount'] ?? 0),
+      ), // 订单总价 + 小费
       payType: 1, // 固定为1（Stripe）
-      serviceFee: pricesMap['serviceFee']!,
+      serviceFee: formatPrice(pricesMap['serviceFee']),
       shopId: widget.shopId,
-      taxAmount: pricesMap['taxAmount']!,
-      tipRate: pricesMap['tipRate']!,
+      taxAmount: formatPrice(pricesMap['taxAmount']),
+      tipRate: formatPrice(pricesMap['tipRate']),
       userCouponId: selectedCoupon?.couponId,
     );
 
     // 打印参数供查看
     Logger.info('ConfirmOrderPage', '订单参数: ${orderParams.toJson()}');
 
-    // 输出格式化的参数信息
-        Logger.info('ConfirmOrderPage', '''
-    订单参数详情:
-    - 备注 : ${orderParams.comment}
-    - 店铺ID: ${orderParams.shopId}
-    - 配送地址ID: ${orderParams.deliveryAddressId}
-    - 配送时间: ${orderParams.deliveryTime}
-    - 用餐日期: ${orderParams.diningDate}
-    - 餐品小记: ${orderParams.mealSubtotal.toStringAsFixed(2)}
-    - 配送费: ${orderParams.deliveryFee.toStringAsFixed(2)}
-    - 税费: ${orderParams.taxAmount.toStringAsFixed(2)}
-    - 服务费: ${orderParams.serviceFee.toStringAsFixed(2)}
-    - 优惠券折扣: ${orderParams.couponAmount?.toStringAsFixed(2) ?? '0.00'}
-    - 小费: ${orderParams.deliveryTip.toStringAsFixed(2)}
-    - 应付款: ${orderParams.payAmount.toStringAsFixed(2)}
-    - 商品: ${orderParams.items.map((e) => e.toJson()).toList()}
-    - 优惠券ID: ${orderParams.userCouponId ?? '无'}
-        ''');
-
-    // final res = await ref.read(orderServicesProvider).createOrder(orderParams);
     final orderId = await OrderServices().createOrder(orderParams);
     final res = await OrderServices().createSPI(orderId);
     try {
@@ -249,3 +240,4 @@ class _ConfirmOrderPageState extends ConsumerState<ConfirmOrderPage> {
     }
   }
 }
+

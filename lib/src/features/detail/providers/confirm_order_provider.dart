@@ -32,3 +32,18 @@ final isEditingCustomTipProvider = StateProvider.family<bool, String>((ref, shop
 final selectedAddressProvider = StateProvider.family<AddressItem?, String>((ref, shopId) {
   return null;
 });
+
+/// 可配送时间列表 Provider
+final availableDeliveryTimesProvider = StateProvider.family<List<OperatingHour>?, String>((ref, shopId) {
+  return null;
+});
+
+/// 配送时间加载状态 Provider
+final deliveryTimesLoadingProvider = StateProvider.family<bool, String>((ref, shopId) {
+  return false;
+});
+
+/// 选中的用餐日期 Provider（格式：YYYY-MM-DD）
+final selectedDiningDateProvider = StateProvider.family<String?, String>((ref, shopId) {
+  return null;
+});

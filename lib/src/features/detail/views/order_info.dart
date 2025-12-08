@@ -2,20 +2,23 @@ import 'package:chop_user/src/core/utils/logger/logger.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:omni_calendar_view/omni_calendar_view.dart';
 
 import '../../../core/l10n/app_localizations.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/pop/toast.dart';
+import '../../../core/widgets/common_indicator.dart';
 import '../../../core/widgets/common_spacing.dart';
-import '../../home/models/home_models.dart';
 import '../../address/models/address_models.dart';
 import '../providers/cart_notifier.dart';
 import '../providers/detail_provider.dart';
 import '../providers/confirm_order_provider.dart';
+import '../utils/calendar_popup_utils.dart';
 import '../widgets/cart_item_list.dart';
 import '../widgets/confirm_order_widgets.dart';
 import '../utils/order_price_calculator.dart';
 import '../models/order_model.dart';
+import '../services/order_services.dart';
 
 /// 订单信息视图组件
 class OrderInfoView extends ConsumerStatefulWidget {
@@ -39,6 +42,7 @@ class OrderInfoView extends ConsumerStatefulWidget {
 }
 
 class _OrderInfoViewState extends ConsumerState<OrderInfoView> {
+  final OmniCalendarController controller = OmniCalendarController(initialDate: DateTime.now());
   // 样式定义
   static final TextStyle titleText = TextStyle(
     fontSize: 16.sp,
@@ -68,6 +72,14 @@ class _OrderInfoViewState extends ConsumerState<OrderInfoView> {
       }
     };
     widget.customTipFocusNode.addListener(_focusListener);
+    
+    // 初始化当日日期并获取配送时间
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final today = DateTime.now();
+      final todayStr = formatDiningDate(today);
+      ref.read(selectedDiningDateProvider(widget.shopId).notifier).state = todayStr;
+      _fetchDeliveryTimes(todayStr);
+    });
   }
 
   @override
@@ -75,6 +87,28 @@ class _OrderInfoViewState extends ConsumerState<OrderInfoView> {
     // 移除焦点监听器
     widget.customTipFocusNode.removeListener(_focusListener);
     super.dispose();
+  }
+
+  /// 获取可配送时间列表
+  Future<void> _fetchDeliveryTimes(String diningDate) async {
+    // 设置加载状态
+    ref.read(deliveryTimesLoadingProvider(widget.shopId).notifier).state = true;
+    // 清空之前的数据
+    ref.read(availableDeliveryTimesProvider(widget.shopId).notifier).state = null;
+    
+    try {
+      final orderServices = OrderServices();
+      final times = await orderServices.getAvailableDeliveryTimes(
+        widget.shopId,
+        diningDate,
+      );
+      ref.read(availableDeliveryTimesProvider(widget.shopId).notifier).state = times;
+    } catch (e) {
+      Logger.error('OrderInfoView', '获取配送时间失败: $e');
+      ref.read(availableDeliveryTimesProvider(widget.shopId).notifier).state = [];
+    } finally {
+      ref.read(deliveryTimesLoadingProvider(widget.shopId).notifier).state = false;
+    }
   }
 
   @override
@@ -161,6 +195,9 @@ class _OrderInfoViewState extends ConsumerState<OrderInfoView> {
     final selectedDeliveryTime = ref.watch(
       selectedDeliveryTimeProvider(widget.shopId),
     );
+    final selectedDiningDate = ref.watch(
+      selectedDiningDateProvider(widget.shopId),
+    );
 
     // 如果没有店铺数据，显示占位
     if (shop == null) {
@@ -175,27 +212,13 @@ class _OrderInfoViewState extends ConsumerState<OrderInfoView> {
       );
     }
 
-    // 处理配送时间
-    final operatingHours = shop.operatingHours ?? [];
-    OperatingHour? displayDeliveryTime;
-    if (selectedDeliveryTime != null) {
-      displayDeliveryTime = selectedDeliveryTime;
-    } else if (operatingHours.isNotEmpty) {
-      // 如果没有选中，默认选择第一个
-      displayDeliveryTime = operatingHours.first;
-      // 初始化选中状态
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        ref.read(selectedDeliveryTimeProvider(widget.shopId).notifier).state =
-            displayDeliveryTime;
-      });
-    }
-
     // 格式化距离
     final distanceText =
         shop.distance != null ? "${shop.distance!.toStringAsFixed(1)}km" : "";
 
-    // 格式化配送时间
-    final deliveryTimeText = displayDeliveryTime?.time ?? "";
+    // 格式化配送时间（只显示已选中的）
+    final deliveryTimeText = selectedDeliveryTime?.time ?? "";
+    
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -230,49 +253,97 @@ class _OrderInfoViewState extends ConsumerState<OrderInfoView> {
             ],
           ],
         ),
-        // 如果有多个配送时间选项，显示选择器
-        if (operatingHours.length > 1) ...[
-          CommonSpacing.small,
-          Text(l10n.confirmOrderDeliveryTime, style: textStyle),
-          CommonSpacing.small,
-          _buildDeliveryTimeSelector(operatingHours),
-        ],
+        // 显示日期选择器和配送时间选择器
+        CommonSpacing.small,
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () async {
+            final result = await CalendarPopupUtils.showCalendar(context, controller);
+            if (result != null) {
+              // 更新选中的日期
+              final diningDateStr = formatDiningDate(result);
+              ref.read(selectedDiningDateProvider(widget.shopId).notifier).state = diningDateStr;
+              // 清空之前选择的配送时间
+              ref.read(selectedDeliveryTimeProvider(widget.shopId).notifier).state = null;
+              // 调用接口获取新的配送时间
+              _fetchDeliveryTimes(diningDateStr);
+            }
+          },
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                l10n.confirmOrderDeliveryTime,
+                style: titleText,
+              ),
+              Row(
+                children: [
+                  Text(
+                    selectedDiningDate ?? formatDiningDate(DateTime.now()),
+                    style: textStyle,
+                  ),
+                  CommonSpacing.width(4.w),
+                  Icon(Icons.arrow_forward_ios, size: 16.w, color: Colors.black),
+                ],
+              )
+            ],
+          )
+        ),
+        CommonSpacing.small,
+        _buildDeliveryTimeSelector(),
       ],
     );
   }
-
-  Widget _buildDeliveryTimeSelector(List<OperatingHour> operatingHours) {
+  
+  // 构建配送时间选择器
+  Widget _buildDeliveryTimeSelector() {
+    final l10n = AppLocalizations.of(context)!;
     final selectedDeliveryTime = ref.watch(
       selectedDeliveryTimeProvider(widget.shopId),
     );
+    final availableDeliveryTimes = ref.watch(
+      availableDeliveryTimesProvider(widget.shopId),
+    );
+    final isLoading = ref.watch(
+      deliveryTimesLoadingProvider(widget.shopId),
+    );
+
+    // Loading 状态
+    if (isLoading) {
+      return CommonIndicator(size: 16.w);
+    }
+
+    // 如果没有数据，显示空状态
+    if (availableDeliveryTimes == null || availableDeliveryTimes.isEmpty) {
+      return Container(
+        padding: EdgeInsets.symmetric(vertical: 16.h),
+        child: Center(
+          child: Text(
+            l10n.confirmOrderTodayNotDelivery,
+            style: textStyle,
+          ),
+        ),
+      );
+    }
 
     return Row(
-      children:
-          operatingHours.map((hour) {
-            final isSelected = selectedDeliveryTime?.time == hour.time;
-            return Expanded(
-              child: GestureDetector(
-                onTap: () {
-                  ref
-                      .read(
-                        selectedDeliveryTimeProvider(widget.shopId).notifier,
-                      )
-                      .state = hour;
-                },
-                child: SelectableCapsuleItem(
-                  title: hour.time ?? "",
-                  isSelected: isSelected,
-                  onTap: () {
-                    ref
-                        .read(
-                          selectedDeliveryTimeProvider(widget.shopId).notifier,
-                        )
-                        .state = hour;
-                  },
-                ),
-              ),
-            );
-          }).toList(),
+      children: availableDeliveryTimes.map((hour) {
+        final isSelected = selectedDeliveryTime?.time == hour.time;
+        return Expanded(
+          child: GestureDetector(
+            onTap: () {
+              ref.read(selectedDeliveryTimeProvider(widget.shopId).notifier).state = hour;
+            },
+            child: SelectableCapsuleItem(
+              title: hour.time ?? "",
+              isSelected: isSelected,
+              onTap: () {
+                ref.read(selectedDeliveryTimeProvider(widget.shopId).notifier).state = hour;
+              },
+            ),
+          ),
+        );
+      }).toList(),
     );
   }
 
@@ -820,3 +891,4 @@ class _OrderInfoViewState extends ConsumerState<OrderInfoView> {
     );
   }
 }
+

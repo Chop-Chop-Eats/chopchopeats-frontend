@@ -42,6 +42,8 @@ dependencies:
   hive_flutter: ^1.1.0
   flutter_riverpod: ^2.6.1
   flutter_screenutil: ^5.9.0
+  omni_calendar_view: ^1.0.7
+
   logger: ^2.5.0
   cached_network_image: ^3.3.1
   pull_to_refresh: ^2.0.0

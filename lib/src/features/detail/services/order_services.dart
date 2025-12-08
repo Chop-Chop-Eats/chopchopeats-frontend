@@ -1,6 +1,7 @@
 import '../../../core/network/api_client.dart';
 import '../../../core/network/api_paths.dart';
 import '../../../core/utils/logger/logger.dart';
+import '../../home/models/home_models.dart';
 import '../models/order_model.dart';
 
 class OrderServices {
@@ -87,4 +88,23 @@ class OrderServices {
     Logger.info('OrderServices', '计算配送预估费用: ${response.data}');
     return DeliveryFeeModel.fromJson(response.data);
   }
+
+    /// 获取可配送时间列表 diningDate 格式为 YYYY-MM-DD
+  Future<List<OperatingHour>> getAvailableDeliveryTimes(String shopId , String diningDate) async {
+    final response = await ApiClient().get(
+      ApiPaths.getAvailableDeliveryTimesApi,
+      queryParameters: {
+        'shopId': shopId,
+        'diningDate': diningDate,
+      },
+    );
+    Logger.info('OrderServices', '获取可配送时间列表: ${response.data}');
+    if (response.data is List) {
+      final List<dynamic> dataList = response.data as List<dynamic>;
+      return dataList.map((e) => OperatingHour.fromJson(e as Map<String, dynamic>)).toList();
+    } else {
+      throw Exception('API 返回的数据格式不正确，期望 List 类型');
+    }
+  }
+
 }
