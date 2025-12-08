@@ -2,6 +2,7 @@ import 'package:chop_user/src/core/widgets/common_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
+import 'package:unified_popups/unified_popups.dart';
 
 import '../../../core/l10n/app_localizations.dart';
 import '../../../core/utils/logger/logger.dart';
@@ -127,6 +128,7 @@ class _ConfirmOrderPageState extends ConsumerState<ConfirmOrderPage> {
       return;
     }
 
+    Pop.loading();
     // 将购物车商品转换为OrderItem列表
     final orderItems =
         cartState.items.map((item) {
@@ -242,6 +244,8 @@ class _ConfirmOrderPageState extends ConsumerState<ConfirmOrderPage> {
       // 处理其他错误（如网络请求失败）
       Logger.error('ConfirmOrderPage', 'Unknown Error: $e');
       toast("发生错误: $e");
+    }finally {
+      Pop.hideLoading();
     }
   }
 }
