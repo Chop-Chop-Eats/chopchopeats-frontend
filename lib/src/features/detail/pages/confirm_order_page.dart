@@ -1,6 +1,7 @@
 import 'package:chop_user/src/core/widgets/common_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
 
 import '../../../core/l10n/app_localizations.dart';
 import '../../../core/utils/logger/logger.dart';
@@ -190,6 +191,57 @@ class _ConfirmOrderPageState extends ConsumerState<ConfirmOrderPage> {
     // final res = await ref.read(orderServicesProvider).createOrder(orderParams);
     final orderId = await OrderServices().createOrder(orderParams);
     final res = await OrderServices().createSPI(orderId);
-    Logger.info("ConfirmOrderPage", "res $res");
+    try {
+      // 安全检查：确保关键数据不为空
+      if (res.clientSecret == null || res.publishableKey == null) {
+        throw Exception("订单生成失败：缺少 clientSecret 或 publishableKey");
+      }
+      Stripe.publishableKey = res.publishableKey!;
+      await Stripe.instance.applySettings(); // 确保设置生效
+
+      // 4. 初始化支付面板 (Payment Sheet)
+      await Stripe.instance.initPaymentSheet(
+        paymentSheetParameters: SetupPaymentSheetParameters(
+          // 必填：后端返回的 clientSecret
+          paymentIntentClientSecret: res.clientSecret!,
+
+          // 必填：商户名称（显示在支付弹窗顶部）
+          merchantDisplayName: '订单 ${res.orderNo}', // 也可以用 '订单 ${res.orderNo}'
+
+          // UI 外观定制（可选）
+          appearance: const PaymentSheetAppearance(
+            colors: PaymentSheetAppearanceColors(
+              primary: Colors.blue,
+            ),
+          ),
+          
+          // 可选：启用 Apple Pay / Google Pay
+          // 注意：如果没有 customerId，这些通常作为单次支付处理
+          googlePay: const PaymentSheetGooglePay(
+            merchantCountryCode: 'US', // 根据你的 Stripe 账户所在国家填写，如 'US', 'SG'
+            testEnv: true, // 上线时改为 false
+          ),
+        ),
+      );
+
+      // 5. 唤起支付面板
+      await Stripe.instance.presentPaymentSheet();
+
+
+      
+      // TODO: 在这里跳转到“支付成功”页面或刷新订单列表
+    } on StripeException catch (e) {
+      // 处理 Stripe 内部错误（如用户取消、卡片被拒）
+      Logger.error('ConfirmOrderPage', 'Stripe Error: ${e.error.localizedMessage}');
+      if (e.error.code == FailureCode.Canceled) {
+        toast("取消支付");
+      } else {
+        toast("支付失败: ${e.error.localizedMessage}");
+      }
+    } catch (e) {
+      // 处理其他错误（如网络请求失败）
+      Logger.error('ConfirmOrderPage', 'Unknown Error: $e');
+      toast("发生错误: $e");
+    }
   }
 }

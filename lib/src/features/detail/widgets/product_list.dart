@@ -182,14 +182,20 @@ class _ProductListState extends ConsumerState<ProductList> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            CommonImage(
-              imagePath:
-                  product.carouselImages?[0].url ??
-                  product.imageThumbnail ??
-                  '',
-              width: 48.w,
-              height: 48.h,
-            ),
+            if (product.carouselImages?.isNotEmpty ?? false)
+              CommonImage(
+                imagePath:
+                    product.carouselImages?[0].url ??
+                    '',
+                width: 48.w,
+                height: 48.h,
+              )
+            else
+              CommonImage(
+                imagePath: "assets/images/restaurant2.png.png",
+                width: 48.w,
+                height: 48.h,
+              ),
             CommonSpacing.small,
             Text(
               product.localizedName,
