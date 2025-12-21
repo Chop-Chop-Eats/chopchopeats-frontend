@@ -55,7 +55,6 @@ dependencies:
   google_maps_flutter: ^2.14.0
   http: ^1.2.2
   url_launcher: ^6.3.0
-  # stripe_sdk: ^5.0.0 # 三年没有更新 
   flutter_stripe: ^11.5.0 # 使用最新的stripe sdk
 
 dev_dependencies:
