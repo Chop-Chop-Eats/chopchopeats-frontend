@@ -368,16 +368,16 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
               shopId: widget.shopId,
               productId: product.id,
               productName: product.localizedName,
-              productSpecId: selectedSku!.id ?? '',
-              productSpecName: selectedSku.skuName ?? product.localizedName,
+              productSpecId: selectedSku?.id ?? '',
+              productSpecName: selectedSku?.skuName ?? product.localizedName,
               diningDate: diningDate,
-              price: selectedSku.price,
+              price: selectedSku?.price ?? 0,
             ),
           ],
         ),
         if (isSku)
           Text(
-            "\$${selectedSku.price}",
+            "\$${selectedSku?.price}",
             style: TextStyle(
               fontSize: 14.sp,
               fontWeight: FontWeight.bold,

@@ -19,6 +19,8 @@ import '../widgets/confirm_order_widgets.dart';
 import '../utils/order_price_calculator.dart';
 import '../models/order_model.dart';
 import '../services/order_services.dart';
+import '../providers/payment_provider.dart';
+import 'payment_selection_sheet.dart';
 
 /// 订单信息视图组件
 class OrderInfoView extends ConsumerStatefulWidget {
@@ -845,6 +847,17 @@ class _OrderInfoViewState extends ConsumerState<OrderInfoView> {
 
   Widget _buildPaymentMethod() {
     final l10n = AppLocalizations.of(context)!;
+    final selectedMethod = ref.watch(selectedPaymentMethodProvider);
+
+    // 默认显示文本或选中的支付方式名称
+    String displayTitle = l10n.confirmOrderSelectPaymentMethod;
+    String iconPath = "assets/images/wallet.png"; // 默认图标
+
+    if (selectedMethod != null) {
+      displayTitle = selectedMethod.displayName;
+      iconPath = selectedMethod.iconPath;
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -852,9 +865,11 @@ class _OrderInfoViewState extends ConsumerState<OrderInfoView> {
         Text(l10n.confirmOrderPaymentMethod, style: titleText),
         CommonSpacing.medium,
         CapsuleButton(
-          title: l10n.confirmOrderSelectPaymentMethod,
-          onTap: () {},
-          imagePath: "assets/images/wallet.png",
+          title: displayTitle,
+          onTap: () {
+            PaymentSelectionSheet.show(context);
+          },
+          imagePath: iconPath,
         ),
         CommonSpacing.standard,
       ],
