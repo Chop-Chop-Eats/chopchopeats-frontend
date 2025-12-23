@@ -125,6 +125,24 @@ class ApiPaths {
   // 创建 Stripe PaymentIntent
   static const String createSPIApi = "/app-api/trade/stripe-payment-intent/create";
 
+  // 获取 Stripe Publishable Key
+  static const String getSPIKeyApi = "/app-api/trade/stripe-config/public-key";
+
+  // 设置默认支付方式（卡片）
+  static const String setDefaultPaymentMethodApi = "/app-api/trade/stripe-payment-method/set-default";
+
+  // 添加支付方式（卡片）
+  static const String addPaymentMethodApi = "/app-api/trade/stripe-payment-method/add";
+
+  // 获取支付方式（卡片）列表
+  static const String getPaymentMethodListApi = "/app-api/trade/stripe-payment-method/list";
+
+  // 删除支付方式（卡片）
+  static const String deletePaymentMethodApi = "/app-api/trade/stripe-payment-method/delete";
+
+  // 获取Stripe Customer ID
+  static const String getStripeCustomerIdApi = "/app-api/trade/stripe-payment-method/get-customer-id";
+  
   // 计算配送预估费用
   static const String getDeliveryFeeEstimateApi = "/app-api/merchant/geocoding/delivery-fee-estimate";
 
