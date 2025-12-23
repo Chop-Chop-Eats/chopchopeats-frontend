@@ -71,7 +71,12 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
     );
   }
 
-  Widget _buildBody(bool isLoading, String? error, SaleProductModel? product, AppLocalizations l10n) {
+  Widget _buildBody(
+    bool isLoading,
+    String? error,
+    SaleProductModel? product,
+    AppLocalizations l10n,
+  ) {
     if (isLoading) {
       return const Center(child: CommonIndicator());
     }
@@ -233,21 +238,31 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
     final cartState = ref.watch(cartStateProvider(widget.shopId));
     final isBusy = cartState.isUpdating || cartState.isOperating;
     return GestureDetector(
-      onTap: isBusy? null : () => _handleAddToCart(product, selectedSku, diningDate, l10n),
+      onTap:
+          isBusy
+              ? null
+              : () => _handleAddToCart(product, selectedSku, diningDate, l10n),
       child: Container(
         decoration: BoxDecoration(
           color: isBusy ? Colors.grey[400] : AppTheme.primaryOrange,
           borderRadius: BorderRadius.circular(12.r),
         ),
         padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 12.h),
-        child: isBusy ? CommonIndicator(strokeWidth: 2, color: Colors.white, size: 14.w) : Text(
-          l10n.addToCart,
-          style: TextStyle(
-            fontSize: 14.sp,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
+        child:
+            isBusy
+                ? CommonIndicator(
+                  strokeWidth: 2,
+                  color: Colors.white,
+                  size: 14.w,
+                )
+                : Text(
+                  l10n.addToCart,
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
       ),
     );
   }
@@ -337,6 +352,9 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
     String diningDate, // 格式: YYYY-MM-DD
     bool isSku,
   ) {
+    // 优先使用 productPrice，否则使用 SKU 价格
+    final displayPrice = product.productPrice ?? (selectedSku?.price ?? 0.0);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -351,19 +369,22 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
               ),
           ],
         ),
+        CommonSpacing.medium,
         Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
               child: Text(
                 product.localizedName,
                 style: TextStyle(
-                  fontSize: 14.sp,
+                  fontSize: 18.sp,
                   fontWeight: FontWeight.bold,
                   color: Colors.black,
                 ),
               ),
             ),
-            if (isSku) CommonSpacing.width(8.w),
+            CommonSpacing.width(16.w),
             SkuCounter(
               shopId: widget.shopId,
               productId: product.id,
@@ -371,30 +392,26 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
               productSpecId: selectedSku?.id ?? '',
               productSpecName: selectedSku?.skuName ?? product.localizedName,
               diningDate: diningDate,
-              price: selectedSku?.price ?? 0,
+              price: displayPrice,
             ),
           ],
         ),
-        if (isSku)
-          Text(
-            "\$${selectedSku?.price}",
-            style: TextStyle(
-              fontSize: 14.sp,
-              fontWeight: FontWeight.bold,
-              color: AppTheme.primaryOrange,
-            ),
-          ),
         CommonSpacing.medium,
-        if (product.highlight != null)
+        if (product.highlight != null) ...[
           Text(
             product.highlight!,
             style: TextStyle(fontSize: 12.sp, color: Colors.grey[500]),
           ),
-        CommonSpacing.medium,
+          CommonSpacing.small,
+        ],
         if (product.localizedDescription != null)
           Text(
             product.localizedDescription!,
-            style: TextStyle(fontSize: 14.sp, color: Colors.grey[600]),
+            style: TextStyle(
+              fontSize: 14.sp,
+              color: Colors.grey[600],
+              height: 1.5,
+            ),
           ),
       ],
     );
@@ -509,6 +526,9 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
     }
 
     final notifier = ref.read(cartProvider.notifier);
+    // 优先使用 productPrice，否则使用 SKU 价格
+    final displayPrice = product.productPrice ?? (selectedSku?.price ?? 0.0);
+
     try {
       if (product.skuSetting == 1) {
         if (selectedSku == null || selectedSku.id == null) {
@@ -522,22 +542,23 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
           productName: product.localizedName,
           productSpecId: selectedSku.id ?? '',
           productSpecName: selectedSku.skuName ?? product.localizedName,
-          price: selectedSku.price, // 传递商品价格
+          price: displayPrice, // 传递商品价格
         );
       } else {
+        // 对于无规格商品，允许直接添加
         final sku = product.skus.isNotEmpty ? product.skus.first : null;
-        if (sku == null || sku.id == null) {
-          toast.warn('暂无可售规格');
-          return;
-        }
+        final specId = sku?.id ?? '';
+        final specName = sku?.skuName ?? '';
+        final price = displayPrice; // 使用计算好的显示价格
+
         await notifier.increment(
           shopId: widget.shopId,
           diningDate: diningDate,
           productId: product.id,
           productName: product.localizedName,
-          productSpecId: sku.id ?? '',
-          productSpecName: sku.skuName ?? product.localizedName,
-          price: sku.price, // 传递商品价格
+          productSpecId: specId,
+          productSpecName: specName,
+          price: price,
         );
       }
 

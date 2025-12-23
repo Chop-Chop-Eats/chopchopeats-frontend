@@ -26,7 +26,8 @@ class SkuCounter extends ConsumerWidget {
   final String productSpecName;
   final String? diningDate; // 格式: YYYY-MM-DD
   final double? price;
-  bool get _isSpecValid => productSpecId.isNotEmpty;
+  // 移除对 productSpecId 非空的强制检查，允许无规格商品
+  bool get _isSpecValid => true;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -60,7 +61,7 @@ class SkuCounter extends ConsumerWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if(quantity > 0)...[
+          if (quantity > 0) ...[
             _buildButton(
               icon: Icons.remove,
               enabled: canDecrease,
@@ -78,7 +79,7 @@ class SkuCounter extends ConsumerWidget {
               ),
             ),
           ],
-          
+
           _buildButton(
             icon: Icons.add,
             enabled: canIncrease,
@@ -115,10 +116,7 @@ class SkuCounter extends ConsumerWidget {
   }
 
   Future<void> _onIncrease(WidgetRef ref) async {
-    if (!_isSpecValid) {
-      Logger.warn('SkuCounter', '缺少规格信息，无法增加数量 productId=$productId');
-      return;
-    }
+    // 移除 _isSpecValid 检查
     await ref
         .read(cartProvider.notifier)
         .increment(
@@ -133,10 +131,7 @@ class SkuCounter extends ConsumerWidget {
   }
 
   Future<void> _onDecrease(WidgetRef ref) async {
-    if (!_isSpecValid) {
-      Logger.warn('SkuCounter', '缺少规格信息，无法减少数量 productId=$productId');
-      return;
-    }
+    // 移除 _isSpecValid 检查
     await ref
         .read(cartProvider.notifier)
         .decrement(

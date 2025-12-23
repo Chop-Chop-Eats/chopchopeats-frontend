@@ -92,7 +92,7 @@ class ShopModel {
   ///平台抽成比例-用户计算服务费
   final double? platformCommissionRate;
 
-  /// 服务费率-用户计算服务费 
+  /// 服务费率-用户计算服务费
   final double? serviceFeeRate;
 
   ///店铺评分
@@ -393,6 +393,9 @@ class SaleProductModel {
   ///是否上架
   final bool isOnSale;
 
+  ///商品价格
+  final double? productPrice;
+
   ///销售日期
   final DateTime saleDate;
 
@@ -417,6 +420,7 @@ class SaleProductModel {
     required this.id,
     this.imageThumbnail,
     required this.isOnSale,
+    this.productPrice,
     required this.saleDate,
     required this.shopId,
     required this.skus,
@@ -443,6 +447,7 @@ class SaleProductModel {
       hotMark: json['hotMark'],
       id: json['id'],
       imageThumbnail: json['imageThumbnail'],
+      productPrice: JsonUtils.parseDouble(json, 'productPrice'),
       isOnSale: json['isOnSale'],
       saleDate: JsonUtils.parseDateTime(json, 'saleDate') ?? DateTime.now(),
       shopId: json['shopId'],
@@ -521,7 +526,11 @@ class AvailableCouponModel {
   factory AvailableCouponModel.fromJson(Map<String, dynamic> json) {
     return AvailableCouponModel(
       canClaimCouponTypeCount: json['canClaimCouponTypeCount'],
-      list: JsonUtils.parseList<AvailableCouponItem>(json, 'list', (e) => AvailableCouponItem.fromJson(e)),
+      list: JsonUtils.parseList<AvailableCouponItem>(
+        json,
+        'list',
+        (e) => AvailableCouponItem.fromJson(e),
+      ),
     );
   }
 }
@@ -616,4 +625,3 @@ class AvailableCouponItem {
     );
   }
 }
-
