@@ -244,8 +244,8 @@ class CartState {
     final map = <CartProductRef, CartItemModel>{};
     for (final item in items) {
       final productId = item.productId;
-      final specId = item.productSpecId;
-      if (productId == null || specId == null) {
+      final specId = item.productSpecId ?? '';
+      if (productId == null) {
         continue;
       }
       map[CartProductRef(productId: productId, productSpecId: specId)] = item;

@@ -107,30 +107,47 @@ class CartNotifier extends StateNotifier<Map<String, CartState>> {
     }
   }
 
-  /// 添加商品到购物车
+  /// 添加商品到购物车（乐观更新）
   Future<void> addItem(AddCartParams params) async {
     final current = _ensureCart(params.shopId);
-    final productRef = CartProductRef(
+
+    // 乐观更新：立即在本地添加商品
+    final newItem = CartItemModel(
+      id: null, // 临时 ID，等服务器返回后更新
       productId: params.productId,
+      productName: params.productName,
       productSpecId: params.productSpecId,
+      productSpecName: params.productSpecName,
+      quantity: params.quantity,
+      price: params.price,
     );
 
-    // 设置加载状态
+    final updatedItems = [...current.items, newItem];
+    final newSubtotal = current.totals.subtotal + (params.price ?? 0) * params.quantity;
+    final newPayable = newSubtotal +
+        current.totals.serviceFee +
+        current.totals.taxAmount +
+        current.totals.deliveryFee +
+        current.totals.tipAmount -
+        current.totals.couponOffset;
+
+    // 立即更新 UI
     _commit(
       params.shopId,
       current.copyWith(
-        operatingProductRef: productRef,
-        isOperating: true,
+        diningDate: params.diningDate,
+        items: updatedItems,
+        totals: current.totals.copyWith(subtotal: newSubtotal, payable: newPayable),
         error: null,
       ),
     );
 
     try {
-      // 调用接口
+      // 后台异步调用接口
       await _orderServices.addCart(params);
 
-      // 刷新数据：重新拉取整个购物车
-      await refreshCart(shopId: params.shopId, diningDate: params.diningDate);
+      // 静默刷新数据以获取服务器返回的真实 ID
+      _silentRefreshCart(shopId: params.shopId, diningDate: params.diningDate);
 
       Logger.info(
         'CartNotifier',
@@ -138,27 +155,63 @@ class CartNotifier extends StateNotifier<Map<String, CartState>> {
       );
     } catch (e) {
       Logger.error('CartNotifier', '添加商品失败: $e');
+      // 回滚到之前的状态
       _commit(
         params.shopId,
         current.copyWith(
-          isOperating: false,
           error: e.toString(),
           lastError: e.toString(),
-          operatingProductRef: null,
         ),
       );
       rethrow;
-    } finally {
-      // 清除加载状态
-      final finalState = _ensureCart(params.shopId);
-      _commit(
-        params.shopId,
-        finalState.copyWith(isOperating: false, operatingProductRef: null),
-      );
     }
   }
 
-  /// 更新购物车商品数量
+  /// 静默刷新购物车（不显示 loading 状态）
+  Future<void> _silentRefreshCart({
+    required String shopId,
+    required String diningDate,
+  }) async {
+    try {
+      final query = GetCartListQuery(diningDate: diningDate, shopId: shopId);
+      final items = await _orderServices.getCartList(query);
+
+      final latest = _ensureCart(shopId);
+      final newSubtotal = items.fold<double>(0, (sum, item) {
+        final price = item.price ?? 0;
+        final quantity = item.quantity ?? 0;
+        return sum + price * quantity;
+      });
+
+      final preservedTotals = latest.totals;
+      final newPayable = newSubtotal +
+          preservedTotals.serviceFee +
+          preservedTotals.taxAmount +
+          preservedTotals.deliveryFee +
+          preservedTotals.tipAmount -
+          preservedTotals.couponOffset;
+
+      final updatedTotals = preservedTotals.copyWith(
+        subtotal: newSubtotal,
+        payable: newPayable,
+      );
+
+      _commit(
+        shopId,
+        latest.copyWith(
+          items: items,
+          totals: updatedTotals,
+          lastSyncedAt: DateTime.now(),
+          dataOrigin: CartDataOrigin.remote,
+        ),
+      );
+    } catch (e) {
+      Logger.warn('CartNotifier', '静默刷新购物车失败: $e');
+      // 静默失败，不影响用户体验
+    }
+  }
+
+  /// 更新购物车商品数量（乐观更新）
   Future<void> updateQuantity({
     required UpdateCartParams params,
     required String shopId,
@@ -166,37 +219,72 @@ class CartNotifier extends StateNotifier<Map<String, CartState>> {
   }) async {
     final current = _ensureCart(shopId);
 
-    // 找到对应的商品项以获取 productId 和 productSpecId
-    final targetItem = current.items.firstWhere(
+    // 找到对应的商品项
+    final targetIndex = current.items.indexWhere(
       (item) => item.id == params.cartId,
-      orElse: () => throw Exception('找不到对应的购物车项: ${params.cartId}'),
     );
 
-    if (targetItem.productId == null || targetItem.productSpecId == null) {
-      throw Exception('购物车项缺少商品信息: ${params.cartId}');
+    if (targetIndex == -1) {
+      throw Exception('找不到对应的购物车项: ${params.cartId}');
     }
 
-    final productRef = CartProductRef(
-      productId: targetItem.productId!,
-      productSpecId: targetItem.productSpecId!,
-    );
+    final targetItem = current.items[targetIndex];
+    final oldQuantity = targetItem.quantity ?? 0;
+    final price = targetItem.price ?? 0;
+    final quantityDiff = params.quantity - oldQuantity;
 
-    // 设置加载状态
+    // 乐观更新：立即更新本地数量
+    List<CartItemModel> updatedItems;
+    if (params.quantity <= 0) {
+      // 数量为 0，移除商品
+      updatedItems = [...current.items]..removeAt(targetIndex);
+    } else {
+      // 更新数量
+      updatedItems = current.items.map((item) {
+        if (item.id == params.cartId) {
+          return CartItemModel(
+            id: item.id,
+            productId: item.productId,
+            productName: item.productName,
+            productSpecId: item.productSpecId,
+            productSpecName: item.productSpecName,
+            quantity: params.quantity,
+            price: item.price,
+          );
+        }
+        return item;
+      }).toList();
+    }
+
+    final newSubtotal = current.totals.subtotal + (price * quantityDiff);
+    final newPayable = newSubtotal +
+        current.totals.serviceFee +
+        current.totals.taxAmount +
+        current.totals.deliveryFee +
+        current.totals.tipAmount -
+        current.totals.couponOffset;
+
+    // 立即更新 UI
     _commit(
       shopId,
       current.copyWith(
-        operatingProductRef: productRef,
-        isOperating: true,
+        items: updatedItems,
+        totals: current.totals.copyWith(subtotal: newSubtotal, payable: newPayable),
         error: null,
       ),
     );
 
     try {
-      // 调用接口
-      await _orderServices.updateCartQuantity(params);
+      if (params.quantity <= 0) {
+        // 数量为 0，调用删除接口
+        await _orderServices.deleteCartItem(params.cartId);
+      } else {
+        // 后台异步调用更新接口
+        await _orderServices.updateCartQuantity(params);
+      }
 
-      // 刷新数据：重新拉取整个购物车
-      await refreshCart(shopId: shopId, diningDate: diningDate);
+      // 静默刷新以同步服务器数据
+      _silentRefreshCart(shopId: shopId, diningDate: diningDate);
 
       Logger.info(
         'CartNotifier',
@@ -205,23 +293,15 @@ class CartNotifier extends StateNotifier<Map<String, CartState>> {
       );
     } catch (e) {
       Logger.error('CartNotifier', '更新数量失败: $e');
+      // 回滚到之前的状态
       _commit(
         shopId,
         current.copyWith(
-          isOperating: false,
           error: e.toString(),
           lastError: e.toString(),
-          operatingProductRef: null,
         ),
       );
       rethrow;
-    } finally {
-      // 清除加载状态
-      final finalState = _ensureCart(shopId);
-      _commit(
-        shopId,
-        finalState.copyWith(isOperating: false, operatingProductRef: null),
-      );
     }
   }
 

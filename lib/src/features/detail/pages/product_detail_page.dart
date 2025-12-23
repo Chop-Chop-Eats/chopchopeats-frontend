@@ -1,6 +1,5 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:chop_user/src/core/utils/pop/toast.dart';
-import 'package:chop_user/src/features/detail/widgets/sku_counter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -237,6 +236,57 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
   ) {
     final cartState = ref.watch(cartStateProvider(widget.shopId));
     final isBusy = cartState.isUpdating || cartState.isOperating;
+
+    final specId = selectedSku?.id ?? '';
+    final quantity = cartState.quantityOf(product.id, specId);
+
+    if (quantity > 0) {
+      return Container(
+        height: 44.h,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(22.r),
+          border: Border.all(color: AppTheme.primaryOrange, width: 1.w),
+        ),
+        padding: EdgeInsets.symmetric(horizontal: 12.w),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildIconButton(
+              icon: Icons.remove,
+              color: Colors.grey,
+              onTap:
+                  isBusy
+                      ? null
+                      : () =>
+                          _updateQuantity(product, selectedSku, diningDate, -1),
+            ),
+            Container(
+              constraints: BoxConstraints(minWidth: 40.w),
+              alignment: Alignment.center,
+              child: Text(
+                '$quantity',
+                style: TextStyle(
+                  fontSize: 18.sp,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+            ),
+            _buildIconButton(
+              icon: Icons.add,
+              color: Colors.black,
+              onTap:
+                  isBusy
+                      ? null
+                      : () =>
+                          _updateQuantity(product, selectedSku, diningDate, 1),
+            ),
+          ],
+        ),
+      );
+    }
+
     return GestureDetector(
       onTap:
           isBusy
@@ -245,9 +295,9 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
       child: Container(
         decoration: BoxDecoration(
           color: isBusy ? Colors.grey[400] : AppTheme.primaryOrange,
-          borderRadius: BorderRadius.circular(12.r),
+          borderRadius: BorderRadius.circular(22.r),
         ),
-        padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 12.h),
+        padding: EdgeInsets.symmetric(horizontal: 32.w, vertical: 12.h),
         child:
             isBusy
                 ? CommonIndicator(
@@ -258,13 +308,66 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
                 : Text(
                   l10n.addToCart,
                   style: TextStyle(
-                    fontSize: 14.sp,
+                    fontSize: 16.sp,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
                 ),
       ),
     );
+  }
+
+  Widget _buildIconButton({
+    required IconData icon,
+    required VoidCallback? onTap,
+    Color color = Colors.white,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: Container(
+        padding: EdgeInsets.all(4.w),
+        child: Icon(icon, color: color, size: 24.w),
+      ),
+    );
+  }
+
+  Future<void> _updateQuantity(
+    SaleProductModel product,
+    SaleProductSku? selectedSku,
+    String diningDate,
+    int delta,
+  ) async {
+    final notifier = ref.read(cartProvider.notifier);
+    final specId = selectedSku?.id ?? '';
+
+    try {
+      if (delta > 0) {
+        final displayPrice =
+            product.productPrice ?? (selectedSku?.price ?? 0.0);
+        final specName = selectedSku?.skuName ?? product.localizedName;
+
+        await notifier.increment(
+          shopId: widget.shopId,
+          diningDate: diningDate,
+          productId: product.id,
+          productName: product.localizedName,
+          productSpecId: specId,
+          productSpecName: specName,
+          price: displayPrice,
+        );
+      } else {
+        await notifier.decrement(
+          shopId: widget.shopId,
+          diningDate: diningDate,
+          productId: product.id,
+          productSpecId: specId,
+        );
+      }
+    } catch (e) {
+      Logger.error('ProductDetailPage', '更新数量失败: $e');
+      toast.warn('操作失败，请稍后重试');
+    }
   }
 
   Widget _buildProductImages(SaleProductModel product) {
@@ -385,14 +488,14 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
               ),
             ),
             CommonSpacing.width(16.w),
-            SkuCounter(
-              shopId: widget.shopId,
-              productId: product.id,
-              productName: product.localizedName,
-              productSpecId: selectedSku?.id ?? '',
-              productSpecName: selectedSku?.skuName ?? product.localizedName,
-              diningDate: diningDate,
-              price: displayPrice,
+            // 显示价格
+            Text(
+              '\$${displayPrice.toStringAsFixed(2)}',
+              style: TextStyle(
+                fontSize: 18.sp,
+                fontWeight: FontWeight.bold,
+                color: AppTheme.primaryOrange,
+              ),
             ),
           ],
         ),

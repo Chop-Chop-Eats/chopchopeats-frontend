@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import '../../../core/l10n/app_localizations.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../core/utils/logger/logger.dart';
+import '../../../core/utils/pop/confirm.dart';
 import '../providers/cart_notifier.dart';
-import '../providers/cart_state.dart';
 
 class SkuCounter extends ConsumerWidget {
   const SkuCounter({
@@ -24,26 +24,17 @@ class SkuCounter extends ConsumerWidget {
   final String productName;
   final String productSpecId;
   final String productSpecName;
-  final String? diningDate; // 格式: YYYY-MM-DD
+  final String? diningDate;
   final double? price;
-  // 移除对 productSpecId 非空的强制检查，允许无规格商品
+
   bool get _isSpecValid => true;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final cartState = ref.watch(cartStateProvider(shopId));
     final quantity = cartState.quantityOf(productId, productSpecId);
-    // 创建当前商品的引用
-    final currentProductRef = CartProductRef(
-      productId: productId,
-      productSpecId: productSpecId,
-    );
-    // 只有当正在操作的商品是当前商品时才禁用
-    final isBusy =
-        cartState.operatingProductRef != null &&
-        cartState.operatingProductRef == currentProductRef;
-    final canDecrease = quantity > 0 && !isBusy && _isSpecValid;
-    final canIncrease = !isBusy && _isSpecValid;
+    final canDecrease = quantity > 0 && _isSpecValid;
+    final canIncrease = _isSpecValid;
 
     return Container(
       padding: EdgeInsets.symmetric(vertical: 2.h, horizontal: 2.w),
@@ -65,21 +56,20 @@ class SkuCounter extends ConsumerWidget {
             _buildButton(
               icon: Icons.remove,
               enabled: canDecrease,
-              onTap: () => _onDecrease(ref),
+              onTap: () => _onDecrease(context, ref, quantity),
             ),
             Container(
               padding: EdgeInsets.symmetric(horizontal: 8.w),
               child: Text(
                 quantity.toString(),
                 style: TextStyle(
-                  color: isBusy ? Colors.grey[400] : Colors.black,
+                  color: Colors.black,
                   fontSize: 12.sp,
                   fontWeight: FontWeight.normal,
                 ),
               ),
             ),
           ],
-
           _buildButton(
             icon: Icons.add,
             enabled: canIncrease,
@@ -116,7 +106,6 @@ class SkuCounter extends ConsumerWidget {
   }
 
   Future<void> _onIncrease(WidgetRef ref) async {
-    // 移除 _isSpecValid 检查
     await ref
         .read(cartProvider.notifier)
         .increment(
@@ -130,8 +119,24 @@ class SkuCounter extends ConsumerWidget {
         );
   }
 
-  Future<void> _onDecrease(WidgetRef ref) async {
-    // 移除 _isSpecValid 检查
+  Future<void> _onDecrease(
+    BuildContext context,
+    WidgetRef ref,
+    int currentQuantity,
+  ) async {
+    // 数量为 1 时，弹出确认删除对话框
+    if (currentQuantity == 1) {
+      final l10n = AppLocalizations.of(context)!;
+      final confirmed = await confirm(
+        l10n.removeItemConfirmMessage,
+        confirmText: l10n.btnConfirm,
+        cancelText: l10n.btnCancel,
+      );
+      if (confirmed != true) {
+        return;
+      }
+    }
+
     await ref
         .read(cartProvider.notifier)
         .decrement(

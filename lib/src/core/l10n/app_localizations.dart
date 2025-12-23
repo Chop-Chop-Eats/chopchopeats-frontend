@@ -83,6 +83,7 @@ abstract class AppLocalizations {
   String get totalPrice;
   String get orderNow;
   String get clearCartConfirmMessage;
+  String get removeItemConfirmMessage;
   String get cartTitle;
   String get cartEmpty;
   String get addToCartSuccess;

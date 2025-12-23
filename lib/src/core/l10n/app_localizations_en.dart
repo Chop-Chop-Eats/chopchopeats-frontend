@@ -125,6 +125,9 @@ class AppLocalizationsEn implements AppLocalizations {
   String get clearCartConfirmMessage =>
       'Are you sure you want to clear the cart?';
   @override
+  String get removeItemConfirmMessage =>
+      'Are you sure you want to remove this item?';
+  @override
   String get cartTitle => 'Cart';
   @override
   String get cartEmpty => 'Cart is empty';

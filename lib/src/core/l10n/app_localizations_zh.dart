@@ -124,6 +124,8 @@ class AppLocalizationsZh implements AppLocalizations {
   @override
   String get clearCartConfirmMessage => '确定清空购物车吗？';
   @override
+  String get removeItemConfirmMessage => '确定删除该商品吗？';
+  @override
   String get cartTitle => '购物车';
   @override
   String get cartEmpty => '购物车为空';

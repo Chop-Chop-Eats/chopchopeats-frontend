@@ -53,6 +53,16 @@ class OrderServices {
     return response.data;
   }
 
+  /// 删除购物车商品
+  Future<void> deleteCartItem(String cartId) async {
+    final response = await ApiClient().delete(
+      ApiPaths.deleteCartItemApi,
+      queryParameters: {'id': cartId},
+    );
+    Logger.info('OrderServices', '删除购物车商品: ${response.data}');
+    return response.data;
+  }
+
   /// 更新购物车数量
   Future<void> updateCartQuantity(UpdateCartParams params) async {
     final response = await ApiClient().put(
