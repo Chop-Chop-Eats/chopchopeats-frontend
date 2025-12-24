@@ -147,10 +147,12 @@ class CartNotifier extends StateNotifier<Map<String, CartState>> {
       id: null, // 临时 ID，等服务器返回后更新
       productId: params.productId,
       productName: params.productName,
+      englishProductName: params.englishProductName,
       productSpecId: params.selectedSkus?.first.id ?? '',
       productSpecName: params.selectedSkus?.map((s) => s.skuName).join(', ') ?? '',
       quantity: params.quantity,
       price: itemPrice,
+      skuSetting: params.selectedSkus != null && params.selectedSkus!.isNotEmpty ? 1 : 0,
       selectedSkus: params.selectedSkus?.map((sku) => CartItemSku(
         id: sku.id,
         skuName: sku.skuName,
@@ -281,15 +283,7 @@ class CartNotifier extends StateNotifier<Map<String, CartState>> {
       // 更新数量
       updatedItems = current.items.map((item) {
         if (item.id == params.cartId) {
-          return CartItemModel(
-            id: item.id,
-            productId: item.productId,
-            productName: item.productName,
-            productSpecId: item.productSpecId,
-            productSpecName: item.productSpecName,
-            quantity: params.quantity,
-            price: item.price,
-          );
+          return item.copyWith(quantity: params.quantity);
         }
         return item;
       }).toList();

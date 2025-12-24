@@ -581,7 +581,31 @@ class _DetailPageSkuCounter extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final cartState = ref.watch(cartStateProvider(shopId));
-    final cartQuantity = cartState.quantityOf(productId, _productSpecId);
+    
+    // 查找匹配的购物车条目
+    CartItemModel? matchedItem;
+    for (final item in cartState.items) {
+      if (item.productId == productId) {
+        // 检查 selectedSkus 是否匹配
+        if (selectedSkus != null && selectedSkus!.isNotEmpty) {
+          // 需要匹配所有的 SKU ID
+          final targetSkuIds = selectedSkus!.map((s) => s.id).toSet();
+          final itemSkuIds = (item.selectedSkus?.map((s) => s.id).toSet()) ?? {};
+          
+          if (targetSkuIds.length == itemSkuIds.length && 
+              targetSkuIds.every((id) => itemSkuIds.contains(id))) {
+            matchedItem = item;
+            break;
+          }
+        } else if (item.selectedSkus == null || item.selectedSkus!.isEmpty) {
+          // 没有SKU的商品
+          matchedItem = item;
+          break;
+        }
+      }
+    }
+    
+    final cartQuantity = matchedItem?.quantity ?? 0;
     
     // 详情页显示数量：购物车数量 >= 1 ? 购物车数量 : 1
     final displayQuantity = cartQuantity >= 1 ? cartQuantity : 1;

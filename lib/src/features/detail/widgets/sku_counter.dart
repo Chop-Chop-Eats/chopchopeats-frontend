@@ -41,12 +41,17 @@ class SkuCounter extends ConsumerWidget {
     
     // 如果有cartItemId，直接从购物车中查找该条目
     int quantity = 0;
+    CartItemModel? matchedItem;
+    
     if (cartItemId != null) {
-      final item = cartState.items.firstWhere(
-        (item) => item.id == cartItemId,
-        orElse: () => CartItemModel(quantity: 0),
-      );
-      quantity = item.quantity ?? 0;
+      try {
+        matchedItem = cartState.items.firstWhere(
+          (item) => item.id == cartItemId,
+        );
+        quantity = matchedItem.quantity ?? 0;
+      } catch (_) {
+        quantity = 0;
+      }
     } else {
       // 否则使用productId和productSpecId查找
       quantity = cartState.quantityOf(productId, _productSpecId);

@@ -360,6 +360,9 @@ class CartItemModel {
   ///商品名称
   final String? productName;
 
+  ///英文商品名称
+  final String? englishProductName;
+
   ///产品规格ID
   final String? productSpecId;
 
@@ -392,6 +395,7 @@ class CartItemModel {
     this.price,
     this.productId,
     this.productName,
+    this.englishProductName,
     this.productSpecId,
     this.productSpecName,
     this.quantity,
@@ -411,6 +415,7 @@ class CartItemModel {
       price: JsonUtils.parseDouble(json, 'price'),
       productId: json['productId'] as String?,
       productName: json['productName'] as String?,
+      englishProductName: json['englishProductName'] as String?,
       productSpecId: json['productSpecId'] as String?,
       productSpecName: json['productSpecName'] as String?,
       quantity: JsonUtils.parseInt(json, 'quantity'),
@@ -438,6 +443,7 @@ class CartItemModel {
     double? price,
     String? productId,
     String? productName,
+    String? englishProductName,
     String? productSpecId,
     String? productSpecName,
     int? quantity,
@@ -455,6 +461,7 @@ class CartItemModel {
       price: price ?? this.price,
       productId: productId ?? this.productId,
       productName: productName ?? this.productName,
+      englishProductName: englishProductName ?? this.englishProductName,
       productSpecId: productSpecId ?? this.productSpecId,
       productSpecName: productSpecName ?? this.productSpecName,
       quantity: quantity ?? this.quantity,
@@ -475,6 +482,7 @@ class CartItemModel {
       'price': price,
       'productId': productId,
       'productName': productName,
+      if (englishProductName != null) 'englishProductName': englishProductName,
       'productSpecId': productSpecId,
       'productSpecName': productSpecName,
       'quantity': quantity,

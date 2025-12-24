@@ -32,14 +32,22 @@ class StripePaymentMethodModel {
   });
 
   factory StripePaymentMethodModel.fromJson(Map<String, dynamic> json) {
+    // 处理 isDefault 字段，可能是 int (0/1) 或 bool
+    bool parseIsDefault(dynamic value) {
+      if (value is bool) return value;
+      if (value is int) return value == 1;
+      if (value is String) return value == '1' || value.toLowerCase() == 'true';
+      return false;
+    }
+
     return StripePaymentMethodModel(
       id: json['id']?.toString() ?? '',
-      stripePaymentMethodId: json['stripePaymentMethodId'] ?? '',
-      cardBrand: json['cardBrand'] ?? '',
-      cardLast4: json['cardLast4'] ?? '',
-      cardExpMonth: json['cardExpMonth'] ?? 0,
-      cardExpYear: json['cardExpYear'] ?? 0,
-      isDefault: json['isDefault'] ?? false,
+      stripePaymentMethodId: json['stripePaymentMethodId']?.toString() ?? '',
+      cardBrand: json['cardBrand']?.toString() ?? '',
+      cardLast4: json['cardLast4']?.toString() ?? '', // 后端返回的是 int，需要转为 string
+      cardExpMonth: int.tryParse(json['cardExpMonth']?.toString() ?? '0') ?? 0,
+      cardExpYear: int.tryParse(json['cardExpYear']?.toString() ?? '0') ?? 0,
+      isDefault: parseIsDefault(json['isDefault']),
     );
   }
 }
