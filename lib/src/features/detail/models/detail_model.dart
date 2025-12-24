@@ -482,11 +482,20 @@ class SaleProductSku {
   ///SKU ID
   final String? id;
 
-  ///商品价格
+  ///规格附加价格
   final double price;
 
   ///SKU名称（规格名称）
   final String? skuName;
+
+  ///英文规格名称
+  final String? englishSkuName;
+
+  ///规格分组ID，1 表示通用附加
+  final int? skuGroupId;
+
+  ///规格分组类型：1-可叠加；2-互斥
+  final int? skuGroupType;
 
   ///状态：0=停售，1=在售
   final int status;
@@ -498,6 +507,9 @@ class SaleProductSku {
     this.id,
     required this.price,
     this.skuName,
+    this.englishSkuName,
+    this.skuGroupId,
+    this.skuGroupType,
     required this.status,
     this.stock,
   });
@@ -505,11 +517,19 @@ class SaleProductSku {
   factory SaleProductSku.fromJson(Map<String, dynamic> json) {
     return SaleProductSku(
       id: json['id'],
-      price: json['price'],
+      price: JsonUtils.parseDouble(json, 'skuPrice') ?? 0.0,
       skuName: json['skuName'],
-      status: json['status'],
-      stock: json['stock'],
+      englishSkuName: json['englishSkuName'],
+      skuGroupId: JsonUtils.parseInt(json, 'skuGroupId'),
+      skuGroupType: JsonUtils.parseInt(json, 'skuGroupType'),
+      status: JsonUtils.parseInt(json, 'status') ?? 1,
+      stock: JsonUtils.parseInt(json, 'stock'),
     );
+  }
+
+  /// 获取本地化的SKU名称
+  String? get localizedSkuName {
+    return LocaleService.getLocalizedText(skuName, englishSkuName);
   }
 }
 

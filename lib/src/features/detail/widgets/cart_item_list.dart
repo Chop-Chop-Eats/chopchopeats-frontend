@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/common_image.dart';
 import '../../../core/widgets/common_spacing.dart';
+import '../../../core/l10n/locale_service.dart';
 import '../models/order_model.dart';
 import 'sku_counter.dart';
 
@@ -65,14 +66,13 @@ class CartItemList extends ConsumerWidget {
                 productName,
                 style: TextStyle(fontSize: 14.sp, color: Colors.black),
               ),
+              if (item.skus != null && item.skus!.isNotEmpty) ...[
+                CommonSpacing.height(4.h),
+                _buildSkuInfo(item.skus!),
+              ],
               CommonSpacing.small,
               Text(
-                specName,
-                style: TextStyle(fontSize: 12.sp, color: Colors.grey[600]),
-              ),
-              CommonSpacing.small,
-              Text(
-                '\$${price.toStringAsFixed(2)}',
+                '${price.toStringAsFixed(2)}',
                 style: TextStyle(
                   fontSize: 14.sp,
                   color: AppTheme.primaryOrange,
@@ -95,6 +95,47 @@ class CartItemList extends ConsumerWidget {
       ],
     );
   }
+
+  /// 构建SKU信息显示
+  Widget _buildSkuInfo(List<CartItemSku> skus) {
+    // 按SKU分组并统计数量
+    final skuCountMap = <String, int>{};
+    final skuDisplayMap = <String, String>{};
+    
+    for (final sku in skus) {
+      final skuId = sku.id ?? '';
+      if (skuId.isEmpty) continue;
+      
+      final displayName = LocaleService.getLocalizedText(
+        sku.skuName,
+        sku.englishSkuName,
+      );
+      if (displayName.isEmpty) continue;
+      
+      skuCountMap[skuId] = (skuCountMap[skuId] ?? 0) + 1;
+      skuDisplayMap[skuId] = displayName;
+    }
+    
+    if (skuCountMap.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    
+    // 构建显示文本：数量x SKU名称
+    final skuTexts = skuCountMap.entries.map((entry) {
+      final skuId = entry.key;
+      final count = entry.value;
+      final name = skuDisplayMap[skuId] ?? '';
+      return count > 1 ? '${count}x$name' : name;
+    }).join(', ');
+
+    return Text(
+      skuTexts,
+      style: TextStyle(
+        fontSize: 12.sp,
+        color: Colors.grey[600],
+      ),
+      maxLines: 2,
+      overflow: TextOverflow.ellipsis,
+    );
+  }
 }
-
-

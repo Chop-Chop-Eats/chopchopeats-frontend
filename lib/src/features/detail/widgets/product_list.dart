@@ -11,7 +11,7 @@ import '../../../core/widgets/common_image.dart';
 import '../../../core/widgets/common_indicator.dart';
 import '../../../core/widgets/common_spacing.dart';
 import '../models/detail_model.dart';
-import '../providers/cart_notifier.dart'; // Ensure this is imported for cartProvider
+import '../providers/cart_notifier.dart';
 import '../providers/detail_provider.dart';
 import 'sku_counter.dart';
 
@@ -34,14 +34,12 @@ class _ProductListState extends ConsumerState<ProductList> {
   @override
   void initState() {
     super.initState();
-    // 只在初始化时加载一次，Provider 会缓存数据
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final params = ProductListParams(
         shopId: widget.shopId,
         saleWeekDay: widget.saleWeekDay,
       );
       final currentState = ref.read(productListProvider(params));
-      // 只有当数据为空且未加载时才请求
       if (currentState.products.isEmpty && !currentState.isLoading) {
         ref
             .read(productListProvider(params).notifier)
@@ -68,7 +66,7 @@ class _ProductListState extends ConsumerState<ProductList> {
       return Padding(
         padding: EdgeInsets.symmetric(horizontal: 16.w),
         child: SizedBox(
-          height: 100.h, // 固定高度，与商品列表大致相同
+          height: 100.h,
           child: const Center(child: CommonIndicator()),
         ),
       );
@@ -78,7 +76,7 @@ class _ProductListState extends ConsumerState<ProductList> {
       return Padding(
         padding: EdgeInsets.symmetric(horizontal: 16.w),
         child: SizedBox(
-          height: 200.h, // 固定高度，避免布局抖动
+          height: 200.h,
           child: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -109,7 +107,7 @@ class _ProductListState extends ConsumerState<ProductList> {
       return Padding(
         padding: EdgeInsets.symmetric(horizontal: 16.w),
         child: SizedBox(
-          height: 200.h, // 固定高度，避免布局抖动
+          height: 200.h,
           child: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -140,17 +138,16 @@ class _ProductListState extends ConsumerState<ProductList> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.start,
-            children:
-                onSaleProducts
-                    .map<Widget>(
-                      (product) => _buildSaleItem(
-                        product: product,
-                        selectSpecification: l10n.selectSpecification,
-                        diningDate: diningDate,
-                        cartState: cartState,
-                      ),
-                    )
-                    .toList(),
+            children: onSaleProducts
+                .map<Widget>(
+                  (product) => _buildSaleItem(
+                    product: product,
+                    selectSpecification: l10n.selectSpecification,
+                    diningDate: diningDate,
+                    cartState: cartState,
+                  ),
+                )
+                .toList(),
           ),
         ),
       ),
@@ -161,24 +158,30 @@ class _ProductListState extends ConsumerState<ProductList> {
   Widget _buildSaleItem({
     required SaleProductModel product,
     required String selectSpecification,
-    required String diningDate, // 格式: YYYY-MM-DD
+    required String diningDate,
     required CartState cartState,
   }) {
-    final isSku = product.skuSetting == 1;
+    final hasSku = product.skuSetting == 1;
     final firstSku = product.skus.isNotEmpty ? product.skus.first : null;
 
-    // 价格显示逻辑：优先使用 productPrice，否则使用第一个 SKU 的价格
+    // 价格显示逻辑
     final displayPrice = product.productPrice ?? (firstSku?.price ?? 0.0);
-    final priceText =
-        isSku
-            ? '\$${displayPrice.toStringAsFixed(2)}' // 多规格通常显示起步价，或者直接显示价格
-            : '\$${displayPrice.toStringAsFixed(2)}';
+    final priceText = '\$${displayPrice.toStringAsFixed(2)}';
 
-    // 数量逻辑
-    final quantity =
-        !isSku && firstSku != null
-            ? cartState.quantityOf(product.id, firstSku.id ?? '')
-            : 0;
+    // 计算该商品在购物车中的总数量（所有规格）
+    int totalQuantity = 0;
+    for (final item in cartState.items) {
+      if (item.productId == product.id) {
+        totalQuantity += item.quantity ?? 0;
+      }
+    }
+
+    // 调试信息
+    Logger.info(
+      "ProductList",
+      "商品: ${product.localizedName}, hasSku: $hasSku, "
+      "totalQuantity: $totalQuantity, firstSku: ${firstSku?.id}",
+    );
 
     return GestureDetector(
       onTap: () {
@@ -190,19 +193,19 @@ class _ProductListState extends ConsumerState<ProductList> {
         );
       },
       child: Container(
-        width: 160.w, // 固定宽度
+        width: 160.w,
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16.r),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
           ],
         ),
-        margin: EdgeInsets.only(right: 12.w, bottom: 12.h), // 增加间距
+        margin: EdgeInsets.only(right: 12.w, bottom: 12.h),
         padding: EdgeInsets.all(12.w),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -212,27 +215,26 @@ class _ProductListState extends ConsumerState<ProductList> {
             Center(
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(8.r),
-                child:
-                    product.carouselImages?.isNotEmpty ?? false
-                        ? CommonImage(
-                          imagePath: product.carouselImages![0].url ?? '',
-                          width: 120.w,
-                          height: 120.w, // 正方形图片
-                          fit: BoxFit.cover,
-                        )
-                        : CommonImage(
-                          imagePath: "assets/images/restaurant2.png",
-                          width: 120.w,
-                          height: 120.w,
-                          fit: BoxFit.cover,
-                        ),
+                child: product.carouselImages?.isNotEmpty ?? false
+                    ? CommonImage(
+                        imagePath: product.carouselImages![0].url ?? '',
+                        width: 120.w,
+                        height: 120.w,
+                        fit: BoxFit.cover,
+                      )
+                    : CommonImage(
+                        imagePath: "assets/images/restaurant2.png",
+                        width: 120.w,
+                        height: 120.w,
+                        fit: BoxFit.cover,
+                      ),
               ),
             ),
             CommonSpacing.medium,
 
             // 名称
             SizedBox(
-              height: 40.h, // 固定高度以保持对齐
+              height: 40.h,
               child: Text(
                 product.localizedName,
                 style: TextStyle(
@@ -259,32 +261,54 @@ class _ProductListState extends ConsumerState<ProductList> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-
-                // 操作按钮
-                if (isSku)
-                  _buildAddButton(
-                    onTap:
-                        () => Navigate.push(
-                          context,
-                          Routes.productDetail,
-                          arguments: {
-                            "productId": product.id,
-                            "shopId": product.shopId,
-                          },
-                        ),
-                  )
-                else if (quantity > 0)
-                  _buildSkuCounter(firstSku, product, diningDate)
-                else
-                  _buildAddButton(
-                    onTap: () => _addToCart(product, firstSku, diningDate),
-                  ),
+                // 操作按钮逻辑：
+                // 1. 有多规格 → 始终显示加号，点击跳转详情页选择 SKU
+                // 2. 无多规格且数量 > 0 → 显示加减号
+                // 3. 无多规格且数量 = 0 → 显示加号，点击直接加入购物车
+                _buildActionButton(
+                  hasSku: hasSku,
+                  totalQuantity: totalQuantity,
+                  product: product,
+                  firstSku: firstSku,
+                  diningDate: diningDate,
+                ),
               ],
             ),
           ],
         ),
       ),
     );
+  }
+
+  /// 构建操作按钮
+  Widget _buildActionButton({
+    required bool hasSku,
+    required int totalQuantity,
+    required SaleProductModel product,
+    required SaleProductSku? firstSku,
+    required String diningDate,
+  }) {
+    if (hasSku) {
+      // 有多规格，显示加号跳转详情页
+      return _buildAddButton(
+        onTap: () => Navigate.push(
+          context,
+          Routes.productDetail,
+          arguments: {
+            "productId": product.id,
+            "shopId": product.shopId,
+          },
+        ),
+      );
+    } else if (totalQuantity > 0) {
+      // 无多规格且有数量，显示加减号
+      return _buildSkuCounter(firstSku, product, diningDate);
+    } else {
+      // 无多规格且数量为0，显示加号直接加入购物车
+      return _buildAddButton(
+        onTap: () => _addToCart(product, firstSku, diningDate),
+      );
+    }
   }
 
   /// 构建圆形添加按钮
@@ -309,17 +333,19 @@ class _ProductListState extends ConsumerState<ProductList> {
     SaleProductSku? sku,
     String diningDate,
   ) async {
-    if (sku == null) return;
-    await ref
-        .read(cartProvider.notifier)
-        .increment(
+    // 如果没有 SKU，使用商品本身的信息
+    final specId = sku?.id ?? '';
+    final specName = sku?.skuName ?? product.localizedName;
+    final price = sku?.price ?? product.productPrice ?? 0.0;
+
+    await ref.read(cartProvider.notifier).increment(
           shopId: product.shopId,
           diningDate: diningDate,
           productId: product.id,
           productName: product.localizedName,
-          productSpecId: sku.id ?? '',
-          productSpecName: sku.skuName ?? product.localizedName,
-          price: sku.price,
+          productSpecId: specId,
+          productSpecName: specName,
+          price: price,
         );
   }
 
@@ -327,34 +353,21 @@ class _ProductListState extends ConsumerState<ProductList> {
   Widget _buildSkuCounter(
     SaleProductSku? sku,
     SaleProductModel product,
-    String diningDate, // 格式: YYYY-MM-DD
+    String diningDate,
   ) {
-    if (sku == null || sku.id == null) return SizedBox.shrink();
+    // 如果没有 SKU，使用商品本身的信息
+    final specId = sku?.id ?? '';
+    final specName = sku?.skuName ?? product.localizedName;
+    final price = sku?.price ?? product.productPrice ?? 0.0;
+
     return SkuCounter(
       shopId: widget.shopId,
       productId: product.id,
       productName: product.localizedName,
-      productSpecId: sku.id ?? '',
-      productSpecName: sku.skuName ?? product.localizedName,
+      productSpecId: specId,
+      productSpecName: specName,
       diningDate: diningDate,
-      price: sku.price,
-    );
-  }
-
-  /// 构建选择按钮 (不再使用，保留以防万一)
-  Widget _buildSelectButton(
-    String selectSpecification,
-    SaleProductModel product,
-    String diningDate, // 格式: YYYY-MM-DD
-  ) {
-    return GestureDetector(
-      onTap:
-          () => Navigate.push(
-            context,
-            Routes.productDetail,
-            arguments: {"productId": product.id, "shopId": product.shopId},
-          ),
-      child: Text("+", style: TextStyle(fontSize: 16.sp)),
+      price: price,
     );
   }
 }

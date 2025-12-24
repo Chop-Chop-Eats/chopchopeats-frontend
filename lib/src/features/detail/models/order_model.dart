@@ -256,6 +256,52 @@ class UpdateCartParams {
   Map<String, dynamic> toJson() => {'cartId': cartId, 'quantity': quantity};
 }
 
+/// 购物车商品SKU信息
+class CartItemSku {
+  ///SKU ID
+  final String? id;
+
+  ///SKU名称（规格名称）
+  final String? skuName;
+
+  ///英文规格名称
+  final String? englishSkuName;
+
+  ///规格附加价格
+  final double? skuPrice;
+
+  ///规格分组ID，1 表示通用附加
+  final int? skuGroupId;
+
+  ///规格分组类型：1-可叠加；2-互斥
+  final int? skuGroupType;
+
+  ///状态：0=停售，1=在售
+  final int? status;
+
+  CartItemSku({
+    this.id,
+    this.skuName,
+    this.englishSkuName,
+    this.skuPrice,
+    this.skuGroupId,
+    this.skuGroupType,
+    this.status,
+  });
+
+  factory CartItemSku.fromJson(Map<String, dynamic> json) {
+    return CartItemSku(
+      id: json['id'] as String?,
+      skuName: json['skuName'] as String?,
+      englishSkuName: json['englishSkuName'] as String?,
+      skuPrice: JsonUtils.parseDouble(json, 'skuPrice'),
+      skuGroupId: JsonUtils.parseInt(json, 'skuGroupId'),
+      skuGroupType: JsonUtils.parseInt(json, 'skuGroupType'),
+      status: JsonUtils.parseInt(json, 'status'),
+    );
+  }
+}
+
 // 购物车列表返回值
 class CartItemModel {
   ///创建时间
@@ -297,6 +343,9 @@ class CartItemModel {
   ///用户ID
   final int? userId;
 
+  ///商品SKU列表
+  final List<CartItemSku>? skus;
+
   CartItemModel({
     this.createTime,
     this.diningDate,
@@ -311,6 +360,7 @@ class CartItemModel {
     this.shopId,
     this.skuSetting,
     this.userId,
+    this.skus,
   });
 
   factory CartItemModel.fromJson(Map<String, dynamic> json) {
@@ -328,6 +378,11 @@ class CartItemModel {
       shopId: json['shopId'] as String?,
       skuSetting: JsonUtils.parseInt(json, 'skuSetting'),
       userId: JsonUtils.parseInt(json, 'userId'),
+      skus: JsonUtils.parseList<CartItemSku>(
+        json,
+        'skus',
+        (e) => CartItemSku.fromJson(e),
+      ),
     );
   }
 
@@ -345,6 +400,7 @@ class CartItemModel {
     String? shopId,
     int? skuSetting,
     int? userId,
+    List<CartItemSku>? skus,
   }) {
     return CartItemModel(
       createTime: createTime ?? this.createTime,
@@ -360,6 +416,7 @@ class CartItemModel {
       shopId: shopId ?? this.shopId,
       skuSetting: skuSetting ?? this.skuSetting,
       userId: userId ?? this.userId,
+      skus: skus ?? this.skus,
     );
   }
 
@@ -378,6 +435,7 @@ class CartItemModel {
       'shopId': shopId,
       'skuSetting': skuSetting,
       'userId': userId,
+      if (skus != null) 'skus': skus,
     };
   }
 }
