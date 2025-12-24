@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/pop/confirm.dart';
+import '../models/order_model.dart';
 import '../providers/cart_notifier.dart';
 
 class SkuCounter extends ConsumerWidget {
@@ -13,26 +14,44 @@ class SkuCounter extends ConsumerWidget {
     required this.shopId,
     required this.productId,
     required this.productName,
-    required this.productSpecId,
-    required this.productSpecName,
+    this.englishProductName,
+    this.selectedSkus,
     this.diningDate,
     this.price,
+    this.cartItemId, // 添加购物车条目ID，用于直接查找
   });
 
   final String shopId;
   final String productId;
   final String productName;
-  final String productSpecId;
-  final String productSpecName;
+  final String? englishProductName;
+  final List<SelectedSkuVO>? selectedSkus;
   final String? diningDate;
   final double? price;
+  final String? cartItemId; // 购物车条目ID
 
   bool get _isSpecValid => true;
+  
+  // 用于查找购物车中的商品（使用第一个SKU的ID作为key）
+  String get _productSpecId => selectedSkus?.isNotEmpty == true ? selectedSkus!.first.id : '';
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final cartState = ref.watch(cartStateProvider(shopId));
-    final quantity = cartState.quantityOf(productId, productSpecId);
+    
+    // 如果有cartItemId，直接从购物车中查找该条目
+    int quantity = 0;
+    if (cartItemId != null) {
+      final item = cartState.items.firstWhere(
+        (item) => item.id == cartItemId,
+        orElse: () => CartItemModel(quantity: 0),
+      );
+      quantity = item.quantity ?? 0;
+    } else {
+      // 否则使用productId和productSpecId查找
+      quantity = cartState.quantityOf(productId, _productSpecId);
+    }
+    
     final canDecrease = quantity > 0 && _isSpecValid;
     final canIncrease = _isSpecValid;
 
@@ -113,9 +132,8 @@ class SkuCounter extends ConsumerWidget {
           diningDate: diningDate,
           productId: productId,
           productName: productName,
-          productSpecId: productSpecId,
-          productSpecName: productSpecName,
-          price: price,
+          englishProductName: englishProductName,
+          selectedSkus: selectedSkus,
         );
   }
 
@@ -143,7 +161,7 @@ class SkuCounter extends ConsumerWidget {
           shopId: shopId,
           diningDate: diningDate,
           productId: productId,
-          productSpecId: productSpecId,
+          productSpecId: _productSpecId,
         );
   }
 }

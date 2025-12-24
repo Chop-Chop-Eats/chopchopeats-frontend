@@ -41,7 +41,10 @@ class OrderServices {
   }
 
   /// 清空购物车
-  Future<void> clearCart(String shopId  , String diningDate) async {
+  Future<void> clearCart(String shopId, String diningDate) async {
+    Logger.info('OrderServices', '准备清空购物车: shopId=$shopId, diningDate=$diningDate');
+    Logger.info('OrderServices', '使用API路径: ${ApiPaths.clearCartApi}');
+    
     final response = await ApiClient().delete(
       ApiPaths.clearCartApi,
       data: {
@@ -49,7 +52,7 @@ class OrderServices {
         'diningDate': diningDate,
       },
     );
-    Logger.info('OrderServices', '清空购物车: ${response.data}');
+    Logger.info('OrderServices', '清空购物车成功: ${response.data}');
     return response.data;
   }
 

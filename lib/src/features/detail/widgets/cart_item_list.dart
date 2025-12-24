@@ -5,7 +5,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/common_image.dart';
 import '../../../core/widgets/common_spacing.dart';
-import '../../../core/l10n/locale_service.dart';
 import '../models/order_model.dart';
 import 'sku_counter.dart';
 
@@ -43,7 +42,6 @@ class CartItemList extends ConsumerWidget {
   }
 
   Widget _buildCartItem(CartItemModel item) {
-    final specName = item.productSpecName ?? '';
     final productName = item.productName ?? '';
     final image = item.imageThumbnail ?? 'assets/images/shop_cart.png';
     final price = item.price ?? 0;
@@ -66,13 +64,14 @@ class CartItemList extends ConsumerWidget {
                 productName,
                 style: TextStyle(fontSize: 14.sp, color: Colors.black),
               ),
-              if (item.skus != null && item.skus!.isNotEmpty) ...[
+              // 显示SKU信息
+              if (item.skuSetting == 1) ...[
                 CommonSpacing.height(4.h),
-                _buildSkuInfo(item.skus!),
+                _buildSkuInfo(item),
               ],
               CommonSpacing.small,
               Text(
-                '${price.toStringAsFixed(2)}',
+                '\$${price.toStringAsFixed(2)}',
                 style: TextStyle(
                   fontSize: 14.sp,
                   color: AppTheme.primaryOrange,
@@ -86,50 +85,66 @@ class CartItemList extends ConsumerWidget {
         SkuCounter(
           shopId: shopId,
           productId: item.productId ?? '',
-          productName: productName,
-          productSpecId: item.productSpecId ?? '',
-          productSpecName: specName.isEmpty ? productName : specName,
+          productName: item.productName ?? '',
+          englishProductName: null,
+          selectedSkus: item.selectedSkus?.map((sku) => SelectedSkuVO(
+            id: sku.id ?? '',
+            skuName: sku.skuName ?? '',
+            englishSkuName: sku.englishSkuName,
+            skuPrice: sku.skuPrice ?? 0,
+            skuGroupId: sku.skuGroupId,
+            skuGroupType: sku.skuGroupType,
+          )).toList(),
           diningDate: diningDate,
-          price: price,
+          cartItemId: item.id, // 传递购物车条目ID
         ),
       ],
     );
   }
 
   /// 构建SKU信息显示
-  Widget _buildSkuInfo(List<CartItemSku> skus) {
-    // 按SKU分组并统计数量
-    final skuCountMap = <String, int>{};
-    final skuDisplayMap = <String, String>{};
-    
-    for (final sku in skus) {
-      final skuId = sku.id ?? '';
-      if (skuId.isEmpty) continue;
-      
-      final displayName = LocaleService.getLocalizedText(
-        sku.skuName,
-        sku.englishSkuName,
+  Widget _buildSkuInfo(CartItemModel item) {
+    // 优先使用 productSpecName（单个SKU的情况）
+    if (item.productSpecName != null && item.productSpecName!.isNotEmpty) {
+      return Text(
+        item.productSpecName!,
+        style: TextStyle(
+          fontSize: 12.sp,
+          color: Colors.grey[600],
+        ),
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
       );
-      if (displayName.isEmpty) continue;
-      
-      skuCountMap[skuId] = (skuCountMap[skuId] ?? 0) + 1;
-      skuDisplayMap[skuId] = displayName;
     }
-    
-    if (skuCountMap.isEmpty) {
+
+    // 如果没有 productSpecName，尝试从 selectedSkus 或 skus 中获取
+    final skuList = item.selectedSkus ?? item.skus;
+    if (skuList == null || skuList.isEmpty) {
       return const SizedBox.shrink();
     }
-    
-    // 构建显示文本：数量x SKU名称
-    final skuTexts = skuCountMap.entries.map((entry) {
-      final skuId = entry.key;
-      final count = entry.value;
-      final name = skuDisplayMap[skuId] ?? '';
-      return count > 1 ? '${count}x$name' : name;
-    }).join(', ');
+
+    // 根据 skuGroupType 分组显示
+    final mutualExclusiveSkus = <String>[]; // skuGroupType = 2 (互斥)
+    final stackableSkus = <String>[]; // skuGroupType = 1 (可叠加)
+
+    for (final sku in skuList) {
+      final skuName = sku.skuName ?? sku.englishSkuName ?? '';
+      if (skuName.isEmpty) continue;
+
+      if (sku.skuGroupType == 2) {
+        mutualExclusiveSkus.add(skuName);
+      } else {
+        stackableSkus.add(skuName);
+      }
+    }
+
+    final allSkuNames = [...mutualExclusiveSkus, ...stackableSkus];
+    if (allSkuNames.isEmpty) {
+      return const SizedBox.shrink();
+    }
 
     return Text(
-      skuTexts,
+      allSkuNames.join(', '),
       style: TextStyle(
         fontSize: 12.sp,
         color: Colors.grey[600],

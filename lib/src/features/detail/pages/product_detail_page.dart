@@ -1,6 +1,5 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:chop_user/src/core/utils/pop/toast.dart';
-import 'package:chop_user/src/features/detail/widgets/sku_counter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -14,6 +13,7 @@ import '../../../core/widgets/common_image.dart';
 import '../../../core/widgets/common_indicator.dart';
 import '../../../core/widgets/common_spacing.dart';
 import '../models/detail_model.dart';
+import '../models/order_model.dart';
 import '../providers/cart_notifier.dart';
 import '../providers/detail_provider.dart';
 
@@ -337,7 +337,20 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
     SaleProductSku? selectedSku,
     String diningDate,
   ) {
-    final displayPrice = product.productPrice ?? (selectedSku?.price ?? 0.0);
+    // 构建selectedSkus列表
+    List<SelectedSkuVO>? selectedSkus;
+    if (selectedSku != null && selectedSku.id != null) {
+      selectedSkus = [
+        SelectedSkuVO(
+          id: selectedSku.id!,
+          skuName: selectedSku.skuName ?? '',
+          englishSkuName: selectedSku.englishSkuName,
+          skuPrice: selectedSku.price,
+          skuGroupId: selectedSku.skuGroupId,
+          skuGroupType: selectedSku.skuGroupType,
+        ),
+      ];
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -369,14 +382,14 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
               ),
             ),
             CommonSpacing.width(16.w),
-            SkuCounter(
+            // 显示SkuCounter（详情页中最小数量为1）
+            _DetailPageSkuCounter(
               shopId: widget.shopId,
               productId: product.id,
-              productName: product.localizedName,
-              productSpecId: selectedSku?.id ?? '',
-              productSpecName: selectedSku?.skuName ?? product.localizedName,
+              productName: product.chineseName,
+              englishProductName: product.englishName,
+              selectedSkus: selectedSkus,
               diningDate: diningDate,
-              price: displayPrice,
             ),
           ],
         ),
@@ -491,49 +504,173 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
     if (isBusy) return;
 
     final notifier = ref.read(cartProvider.notifier);
-    final displayPrice = product.productPrice ?? (selectedSku?.price ?? 0.0);
 
     try {
+      // 立即返回上一页（乐观更新）
+      if (mounted) {
+        Navigate.pop(context);
+      }
+
       if (product.skuSetting == 1) {
         if (selectedSku == null || selectedSku.id == null) {
           toast.warn('请选择规格');
           return;
         }
+        
+        // 构建selectedSkus列表
+        final selectedSkus = [
+          SelectedSkuVO(
+            id: selectedSku.id!,
+            skuName: selectedSku.skuName ?? '',
+            englishSkuName: selectedSku.englishSkuName,
+            skuPrice: selectedSku.price,
+            skuGroupId: selectedSku.skuGroupId,
+            skuGroupType: selectedSku.skuGroupType,
+          ),
+        ];
+        
         await notifier.increment(
           shopId: widget.shopId,
           diningDate: diningDate,
           productId: product.id,
-          productName: product.localizedName,
-          productSpecId: selectedSku.id ?? '',
-          productSpecName: selectedSku.skuName ?? product.localizedName,
-          price: displayPrice,
+          productName: product.chineseName,
+          englishProductName: product.englishName,
+          selectedSkus: selectedSkus,
         );
       } else {
-        final sku = product.skus.isNotEmpty ? product.skus.first : null;
-        final specId = sku?.id ?? '';
-        final specName = sku?.skuName ?? '';
-
+        // 没有SKU的商品
         await notifier.increment(
           shopId: widget.shopId,
           diningDate: diningDate,
           productId: product.id,
-          productName: product.localizedName,
-          productSpecId: specId,
-          productSpecName: specName,
-          price: displayPrice,
+          productName: product.chineseName,
+          englishProductName: product.englishName,
+          selectedSkus: null,
         );
       }
 
       toast.success(l10n.addToCartSuccess);
-      if (mounted) {
-        await Future.delayed(const Duration(milliseconds: 300));
-        if (mounted) {
-          Navigate.pop(context);
-        }
-      }
     } catch (e) {
       Logger.error('ProductDetailPage', '加入购物车失败: $e');
       toast.warn('加入购物车失败，请稍后重试');
     }
+  }
+}
+
+
+/// 详情页专用的SKU计数器（最小数量为1）
+class _DetailPageSkuCounter extends ConsumerWidget {
+  const _DetailPageSkuCounter({
+    required this.shopId,
+    required this.productId,
+    required this.productName,
+    this.englishProductName,
+    this.selectedSkus,
+    this.diningDate,
+  });
+
+  final String shopId;
+  final String productId;
+  final String productName;
+  final String? englishProductName;
+  final List<SelectedSkuVO>? selectedSkus;
+  final String? diningDate;
+
+  String get _productSpecId => selectedSkus?.isNotEmpty == true ? selectedSkus!.first.id : '';
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final cartState = ref.watch(cartStateProvider(shopId));
+    final cartQuantity = cartState.quantityOf(productId, _productSpecId);
+    
+    // 详情页显示数量：购物车数量 >= 1 ? 购物车数量 : 1
+    final displayQuantity = cartQuantity >= 1 ? cartQuantity : 1;
+
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 2.h, horizontal: 2.w),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(
+          color: AppTheme.primaryOrange,
+          width: 1.w,
+        ),
+        color: Colors.white,
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildButton(
+            icon: Icons.remove,
+            enabled: displayQuantity > 1, // 只有数量>1时才能减少
+            onTap: () => _onDecrease(ref),
+          ),
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 8.w),
+            child: Text(
+              displayQuantity.toString(),
+              style: TextStyle(
+                color: Colors.black,
+                fontSize: 12.sp,
+                fontWeight: FontWeight.normal,
+              ),
+            ),
+          ),
+          _buildButton(
+            icon: Icons.add,
+            enabled: true,
+            onTap: () => _onIncrease(ref),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildButton({
+    required IconData icon,
+    required bool enabled,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: enabled ? onTap : null,
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 4.h),
+        decoration:
+            enabled
+                ? null
+                : BoxDecoration(
+                  color: Colors.grey[200],
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
+        child: Icon(
+          icon,
+          size: 16.w,
+          color: enabled ? Colors.black : Colors.grey[400],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _onIncrease(WidgetRef ref) async {
+    await ref
+        .read(cartProvider.notifier)
+        .increment(
+          shopId: shopId,
+          diningDate: diningDate,
+          productId: productId,
+          productName: productName,
+          englishProductName: englishProductName,
+          selectedSkus: selectedSkus,
+        );
+  }
+
+  Future<void> _onDecrease(WidgetRef ref) async {
+    await ref
+        .read(cartProvider.notifier)
+        .decrement(
+          shopId: shopId,
+          diningDate: diningDate,
+          productId: productId,
+          productSpecId: _productSpecId,
+        );
   }
 }

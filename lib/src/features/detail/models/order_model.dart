@@ -181,10 +181,49 @@ class OrderItem {
   };
 }
 
+/// 购物车选择的SKU
+class SelectedSkuVO {
+  ///SKU ID
+  final String id;
+
+  ///SKU名称
+  final String skuName;
+
+  ///SKU英文名称
+  final String? englishSkuName;
+
+  ///SKU价格（单位：美元）
+  final double skuPrice;
+
+  ///SKU分组ID
+  final int? skuGroupId;
+
+  ///SKU分组类型：1=可叠加，2=互斥
+  final int? skuGroupType;
+
+  SelectedSkuVO({
+    required this.id,
+    required this.skuName,
+    this.englishSkuName,
+    required this.skuPrice,
+    this.skuGroupId,
+    this.skuGroupType,
+  });
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'skuName': skuName,
+    if (englishSkuName != null) 'englishSkuName': englishSkuName,
+    'skuPrice': skuPrice,
+    if (skuGroupId != null) 'skuGroupId': skuGroupId,
+    if (skuGroupType != null) 'skuGroupType': skuGroupType,
+  };
+}
+
 /// 添加购物车参数
 class AddCartParams {
-  ///用餐日期 (格式: YYYY-MM-DD)
-  final String diningDate;
+  ///店铺ID
+  final String shopId;
 
   ///商品ID
   final String productId;
@@ -192,41 +231,37 @@ class AddCartParams {
   ///商品名称
   final String productName;
 
-  ///产品规格ID
-  final String productSpecId;
+  ///英文商品名称
+  final String? englishProductName;
 
-  ///商品规格名称
-  final String productSpecName;
+  ///选择的SKU列表
+  final List<SelectedSkuVO>? selectedSkus;
 
   ///数量
   final int quantity;
 
-  ///店铺ID
-  final String shopId;
-
-  ///商品价格（可选，用于本地计算总额）
-  final double? price;
+  ///用餐日期 (格式: YYYY-MM-DD)
+  final String diningDate;
 
   AddCartParams({
-    required this.diningDate,
+    required this.shopId,
     required this.productId,
     required this.productName,
-    required this.productSpecId,
-    required this.productSpecName,
+    this.englishProductName,
+    this.selectedSkus,
     required this.quantity,
-    required this.shopId,
-    this.price,
+    required this.diningDate,
   });
 
   Map<String, dynamic> toJson() => {
-    'diningDate': diningDate,
+    'shopId': shopId,
     'productId': productId,
     'productName': productName,
-    'productSpecId': productSpecId,
-    'productSpecName': productSpecName,
+    if (englishProductName != null) 'englishProductName': englishProductName,
+    if (selectedSkus != null && selectedSkus!.isNotEmpty)
+      'selectedSkus': selectedSkus!.map((e) => e.toJson()).toList(),
     'quantity': quantity,
-    'shopId': shopId,
-    if (price != null) 'price': price,
+    'diningDate': diningDate,
   };
 }
 
@@ -343,7 +378,10 @@ class CartItemModel {
   ///用户ID
   final int? userId;
 
-  ///商品SKU列表
+  ///选择的SKU规格列表（用户实际选择的SKU）
+  final List<CartItemSku>? selectedSkus;
+
+  ///该商品下的所有SKU规格列表（仅供参考）
   final List<CartItemSku>? skus;
 
   CartItemModel({
@@ -360,6 +398,7 @@ class CartItemModel {
     this.shopId,
     this.skuSetting,
     this.userId,
+    this.selectedSkus,
     this.skus,
   });
 
@@ -378,6 +417,11 @@ class CartItemModel {
       shopId: json['shopId'] as String?,
       skuSetting: JsonUtils.parseInt(json, 'skuSetting'),
       userId: JsonUtils.parseInt(json, 'userId'),
+      selectedSkus: JsonUtils.parseList<CartItemSku>(
+        json,
+        'selectedSkus',
+        (e) => CartItemSku.fromJson(e),
+      ),
       skus: JsonUtils.parseList<CartItemSku>(
         json,
         'skus',
@@ -400,6 +444,7 @@ class CartItemModel {
     String? shopId,
     int? skuSetting,
     int? userId,
+    List<CartItemSku>? selectedSkus,
     List<CartItemSku>? skus,
   }) {
     return CartItemModel(
@@ -416,6 +461,7 @@ class CartItemModel {
       shopId: shopId ?? this.shopId,
       skuSetting: skuSetting ?? this.skuSetting,
       userId: userId ?? this.userId,
+      selectedSkus: selectedSkus ?? this.selectedSkus,
       skus: skus ?? this.skus,
     );
   }
@@ -435,6 +481,7 @@ class CartItemModel {
       'shopId': shopId,
       'skuSetting': skuSetting,
       'userId': userId,
+      if (selectedSkus != null) 'selectedSkus': selectedSkus,
       if (skus != null) 'skus': skus,
     };
   }

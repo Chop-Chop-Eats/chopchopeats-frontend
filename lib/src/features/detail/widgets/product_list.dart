@@ -11,6 +11,7 @@ import '../../../core/widgets/common_image.dart';
 import '../../../core/widgets/common_indicator.dart';
 import '../../../core/widgets/common_spacing.dart';
 import '../models/detail_model.dart';
+import '../models/order_model.dart';
 import '../providers/cart_notifier.dart';
 import '../providers/detail_provider.dart';
 import 'sku_counter.dart';
@@ -333,19 +334,28 @@ class _ProductListState extends ConsumerState<ProductList> {
     SaleProductSku? sku,
     String diningDate,
   ) async {
-    // 如果没有 SKU，使用商品本身的信息
-    final specId = sku?.id ?? '';
-    final specName = sku?.skuName ?? product.localizedName;
-    final price = sku?.price ?? product.productPrice ?? 0.0;
+    // 构建selectedSkus列表
+    List<SelectedSkuVO>? selectedSkus;
+    if (sku != null && sku.id != null) {
+      selectedSkus = [
+        SelectedSkuVO(
+          id: sku.id!,
+          skuName: sku.skuName ?? '',
+          englishSkuName: sku.englishSkuName,
+          skuPrice: sku.price,
+          skuGroupId: sku.skuGroupId,
+          skuGroupType: sku.skuGroupType,
+        ),
+      ];
+    }
 
     await ref.read(cartProvider.notifier).increment(
           shopId: product.shopId,
           diningDate: diningDate,
           productId: product.id,
-          productName: product.localizedName,
-          productSpecId: specId,
-          productSpecName: specName,
-          price: price,
+          productName: product.chineseName,
+          englishProductName: product.englishName,
+          selectedSkus: selectedSkus,
         );
   }
 
@@ -355,19 +365,28 @@ class _ProductListState extends ConsumerState<ProductList> {
     SaleProductModel product,
     String diningDate,
   ) {
-    // 如果没有 SKU，使用商品本身的信息
-    final specId = sku?.id ?? '';
-    final specName = sku?.skuName ?? product.localizedName;
-    final price = sku?.price ?? product.productPrice ?? 0.0;
+    // 构建selectedSkus列表
+    List<SelectedSkuVO>? selectedSkus;
+    if (sku != null && sku.id != null) {
+      selectedSkus = [
+        SelectedSkuVO(
+          id: sku.id!,
+          skuName: sku.skuName ?? '',
+          englishSkuName: sku.englishSkuName,
+          skuPrice: sku.price,
+          skuGroupId: sku.skuGroupId,
+          skuGroupType: sku.skuGroupType,
+        ),
+      ];
+    }
 
     return SkuCounter(
       shopId: widget.shopId,
       productId: product.id,
-      productName: product.localizedName,
-      productSpecId: specId,
-      productSpecName: specName,
+      productName: product.chineseName,
+      englishProductName: product.englishName,
+      selectedSkus: selectedSkus,
       diningDate: diningDate,
-      price: price,
     );
   }
 }

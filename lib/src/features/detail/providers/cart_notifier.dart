@@ -31,7 +31,31 @@ class CartNotifier extends StateNotifier<Map<String, CartState>> {
     String productSpecId,
   ) {
     final current = _ensureCart(shopId);
-    return current.findItem(productId, productSpecId);
+    
+    // 先尝试精确匹配 productId + productSpecId
+    final exactMatch = current.findItem(productId, productSpecId);
+    if (exactMatch != null) {
+      return exactMatch;
+    }
+    
+    // 如果没有精确匹配，尝试通过 selectedSkus 匹配
+    // 这是为了处理乐观更新后立即操作的情况
+    for (final item in current.items) {
+      if (item.productId == productId) {
+        // 检查 selectedSkus 中是否包含目标 SKU
+        final hasMatchingSku = item.selectedSkus?.any((sku) => sku.id == productSpecId) ?? false;
+        if (hasMatchingSku) {
+          return item;
+        }
+        
+        // 如果 productSpecId 为空，且 item 也没有 selectedSkus，则匹配
+        if (productSpecId.isEmpty && (item.selectedSkus == null || item.selectedSkus!.isEmpty)) {
+          return item;
+        }
+      }
+    }
+    
+    return null;
   }
 
   /// 从远程刷新购物车数据
@@ -111,19 +135,34 @@ class CartNotifier extends StateNotifier<Map<String, CartState>> {
   Future<void> addItem(AddCartParams params) async {
     final current = _ensureCart(params.shopId);
 
+    // 计算商品价格（基础价格 + 所有SKU价格）
+    final skuTotalPrice = params.selectedSkus?.fold<double>(
+      0,
+      (sum, sku) => sum + sku.skuPrice,
+    ) ?? 0;
+    final itemPrice = skuTotalPrice; // 根据API文档，price已经包含了productPrice
+
     // 乐观更新：立即在本地添加商品
     final newItem = CartItemModel(
       id: null, // 临时 ID，等服务器返回后更新
       productId: params.productId,
       productName: params.productName,
-      productSpecId: params.productSpecId,
-      productSpecName: params.productSpecName,
+      productSpecId: params.selectedSkus?.first.id ?? '',
+      productSpecName: params.selectedSkus?.map((s) => s.skuName).join(', ') ?? '',
       quantity: params.quantity,
-      price: params.price,
+      price: itemPrice,
+      selectedSkus: params.selectedSkus?.map((sku) => CartItemSku(
+        id: sku.id,
+        skuName: sku.skuName,
+        englishSkuName: sku.englishSkuName,
+        skuPrice: sku.skuPrice,
+        skuGroupId: sku.skuGroupId,
+        skuGroupType: sku.skuGroupType,
+      )).toList(),
     );
 
     final updatedItems = [...current.items, newItem];
-    final newSubtotal = current.totals.subtotal + (params.price ?? 0) * params.quantity;
+    final newSubtotal = current.totals.subtotal + itemPrice * params.quantity;
     final newPayable = newSubtotal +
         current.totals.serviceFee +
         current.totals.taxAmount +
@@ -276,8 +315,10 @@ class CartNotifier extends StateNotifier<Map<String, CartState>> {
 
     try {
       if (params.quantity <= 0) {
-        // 数量为 0，调用删除接口
-        await _orderServices.deleteCartItem(params.cartId);
+        // 数量为 0，调用更新接口将数量设为0（后端会自动删除）
+        await _orderServices.updateCartQuantity(
+          UpdateCartParams(cartId: params.cartId, quantity: 0),
+        );
       } else {
         // 后台异步调用更新接口
         await _orderServices.updateCartQuantity(params);
@@ -362,24 +403,26 @@ class CartNotifier extends StateNotifier<Map<String, CartState>> {
     required String? diningDate, // 格式: YYYY-MM-DD
     required String productId,
     required String productName,
-    required String productSpecId,
-    required String productSpecName,
+    String? englishProductName,
+    List<SelectedSkuVO>? selectedSkus,
     double? price, // 商品价格（用于首次添加时传递到服务端）
   }) async {
     final resolvedDate = _resolveDiningDate(shopId, diningDate);
+    
+    // 构建查找key（使用第一个SKU的ID，如果没有SKU则使用空字符串）
+    final productSpecId = selectedSkus?.isNotEmpty == true ? selectedSkus!.first.id : '';
     final existing = _findItem(shopId, productId, productSpecId);
 
     if (existing == null) {
       // 新商品，使用 addCart
       final params = AddCartParams(
-        diningDate: resolvedDate,
+        shopId: shopId,
         productId: productId,
         productName: productName,
-        productSpecId: productSpecId,
-        productSpecName: productSpecName,
+        englishProductName: englishProductName,
+        selectedSkus: selectedSkus,
         quantity: 1,
-        shopId: shopId,
-        price: price,
+        diningDate: resolvedDate,
       );
       await addItem(params);
       return;
