@@ -3,6 +3,7 @@ import 'package:flutter_stripe/flutter_stripe.dart';
 import '../models/payment_models.dart';
 import '../services/payment_service.dart';
 import '../../../core/utils/logger/logger.dart';
+import '../../wallet/providers/wallet_provider.dart';
 
 final paymentServiceProvider = Provider((ref) => PaymentService());
 
@@ -37,23 +38,33 @@ final paymentMethodsListProvider = FutureProvider.autoDispose<List<PaymentSelect
 
     // 1. 添加银行卡
     for (var card in cards) {
-      // 使用 wallet 图标作为通用卡片图标
-      String icon = 'assets/images/wallet.png';
+      // 根据卡品牌选择图标
+      String icon = _getCardIconPath(card.cardBrand);
       
-      list.add(PaymentSelectionWrapper(
+      final wrapper = PaymentSelectionWrapper(
         type: AppPaymentMethodType.stripeCard,
         card: card,
         displayName: '${card.cardBrand.toUpperCase()} *${card.cardLast4}',
         iconPath: icon,
-      ));
+      );
+      
+      list.add(wrapper);
+      
+      // 如果是默认卡片，自动选中
+      if (card.isDefault) {
+        ref.read(selectedPaymentMethodProvider.notifier).state = wrapper;
+      }
     }
 
-    // 2. 添加钱包
+    // 2. 添加钱包 - 从钱包 provider 获取真实余额
+    final walletInfo = ref.read(walletInfoDataProvider);
+    final walletBalance = walletInfo?.balance ?? 0.0;
+    
     list.add(PaymentSelectionWrapper(
       type: AppPaymentMethodType.wallet,
       displayName: '我的钱包',
       iconPath: 'assets/images/wallet.png',
-      walletBalance: 99.0, // 示例值
+      walletBalance: walletBalance,
     ));
 
     return list;
@@ -64,6 +75,18 @@ final paymentMethodsListProvider = FutureProvider.autoDispose<List<PaymentSelect
     return [];
   }
 });
+
+String _getCardIconPath(String cardBrand) {
+  final brand = cardBrand.toLowerCase();
+  if (brand.contains('visa')) {
+    return 'assets/images/visa.png';
+  } else if (brand.contains('mastercard')) {
+    return 'assets/images/mastercard.png';
+  } else if (brand.contains('paypal')) {
+    return 'assets/images/paypal.png';
+  }
+  return 'assets/images/wallet.png';
+}
 
 /// 当前选中的支付方式
 final selectedPaymentMethodProvider = StateProvider<PaymentSelectionWrapper?>((ref) => null);

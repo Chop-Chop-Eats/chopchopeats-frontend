@@ -1,5 +1,6 @@
 import 'package:chop_user/src/core/widgets/common_app_bar.dart';
 import 'package:chop_user/src/core/widgets/common_button.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -13,6 +14,7 @@ import '../../../core/utils/logger/logger.dart';
 import '../../../core/widgets/common_empty.dart';
 import '../../../core/widgets/common_indicator.dart';
 import '../../../core/widgets/common_spacing.dart';
+import '../../detail/views/manage_payment_methods_page.dart';
 import '../providers/wallet_provider.dart';
 import '../widgets/balance_item.dart';
 
@@ -119,7 +121,10 @@ class _WalletPageState extends ConsumerState<WalletPage> {
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: () {
-          Logger.info("WalletPage", "管理绑定卡片");
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const ManagePaymentMethodsPage()),
+          );
         },
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -128,6 +133,8 @@ class _WalletPageState extends ConsumerState<WalletPage> {
             Row(
               children: [
                 Text(l10n.manageBoundCards, style: AppValues.labelValue),
+                CommonSpacing.width(4.w),
+                Icon(Icons.arrow_forward_ios, size: 16.sp, color: Colors.grey.shade600),
               ],
             )
           ],

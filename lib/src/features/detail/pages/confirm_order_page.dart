@@ -15,6 +15,7 @@ import '../views/order_info.dart';
 import '../views/apply_container.dart';
 import '../utils/order_price_calculator.dart';
 import '../../address/providers/address_provider.dart';
+import '../../wallet/providers/wallet_provider.dart';
 
 class ConfirmOrderPage extends ConsumerStatefulWidget {
   const ConfirmOrderPage({super.key, required this.shopId});
@@ -34,11 +35,17 @@ class _ConfirmOrderPageState extends ConsumerState<ConfirmOrderPage> {
   @override
   void initState() {
     super.initState();
-    // 初始化地址列表
+    // 初始化地址列表和钱包信息
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       final addressState = ref.read(addressListProvider);
       if (addressState.addresses.isEmpty && !addressState.isLoading) {
         await ref.read(addressListProvider.notifier).loadAddresses();
+      }
+      
+      // 加载钱包信息（用于支付方式选择）
+      final walletState = ref.read(walletInfoProvider);
+      if (!walletState.hasLoaded && !walletState.isLoading) {
+        await ref.read(walletInfoProvider.notifier).loadWalletInfo();
       }
     });
   }

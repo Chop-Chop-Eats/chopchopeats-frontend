@@ -99,4 +99,16 @@ class PaymentService {
       return false;
     }
   }
+
+  /// 删除支付方式（卡片）
+  Future<bool> deletePaymentMethod(String id) async {
+    try {
+      await _apiClient.delete('${ApiPaths.deletePaymentMethodApi}/$id');
+      // ApiInterceptor 会在业务失败时抛出异常，所以能执行到这里就是成功
+      return true;
+    } catch (e) {
+      Logger.error('PaymentService', '删除支付方式失败: $e');
+      return false;
+    }
+  }
 }
