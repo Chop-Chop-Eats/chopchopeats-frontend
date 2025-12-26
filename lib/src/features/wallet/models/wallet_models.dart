@@ -63,7 +63,7 @@ class RechargeCardOrderParams {
   ///应付金额（实际付款金额）
   final double payAmount;
 
-  ///支付方式：1=Stripe
+  ///支付方式：1=Stripe，2=钱包余额
   final int payType;
 
   ///充值金额
@@ -173,8 +173,7 @@ class AllWalletHistoryItem {
   factory AllWalletHistoryItem.fromJson(Map<String, dynamic> json) {
     return AllWalletHistoryItem(
       transactionDate: json['transactionDate'],
-      transactionDetail:
-          JsonUtils.parseList(
+      transactionDetail: JsonUtils.parseList(
             json,
             'transactionDetail',
             (e) => RecentWalletHistoryItem.fromJson(e),

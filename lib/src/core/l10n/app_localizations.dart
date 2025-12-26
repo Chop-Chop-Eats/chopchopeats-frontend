@@ -156,7 +156,6 @@ abstract class AppLocalizations {
   String get saturday;
   String get sunday;
 
-
   // ============== Confirm Order 确认订单页 ==============
   String get confirmOrder; // 确认订单
   String get confirmOrderAddress; // 选择地址
@@ -291,6 +290,9 @@ abstract class AppLocalizations {
   String get enterRechargeAmount; // 请输入充值金额
   String get balanceDetail; // 余额明细
   String get manageBoundCards; // 管理绑定卡片
+  String get rechargeSuccess; // 充值成功
+  String get rechargeFailed; // 充值失败
+  String get complete; // 完成
 
   // ============== 通用文案 ==============
   String get loadingFailedWithError;

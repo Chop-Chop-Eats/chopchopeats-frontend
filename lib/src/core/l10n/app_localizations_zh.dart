@@ -511,6 +511,12 @@ class AppLocalizationsZh implements AppLocalizations {
   String get balanceDetail => '余额明细';
   @override
   String get manageBoundCards => '管理绑定卡片';
+  @override
+  String get rechargeSuccess => '充值成功';
+  @override
+  String get rechargeFailed => '充值失败';
+  @override
+  String get complete => '完成';
 
   // ============== 通用文案 ==============
   @override
@@ -518,4 +524,3 @@ class AppLocalizationsZh implements AppLocalizations {
   @override
   String loadingFailedMessage(String error) => '加载失败: $error';
 }
-

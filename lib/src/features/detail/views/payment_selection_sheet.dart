@@ -8,14 +8,22 @@ import '../providers/payment_provider.dart';
 import 'add_card_page.dart';
 
 class PaymentSelectionSheet extends ConsumerWidget {
-  const PaymentSelectionSheet({super.key});
+  final bool hideWallet;
 
-  static Future<void> show(BuildContext context) {
-    return showModalBottomSheet(
+  const PaymentSelectionSheet({
+    super.key,
+    this.hideWallet = false,
+  });
+
+  static Future<PaymentSelectionWrapper?> show(
+    BuildContext context, {
+    bool hideWallet = false,
+  }) {
+    return showModalBottomSheet<PaymentSelectionWrapper>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => const PaymentSelectionSheet(),
+      builder: (context) => PaymentSelectionSheet(hideWallet: hideWallet),
     );
   }
 
@@ -45,7 +53,8 @@ class PaymentSelectionSheet extends ConsumerWidget {
                   child: Center(
                     child: Text(
                       '选择支付方式',
-                      style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                          fontSize: 18.sp, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),
@@ -54,27 +63,32 @@ class PaymentSelectionSheet extends ConsumerWidget {
             ),
           ),
           Divider(height: 1, color: Colors.grey[200]),
-          
+
           // 列表内容
           Expanded(
             child: paymentMethodsAsync.when(
               data: (methods) {
+                final filteredMethods = hideWallet
+                    ? methods
+                        .where((m) => m.type != AppPaymentMethodType.wallet)
+                        .toList()
+                    : methods;
                 return ListView(
                   padding: EdgeInsets.all(24.w),
                   children: [
-                    ...methods.map((method) => _buildPaymentItem(
-                      context, 
-                      ref, 
-                      method, 
-                      isSelected: selectedMethod?.displayName == method.displayName && selectedMethod?.type == method.type
-                    )),
+                    ...filteredMethods.map((method) => _buildPaymentItem(
+                        context, ref, method,
+                        isSelected:
+                            selectedMethod?.displayName == method.displayName &&
+                                selectedMethod?.type == method.type)),
                     SizedBox(height: 20.h),
                     // 添加新卡按钮
                     GestureDetector(
                       onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (_) => const AddCardPage()),
+                          MaterialPageRoute(
+                              builder: (_) => const AddCardPage()),
                         );
                       },
                       child: Container(
@@ -109,7 +123,7 @@ class PaymentSelectionSheet extends ConsumerWidget {
               width: double.infinity,
               height: 50.h,
               child: ElevatedButton(
-                onPressed: () => Navigator.pop(context),
+                onPressed: () => Navigator.pop(context, selectedMethod),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.primaryOrange,
                   shape: RoundedRectangleBorder(
@@ -118,7 +132,10 @@ class PaymentSelectionSheet extends ConsumerWidget {
                 ),
                 child: Text(
                   '确定',
-                  style: TextStyle(fontSize: 16.sp, color: Colors.white, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                      fontSize: 16.sp,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold),
                 ),
               ),
             ),
@@ -130,11 +147,8 @@ class PaymentSelectionSheet extends ConsumerWidget {
   }
 
   Widget _buildPaymentItem(
-    BuildContext context, 
-    WidgetRef ref, 
-    PaymentSelectionWrapper method, 
-    {required bool isSelected}
-  ) {
+      BuildContext context, WidgetRef ref, PaymentSelectionWrapper method,
+      {required bool isSelected}) {
     return GestureDetector(
       onTap: () {
         ref.read(selectedPaymentMethodProvider.notifier).state = method;
@@ -185,14 +199,16 @@ class PaymentSelectionSheet extends ConsumerWidget {
                       if (method.card?.isDefault == true) ...[
                         SizedBox(width: 8.w),
                         Container(
-                          padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 6.w, vertical: 2.h),
                           decoration: BoxDecoration(
                             color: const Color(0xFFFFE4D6),
                             borderRadius: BorderRadius.circular(4.r),
                           ),
                           child: Text(
                             '默认',
-                            style: TextStyle(fontSize: 10.sp, color: AppTheme.primaryOrange),
+                            style: TextStyle(
+                                fontSize: 10.sp, color: AppTheme.primaryOrange),
                           ),
                         )
                       ]
@@ -213,7 +229,8 @@ class PaymentSelectionSheet extends ConsumerWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: isSelected ? AppTheme.primaryOrange : Colors.grey[400]!,
+                  color:
+                      isSelected ? AppTheme.primaryOrange : Colors.grey[400]!,
                   width: isSelected ? 6 : 1.5,
                 ),
               ),

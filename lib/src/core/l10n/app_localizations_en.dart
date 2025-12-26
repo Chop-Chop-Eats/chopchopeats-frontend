@@ -118,7 +118,7 @@ class AppLocalizationsEn implements AppLocalizations {
   @override
   String get estimatedDeliveryFee => 'Estimated Delivery Fee';
   @override
-  String get totalPrice => 'Total Price';   
+  String get totalPrice => 'Total Price';
   @override
   String get orderNow => 'Order Now';
   @override
@@ -523,6 +523,12 @@ class AppLocalizationsEn implements AppLocalizations {
   String get balanceDetail => 'Balance Detail';
   @override
   String get manageBoundCards => 'Manage Bound Cards';
+  @override
+  String get rechargeSuccess => 'Recharge Successful';
+  @override
+  String get rechargeFailed => 'Recharge Failed';
+  @override
+  String get complete => 'Complete';
 
   // ============== 通用文案 ==============
   @override
