@@ -1,5 +1,6 @@
 import 'package:chop_user/src/core/config/app_services.dart';
 import 'package:chop_user/src/core/routing/navigate.dart';
+import 'package:chop_user/src/features/mine/providers/mine_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -40,6 +41,10 @@ class _MinePageState extends ConsumerState<MinePage> {
   @override
   void initState() {
     super.initState();
+    // 每次进入页面都刷新用户信息
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(userInfoProvider.notifier).loadUserInfo();
+    });
   }
 
   @override

@@ -132,14 +132,14 @@ class RecentWalletHistoryItem {
 
   factory RecentWalletHistoryItem.fromJson(Map<String, dynamic> json) {
     return RecentWalletHistoryItem(
-      balanceAfter: json['balanceAfter'],
-      id: json['id'],
-      payType: json['payType'],
-      payTypeName: json['payTypeName'],
-      recordDate: json['recordDate'],
-      transactionAmount: json['transactionAmount'],
-      txType: json['txType'],
-      txTypeName: json['txTypeName'],
+      balanceAfter: JsonUtils.parseDouble(json, 'balanceAfter') ?? 0.0,
+      id: JsonUtils.parseString(json, 'id') ?? '',
+      payType: JsonUtils.parseInt(json, 'payType') ?? 0,
+      payTypeName: JsonUtils.parseString(json, 'payTypeName') ?? '',
+      recordDate: JsonUtils.parseDateTime(json, 'recordDate') ?? DateTime.now(),
+      transactionAmount: JsonUtils.parseDouble(json, 'transactionAmount') ?? 0.0,
+      txType: JsonUtils.parseInt(json, 'txType') ?? 0,
+      txTypeName: JsonUtils.parseString(json, 'txTypeName') ?? '',
     );
   }
 

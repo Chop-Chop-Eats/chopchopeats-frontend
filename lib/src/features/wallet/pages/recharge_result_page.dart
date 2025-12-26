@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../core/l10n/app_localizations.dart';
+import '../../mine/providers/mine_provider.dart';
+import '../providers/wallet_provider.dart';
 
-class RechargeResultPage extends StatelessWidget {
+class RechargeResultPage extends ConsumerWidget {
   final bool isSuccess;
   final String? message;
   final double? amount;
@@ -16,7 +19,7 @@ class RechargeResultPage extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: Colors.white,
@@ -25,8 +28,16 @@ class RechargeResultPage extends StatelessWidget {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios, color: Colors.black),
-          onPressed: () =>
-              Navigator.of(context).popUntil((route) => route.isFirst),
+          onPressed: () async {
+            // 返回前刷新用户信息和钱包信息
+            await Future.wait([
+              ref.read(userInfoProvider.notifier).loadUserInfo(),
+              ref.read(walletInfoProvider.notifier).loadWalletInfo(),
+            ]);
+            if (context.mounted) {
+              Navigator.of(context).popUntil((route) => route.isFirst);
+            }
+          },
         ),
       ),
       body: Center(
@@ -78,8 +89,16 @@ class RechargeResultPage extends StatelessWidget {
                 width: double.infinity,
                 height: 50.h,
                 child: ElevatedButton(
-                  onPressed: () =>
-                      Navigator.of(context).popUntil((route) => route.isFirst),
+                  onPressed: () async {
+                    // 返回前刷新用户信息和钱包信息
+                    await Future.wait([
+                      ref.read(userInfoProvider.notifier).loadUserInfo(),
+                      ref.read(walletInfoProvider.notifier).loadWalletInfo(),
+                    ]);
+                    if (context.mounted) {
+                      Navigator.of(context).popUntil((route) => route.isFirst);
+                    }
+                  },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFFF6B00),
                     shape: RoundedRectangleBorder(

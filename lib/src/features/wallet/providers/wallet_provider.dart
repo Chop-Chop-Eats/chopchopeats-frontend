@@ -42,6 +42,7 @@ class WalletInfoNotifier extends StateNotifier<WalletInfoState> {
 
   /// 加载钱包信息
   Future<void> loadWalletInfo() async {
+    Logger.info('WalletInfoNotifier', '开始加载钱包信息...');
     state = state.copyWith(isLoading: true, error: null);
     try {
       final walletInfo = await WalletServices.getMyWalletInfo();
@@ -54,7 +55,7 @@ class WalletInfoNotifier extends StateNotifier<WalletInfoState> {
       );
       Logger.info(
         'WalletInfoNotifier',
-        '钱包信息加载成功: balance=${walletInfo.balance}, historyCount=${recentHistory.length}',
+        '钱包信息加载成功: balance=\$${walletInfo.balance.toStringAsFixed(2)}, historyCount=${recentHistory.length}, userId=${walletInfo.userId}',
       );
     } catch (e) {
       Logger.error('WalletInfoNotifier', '钱包信息加载失败: $e');
@@ -334,6 +335,37 @@ class RechargePageNotifier extends StateNotifier<RechargePageState> {
         return cards[state.selectedCardIndex!].rechargeAmount;
       }
     }
+    return null;
+  }
+
+  /// 获取充值信息（金额 + 赠送）
+  /// 返回: (amount: 充值金额, bonus: 赠送金额, cardId: 充值卡ID)
+  ({double amount, double bonus, String cardId})? getRechargeInfo() {
+    // 选中卡片 -> 返回卡片金额+赠送
+    if (state.selectedCardIndex != null) {
+      final cards = ref.read(rechargeCardListProvider).cards;
+      if (state.selectedCardIndex! < cards.length) {
+        final card = cards[state.selectedCardIndex!];
+        return (
+          amount: card.rechargeAmount,
+          bonus: card.bonusAmount,
+          cardId: card.id.toString(),
+        );
+      }
+    }
+
+    // 自定义输入 -> 返回输入金额+0赠送
+    if (state.inputAmount.isNotEmpty) {
+      final amount = double.tryParse(state.inputAmount);
+      if (amount != null && amount > 0) {
+        return (
+          amount: amount,
+          bonus: 0.0,
+          cardId: "0",
+        );
+      }
+    }
+
     return null;
   }
 }

@@ -29,13 +29,9 @@ class _WalletPageState extends ConsumerState<WalletPage> {
   @override
   void initState() {
     super.initState();
-    // 加载钱包信息（如果还没有数据）
+    // 每次进入页面都刷新钱包信息
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final currentState = ref.read(walletInfoProvider);
-      // 如果已有数据且不在加载中，则不重新加载
-      if (!currentState.hasLoaded && !currentState.isLoading) {
-        ref.read(walletInfoProvider.notifier).loadWalletInfo();
-      }
+      ref.read(walletInfoProvider.notifier).loadWalletInfo();
     });
   }
   @override
@@ -43,6 +39,8 @@ class _WalletPageState extends ConsumerState<WalletPage> {
     final l10n = AppLocalizations.of(context)!;
     final walletInfoState = ref.watch(walletInfoProvider);
     final isLoading = ref.watch(walletInfoLoadingProvider);
+
+    Logger.info('WalletPage', 'build: isLoading=$isLoading, hasLoaded=${walletInfoState.hasLoaded}, error=${walletInfoState.error}, balance=${walletInfoState.walletInfo?.balance}');
 
     return Scaffold(
       body: Column(
@@ -87,6 +85,10 @@ class _WalletPageState extends ConsumerState<WalletPage> {
 
   Widget _buildWalletInfo(walletInfo, AppLocalizations l10n) {
     final balance = walletInfo?.balance ?? 0.0;
+    Logger.info(
+      'WalletPage',
+      '构建钱包信息: balance=\$${balance.toStringAsFixed(2)}, walletInfo=${walletInfo != null ? "not null (userId=${walletInfo.userId})" : "null"}',
+    );
     return _buildCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

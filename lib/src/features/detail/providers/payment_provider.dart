@@ -31,6 +31,9 @@ final paymentMethodsListProvider = FutureProvider.autoDispose<List<PaymentSelect
     // 确保 Stripe 已初始化
     await ref.watch(stripeConfigProvider.future);
     
+    // 监听钱包信息变化，当余额更新时自动刷新支付方式列表
+    final walletInfo = ref.watch(walletInfoDataProvider);
+    
     final service = ref.read(paymentServiceProvider);
     final cards = await service.getPaymentMethods();
     
@@ -56,9 +59,10 @@ final paymentMethodsListProvider = FutureProvider.autoDispose<List<PaymentSelect
       }
     }
 
-    // 2. 添加钱包 - 从钱包 provider 获取真实余额
-    final walletInfo = ref.read(walletInfoDataProvider);
+    // 2. 添加钱包 - 使用最新的钱包余额
     final walletBalance = walletInfo?.balance ?? 0.0;
+    
+    Logger.info('PaymentProvider', '构建支付方式列表: walletInfo=${walletInfo != null ? "not null" : "null"}, balance=\$${walletBalance.toStringAsFixed(2)}');
     
     list.add(PaymentSelectionWrapper(
       type: AppPaymentMethodType.wallet,
@@ -66,6 +70,8 @@ final paymentMethodsListProvider = FutureProvider.autoDispose<List<PaymentSelect
       iconPath: 'assets/images/wallet.png',
       walletBalance: walletBalance,
     ));
+
+    Logger.info('PaymentProvider', '支付方式列表加载成功: ${list.length}个, 最后一个是钱包, 余额: \$${walletBalance.toStringAsFixed(2)}');
 
     return list;
   } catch (e, stackTrace) {

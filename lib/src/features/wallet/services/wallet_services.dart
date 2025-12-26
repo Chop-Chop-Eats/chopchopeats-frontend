@@ -7,8 +7,10 @@ class WalletServices {
   // 获取我的钱包信息
   static Future<MyWalletInfo> getMyWalletInfo() async {
     final response = await ApiClient().get(ApiPaths.getMyWalletInfoApi);
-    Logger.info('WalletServices', 'getMyWalletInfo response: ${response.data}');
-    return MyWalletInfo.fromJson(response.data);
+    Logger.info('WalletServices', 'getMyWalletInfo API response: ${response.data}');
+    final walletInfo = MyWalletInfo.fromJson(response.data);
+    Logger.info('WalletServices', 'getMyWalletInfo parsed: balance=${walletInfo.balance}, userId=${walletInfo.userId}');
+    return walletInfo;
   }
 
   // 获取最近钱包交易记录

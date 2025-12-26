@@ -10,6 +10,7 @@ import '../../../core/utils/pop/toast.dart';
 import '../../../core/widgets/common_indicator.dart';
 import '../../../core/widgets/common_spacing.dart';
 import '../../address/models/address_models.dart';
+import '../../wallet/providers/wallet_provider.dart';
 import '../providers/cart_notifier.dart';
 import '../providers/detail_provider.dart';
 import '../providers/confirm_order_provider.dart';
@@ -81,6 +82,10 @@ class _OrderInfoViewState extends ConsumerState<OrderInfoView> {
       final todayStr = formatDiningDate(today);
       ref.read(selectedDiningDateProvider(widget.shopId).notifier).state = todayStr;
       _fetchDeliveryTimes(todayStr);
+      
+      // 预加载钱包信息，提升支付方式弹窗打开速度
+      ref.read(walletInfoProvider.notifier).loadWalletInfo();
+      Logger.info('OrderInfoView', '预加载钱包信息...');
     });
   }
 
@@ -867,7 +872,7 @@ class _OrderInfoViewState extends ConsumerState<OrderInfoView> {
         CapsuleButton(
           title: displayTitle,
           onTap: () {
-            PaymentSelectionSheet.show(context);
+            PaymentSelectionSheet.show(context, ref);
           },
           imagePath: iconPath,
         ),

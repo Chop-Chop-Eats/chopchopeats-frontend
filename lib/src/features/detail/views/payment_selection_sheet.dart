@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/utils/logger/logger.dart';
 import '../../../core/widgets/common_image.dart';
+import '../../wallet/providers/wallet_provider.dart';
 import '../models/payment_models.dart';
 import '../providers/payment_provider.dart';
 import 'add_card_page.dart';
@@ -16,9 +18,21 @@ class PaymentSelectionSheet extends ConsumerWidget {
   });
 
   static Future<PaymentSelectionWrapper?> show(
-    BuildContext context, {
+    BuildContext context,
+    WidgetRef ref, {
     bool hideWallet = false,
   }) {
+    Logger.info('PaymentSelectionSheet', '打开支付方式选择弹窗');
+    
+    // 在后台异步刷新钱包信息，不阻塞弹窗打开
+    ref.read(walletInfoProvider.notifier).loadWalletInfo().then((_) {
+      final walletInfo = ref.read(walletInfoDataProvider);
+      Logger.info(
+        'PaymentSelectionSheet',
+        '后台刷新完成: balance=\$${walletInfo?.balance.toStringAsFixed(2) ?? "null"}',
+      );
+    });
+    
     return showModalBottomSheet<PaymentSelectionWrapper>(
       context: context,
       isScrollControlled: true,
@@ -149,6 +163,12 @@ class PaymentSelectionSheet extends ConsumerWidget {
   Widget _buildPaymentItem(
       BuildContext context, WidgetRef ref, PaymentSelectionWrapper method,
       {required bool isSelected}) {
+    if (method.type == AppPaymentMethodType.wallet) {
+      Logger.info(
+        'PaymentSelectionSheet',
+        '_buildPaymentItem: 构建钱包项, walletBalance=${method.walletBalance}',
+      );
+    }
     return GestureDetector(
       onTap: () {
         ref.read(selectedPaymentMethodProvider.notifier).state = method;
@@ -216,7 +236,7 @@ class PaymentSelectionSheet extends ConsumerWidget {
                   ),
                   if (method.type == AppPaymentMethodType.wallet)
                     Text(
-                      '可用余额 \$${method.walletBalance}',
+                      '可用余额 \$${(method.walletBalance ?? 0.0).toStringAsFixed(2)}',
                       style: TextStyle(fontSize: 12.sp, color: Colors.grey),
                     ),
                 ],

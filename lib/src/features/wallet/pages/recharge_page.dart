@@ -16,6 +16,7 @@ import '../../../core/widgets/common_spacing.dart';
 import '../../detail/models/payment_models.dart';
 import '../../detail/providers/payment_provider.dart';
 import '../../detail/views/payment_selection_sheet.dart';
+import '../../mine/providers/mine_provider.dart';
 import '../models/wallet_models.dart';
 import '../providers/wallet_provider.dart';
 import '../services/wallet_services.dart';
@@ -59,18 +60,24 @@ class _RechargePageState extends ConsumerState<RechargePage> {
 
   Future<void> _handleRecharge(BuildContext context, WidgetRef ref) async {
     final l10n = AppLocalizations.of(context)!;
-    final amount =
-        ref.read(rechargePageStateProvider.notifier).getCurrentAmount();
-    if (amount == null || amount <= 0) {
+    
+    // 使用统一的方法获取充值信息
+    final rechargeInfo =
+        ref.read(rechargePageStateProvider.notifier).getRechargeInfo();
+    if (rechargeInfo == null) {
       toast(l10n.enterRechargeAmount);
       return;
     }
 
-    Logger.info("RechargePage", "当前充值金额: \$${amount.toStringAsFixed(2)}");
+    Logger.info(
+      "RechargePage",
+      "当前充值金额: \$${rechargeInfo.amount.toStringAsFixed(2)}, 赠送: \$${rechargeInfo.bonus.toStringAsFixed(2)}",
+    );
 
     // 打开支付选择页面（隐藏钱包选项）
     final selectedMethod = await PaymentSelectionSheet.show(
       context,
+      ref,
       hideWallet: true,
     );
 
@@ -83,58 +90,46 @@ class _RechargePageState extends ConsumerState<RechargePage> {
 
     // 如果选择了钱包支付
     if (selectedMethod.type == AppPaymentMethodType.wallet) {
-      _processWalletPayment(context, ref, amount);
+      _processWalletPayment(context, ref, rechargeInfo);
     }
     // 如果选择了银行卡支付
     else if (selectedMethod.type == AppPaymentMethodType.stripeCard) {
-      _processStripePayment(context, ref, amount, selectedMethod.card!);
+      _processStripePayment(context, ref, rechargeInfo, selectedMethod.card!);
     }
   }
 
   Future<void> _processWalletPayment(
     BuildContext context,
     WidgetRef ref,
-    double amount,
+    ({double amount, double bonus, String cardId}) rechargeInfo,
   ) async {
+    final l10n = AppLocalizations.of(context)!;
     Pop.loading();
 
     try {
-      // 获取选中的充值卡信息
-      final rechargeCardListState = ref.read(rechargeCardListProvider);
-      final selectedCardIndex =
-          ref.read(rechargePageStateProvider.notifier).state.selectedCardIndex;
-
-      String rechargeCardId;
-      double bonusAmount = 0;
-
-      if (selectedCardIndex != null &&
-          selectedCardIndex < rechargeCardListState.cards.length) {
-        final card = rechargeCardListState.cards[selectedCardIndex];
-        rechargeCardId = card.id.toString();
-        bonusAmount = card.bonusAmount;
-      } else {
-        // 自定义金额，使用默认充值卡ID
-        rechargeCardId = "0";
-      }
-
       // 创建充值订单
       final params = RechargeCardOrderParams(
-        rechargeCardId: rechargeCardId,
-        rechargeAmount: amount,
-        bonusAmount: bonusAmount,
-        payAmount: amount,
+        rechargeCardId: rechargeInfo.cardId,
+        rechargeAmount: rechargeInfo.amount,
+        bonusAmount: rechargeInfo.bonus,
+        payAmount: rechargeInfo.amount,
         orderSource: 1,
         payType: 2, // 2=钱包余额支付
       );
 
-      final orderNo = await WalletServices.createRechargeCardOrder(params);
+      await WalletServices.createRechargeCardOrder(params);
 
       Pop.hideLoading();
 
       if (!context.mounted) return;
 
-      // 刷新钱包信息
-      await ref.read(walletInfoProvider.notifier).loadWalletInfo();
+      // 刷新钱包信息和用户信息
+      await Future.wait([
+        ref.read(walletInfoProvider.notifier).loadWalletInfo(),
+        ref.read(userInfoProvider.notifier).loadUserInfo(),
+      ]);
+
+      if (!context.mounted) return;
 
       // 跳转到成功页面
       Navigator.pushReplacement(
@@ -142,7 +137,7 @@ class _RechargePageState extends ConsumerState<RechargePage> {
         MaterialPageRoute(
           builder: (_) => RechargeResultPage(
             isSuccess: true,
-            amount: amount + bonusAmount,
+            amount: rechargeInfo.amount + rechargeInfo.bonus,
           ),
         ),
       );
@@ -152,12 +147,18 @@ class _RechargePageState extends ConsumerState<RechargePage> {
 
       Logger.error("RechargePage", "钱包支付失败: $e");
 
+      // 提取友好的错误信息
+      String errorMessage = l10n.rechargeFailed;
+      if (e.toString().isNotEmpty) {
+        errorMessage = e.toString();
+      }
+
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (_) => RechargeResultPage(
             isSuccess: false,
-            message: e.toString(),
+            message: errorMessage,
           ),
         ),
       );
@@ -167,35 +168,19 @@ class _RechargePageState extends ConsumerState<RechargePage> {
   Future<void> _processStripePayment(
     BuildContext context,
     WidgetRef ref,
-    double amount,
+    ({double amount, double bonus, String cardId}) rechargeInfo,
     StripePaymentMethodModel card,
   ) async {
+    final l10n = AppLocalizations.of(context)!;
     Pop.loading();
 
     try {
-      // 获取选中的充值卡信息
-      final rechargeCardListState = ref.read(rechargeCardListProvider);
-      final selectedCardIndex =
-          ref.read(rechargePageStateProvider.notifier).state.selectedCardIndex;
-
-      String rechargeCardId;
-      double bonusAmount = 0;
-
-      if (selectedCardIndex != null &&
-          selectedCardIndex < rechargeCardListState.cards.length) {
-        final card = rechargeCardListState.cards[selectedCardIndex];
-        rechargeCardId = card.id.toString();
-        bonusAmount = card.bonusAmount;
-      } else {
-        rechargeCardId = "0";
-      }
-
       // 1. 创建充值订单
       final params = RechargeCardOrderParams(
-        rechargeCardId: rechargeCardId,
-        rechargeAmount: amount,
-        bonusAmount: bonusAmount,
-        payAmount: amount,
+        rechargeCardId: rechargeInfo.cardId,
+        rechargeAmount: rechargeInfo.amount,
+        bonusAmount: rechargeInfo.bonus,
+        payAmount: rechargeInfo.amount,
         orderSource: 1,
         payType: 1, // 1=Stripe
       );
@@ -217,9 +202,12 @@ class _RechargePageState extends ConsumerState<RechargePage> {
 
         if (!context.mounted) return;
 
-        // 刷新钱包信息
+        // 刷新钱包信息和用户信息
         Pop.loading();
-        await ref.read(walletInfoProvider.notifier).loadWalletInfo();
+        await Future.wait([
+          ref.read(walletInfoProvider.notifier).loadWalletInfo(),
+          ref.read(userInfoProvider.notifier).loadUserInfo(),
+        ]);
         Pop.hideLoading();
 
         if (!context.mounted) return;
@@ -230,7 +218,7 @@ class _RechargePageState extends ConsumerState<RechargePage> {
           MaterialPageRoute(
             builder: (_) => RechargeResultPage(
               isSuccess: true,
-              amount: amount + bonusAmount,
+              amount: rechargeInfo.amount + rechargeInfo.bonus,
             ),
           ),
         );
@@ -239,7 +227,7 @@ class _RechargePageState extends ConsumerState<RechargePage> {
 
       final clientSecret = spiResult['clientSecret'] as String?;
       if (clientSecret == null || clientSecret.isEmpty) {
-        throw Exception("支付初始化失败：缺少 clientSecret");
+        throw Exception(l10n.rechargeFailed);
       }
 
       Pop.hideLoading();
@@ -250,7 +238,7 @@ class _RechargePageState extends ConsumerState<RechargePage> {
       await Stripe.instance.initPaymentSheet(
         paymentSheetParameters: SetupPaymentSheetParameters(
           paymentIntentClientSecret: clientSecret,
-          merchantDisplayName: '充值 \$${amount.toStringAsFixed(2)}',
+          merchantDisplayName: '充值 \$${rechargeInfo.amount.toStringAsFixed(2)}',
           appearance: const PaymentSheetAppearance(
             colors: PaymentSheetAppearanceColors(
               primary: Color(0xFFFF6B00),
@@ -270,8 +258,11 @@ class _RechargePageState extends ConsumerState<RechargePage> {
 
       Pop.loading();
 
-      // 5. 刷新钱包信息
-      await ref.read(walletInfoProvider.notifier).loadWalletInfo();
+      // 5. 刷新钱包信息和用户信息
+      await Future.wait([
+        ref.read(walletInfoProvider.notifier).loadWalletInfo(),
+        ref.read(userInfoProvider.notifier).loadUserInfo(),
+      ]);
 
       Pop.hideLoading();
 
@@ -283,7 +274,7 @@ class _RechargePageState extends ConsumerState<RechargePage> {
         MaterialPageRoute(
           builder: (_) => RechargeResultPage(
             isSuccess: true,
-            amount: amount + bonusAmount,
+            amount: rechargeInfo.amount + rechargeInfo.bonus,
           ),
         ),
       );
@@ -301,7 +292,7 @@ class _RechargePageState extends ConsumerState<RechargePage> {
           MaterialPageRoute(
             builder: (_) => RechargeResultPage(
               isSuccess: false,
-              message: e.error.localizedMessage,
+              message: e.error.localizedMessage ?? l10n.rechargeFailed,
             ),
           ),
         );
@@ -317,7 +308,7 @@ class _RechargePageState extends ConsumerState<RechargePage> {
         MaterialPageRoute(
           builder: (_) => RechargeResultPage(
             isSuccess: false,
-            message: e.toString(),
+            message: l10n.rechargeFailed,
           ),
         ),
       );

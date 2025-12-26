@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/utils/logger/logger.dart';
 import '../models/mine_model.dart';
 import '../services/mine_services.dart';
 
@@ -40,7 +41,12 @@ class UserInfoNotifier extends StateNotifier<UserInfoState> {
         userInfo: userInfo,
         isLoading: false,
       );
+      Logger.info(
+        'UserInfoNotifier',
+        '用户信息加载成功: walletBalance=\$${userInfo.walletBalance?.toStringAsFixed(2) ?? "null"}, userId=${userInfo.id}',
+      );
     } catch (e) {
+      Logger.error('UserInfoNotifier', '用户信息加载失败: $e');
       state = state.copyWith(
         isLoading: false,
         error: e.toString(),
