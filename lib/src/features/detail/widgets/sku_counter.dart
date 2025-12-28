@@ -139,6 +139,7 @@ class SkuCounter extends ConsumerWidget {
           productName: productName,
           englishProductName: englishProductName,
           selectedSkus: selectedSkus,
+          productPrice: price,
         );
   }
 

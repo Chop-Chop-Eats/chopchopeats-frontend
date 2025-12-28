@@ -130,11 +130,13 @@ class _ShopCartState extends ConsumerState<ShopCart> {
   Future<void> _clearCart(CartState cartState, VoidCallback dismiss) async {
     final notifier = ref.read(cartProvider.notifier);
     try {
+      // 先关闭Sheet，给用户即时反馈
+      dismiss();
+      // 然后清空购物车
       await notifier.clearCart(
         shopId: widget.shopId,
         diningDate: cartState.diningDate,
       );
-      dismiss();
     } catch (e) {
       _toast('清空失败，请稍后重试');
     }
@@ -221,12 +223,11 @@ class _ShopCartState extends ConsumerState<ShopCart> {
     required AppLocalizations l10n,
     required CartState cartState,
   }) {
+    final isBusy = cartState.isSyncing || cartState.isUpdating;
+    final isDisabled = cartState.isEmpty || isBusy;
+    
     return GestureDetector(
-      onTap: () {
-        if (cartState.isEmpty) {
-          _toast('购物车为空，无法下单');
-          return;
-        }
+      onTap: isDisabled ? null : () {
         Logger.info('ShopCart', '点击下单 shopId=${widget.shopId}');
         Navigate.push(
           context,
@@ -236,7 +237,7 @@ class _ShopCartState extends ConsumerState<ShopCart> {
       },
       child: Container(
         decoration: BoxDecoration(
-          color: AppTheme.primaryOrange,
+          color: isDisabled ? Colors.grey[400] : AppTheme.primaryOrange,
           borderRadius: BorderRadius.circular(16.r),
         ),
         padding: EdgeInsets.symmetric(horizontal: 24.w, vertical: 12.h),

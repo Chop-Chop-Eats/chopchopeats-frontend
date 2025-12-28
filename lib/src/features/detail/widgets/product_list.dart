@@ -356,6 +356,7 @@ class _ProductListState extends ConsumerState<ProductList> {
           productName: product.chineseName,
           englishProductName: product.englishName,
           selectedSkus: selectedSkus,
+          productPrice: product.productPrice,
         );
   }
 

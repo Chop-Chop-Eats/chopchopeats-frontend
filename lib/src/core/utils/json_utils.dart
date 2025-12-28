@@ -33,11 +33,31 @@ class JsonUtils {
     if (value is! List) return null;
     
     try {
-      return value
-          .map((e) => fromJson(e as Map<String, dynamic>))
-          .toList();
-    } catch (e) {
-      // 如果转换失败，返回null而不是抛出异常
+      final result = <T>[];
+      for (var i = 0; i < value.length; i++) {
+        final e = value[i];
+        if (e == null) {
+          // 跳过 null 元素
+          continue;
+        }
+        if (e is! Map<String, dynamic>) {
+          // 跳过非 Map 元素
+          continue;
+        }
+        try {
+          final item = fromJson(e);
+          result.add(item);
+        } catch (itemError) {
+          // 记录单个元素的解析错误，但继续处理其他元素
+          print('⚠️ parseList: 跳过第 $i 个元素（解析失败）: $itemError');
+          continue;
+        }
+      }
+      return result;
+    } catch (e, stack) {
+      // 如果转换失败，打印错误并返回null
+      print('🔥 parseList: 整体解析失败: $e');
+      print('🔥 Stack: $stack');
       return null;
     }
   }

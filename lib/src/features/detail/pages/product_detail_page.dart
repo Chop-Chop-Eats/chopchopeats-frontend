@@ -536,6 +536,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
           productName: product.chineseName,
           englishProductName: product.englishName,
           selectedSkus: selectedSkus,
+          productPrice: product.productPrice,
         );
       } else {
         // 没有SKU的商品
@@ -546,6 +547,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
           productName: product.chineseName,
           englishProductName: product.englishName,
           selectedSkus: null,
+          productPrice: product.productPrice,
         );
       }
 
@@ -675,26 +677,48 @@ class _DetailPageSkuCounter extends ConsumerWidget {
   }
 
   Future<void> _onIncrease(WidgetRef ref) async {
-    await ref
-        .read(cartProvider.notifier)
-        .increment(
-          shopId: shopId,
-          diningDate: diningDate,
-          productId: productId,
-          productName: productName,
-          englishProductName: englishProductName,
-          selectedSkus: selectedSkus,
-        );
+    try {
+      await ref
+          .read(cartProvider.notifier)
+          .increment(
+            shopId: shopId,
+            diningDate: diningDate,
+            productId: productId,
+            productName: productName,
+            englishProductName: englishProductName,
+            selectedSkus: selectedSkus,
+            productPrice: _getProductPrice(ref),
+          );
+    } catch (e) {
+      Logger.error('_DetailPageSkuCounter', '增加数量失败: $e');
+    }
+  }
+
+  double? _getProductPrice(WidgetRef ref) {
+    try {
+      final params = ProductDetailParams(
+        productId: productId,
+        shopId: shopId,
+      );
+      final product = ref.read(productDetailDataProvider(params));
+      return product?.productPrice;
+    } catch (_) {
+      return null;
+    }
   }
 
   Future<void> _onDecrease(WidgetRef ref) async {
-    await ref
-        .read(cartProvider.notifier)
-        .decrement(
-          shopId: shopId,
-          diningDate: diningDate,
-          productId: productId,
-          productSpecId: _productSpecId,
-        );
+    try {
+      await ref
+          .read(cartProvider.notifier)
+          .decrement(
+            shopId: shopId,
+            diningDate: diningDate,
+            productId: productId,
+            productSpecId: _productSpecId,
+          );
+    } catch (e) {
+      Logger.error('_DetailPageSkuCounter', '减少数量失败: $e');
+    }
   }
 }

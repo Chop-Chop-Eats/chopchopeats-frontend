@@ -135,12 +135,12 @@ class CartNotifier extends StateNotifier<Map<String, CartState>> {
   Future<void> addItem(AddCartParams params) async {
     final current = _ensureCart(params.shopId);
 
-    // 计算商品价格（基础价格 + 所有SKU价格）
-    final skuTotalPrice = params.selectedSkus?.fold<double>(
-      0,
-      (sum, sku) => sum + sku.skuPrice,
-    ) ?? 0;
-    final itemPrice = skuTotalPrice; // 根据API文档，price已经包含了productPrice
+    // 计算商品价格
+    // 注意：如果有SKU，SKU的price字段已经包含了基础价格+附加价格的总价
+    // 如果没有SKU，使用商品基础价格
+    final itemPrice = params.selectedSkus?.isNotEmpty == true
+        ? params.selectedSkus!.first.skuPrice
+        : (params.productPrice ?? 0);
 
     // 乐观更新：立即在本地添加商品
     final newItem = CartItemModel(
@@ -399,7 +399,7 @@ class CartNotifier extends StateNotifier<Map<String, CartState>> {
     required String productName,
     String? englishProductName,
     List<SelectedSkuVO>? selectedSkus,
-    double? price, // 商品价格（用于首次添加时传递到服务端）
+    double? productPrice, // 商品基础价格（用于首次添加时传递）
   }) async {
     final resolvedDate = _resolveDiningDate(shopId, diningDate);
     
@@ -417,6 +417,7 @@ class CartNotifier extends StateNotifier<Map<String, CartState>> {
         selectedSkus: selectedSkus,
         quantity: 1,
         diningDate: resolvedDate,
+        productPrice: productPrice,
       );
       await addItem(params);
       return;

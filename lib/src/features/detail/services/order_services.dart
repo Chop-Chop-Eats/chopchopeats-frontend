@@ -77,11 +77,12 @@ class OrderServices {
   }
 
   /// 创建 Stripe PaymentIntent
-  Future<SPIModel> createSPI(String orderNo ) async {
+  Future<SPIModel> createSPI(String orderNo, {String? paymentMethodId}) async {
     final response = await ApiClient().post(
       ApiPaths.createSPIApi,
       data: {
         'orderNo': orderNo,
+        if (paymentMethodId != null) 'paymentMethodId': paymentMethodId,
       },
     );
     Logger.info('OrderServices', '创建 Stripe PaymentIntent: ${response.data}');

@@ -482,7 +482,7 @@ class SaleProductSku {
   ///SKU ID
   final String? id;
 
-  ///规格附加价格
+  ///SKU价格（该SKU的总价 = 商品基础价 + SKU附加价）
   final double price;
 
   ///SKU名称（规格名称）

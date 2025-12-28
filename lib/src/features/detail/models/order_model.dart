@@ -4,7 +4,7 @@ import '../../../core/utils/json_utils.dart';
 class CouponSelectionResult {
   final String couponId;
   final double discountAmount;
-  
+
   CouponSelectionResult({required this.couponId, required this.discountAmount});
 }
 
@@ -35,7 +35,6 @@ double formatPrice(double? price) {
   if (price == null) return 0.0;
   return double.parse(price.toStringAsFixed(2));
 }
-
 
 /// 创建订单参数
 class CreateOrderParams {
@@ -139,45 +138,46 @@ class CreateOrderParams {
 
 /// 订单商品项
 class OrderItem {
-  ///原价（单位：美元）
-  final double? originalPrice;
-
-  ///售价（单位：美元）
-  final double price;
-
   ///商品ID
   final String productId;
 
   ///商品名称
   final String productName;
 
-  ///商品规格ID
-  final String productSpecId;
-
-  ///商品规格名称
-  final String productSpecName;
+  ///英文商品名称
+  final String? englishProductName;
 
   ///商品数量
   final int quantity;
 
+  ///产品价格，不含规格附加价格（单位：美元）
+  final double productPrice;
+
+  ///售价（单位：美元）
+  final double price;
+
+  ///选择的规格SKU列表（可选）
+  final List<SelectedSkuVO>? selectedSkus;
+
   OrderItem({
-    this.originalPrice,
-    required this.price,
     required this.productId,
     required this.productName,
-    required this.productSpecId,
-    required this.productSpecName,
+    this.englishProductName,
     required this.quantity,
+    required this.productPrice,
+    required this.price,
+    this.selectedSkus,
   });
 
   Map<String, dynamic> toJson() => {
-    if (originalPrice != null) 'originalPrice': originalPrice,
-    'price': price,
     'productId': productId,
     'productName': productName,
-    'productSpecId': productSpecId,
-    'productSpecName': productSpecName,
+    if (englishProductName != null) 'englishProductName': englishProductName,
     'quantity': quantity,
+    'productPrice': productPrice,
+    'price': price,
+    if (selectedSkus != null && selectedSkus!.isNotEmpty)
+      'selectedSkus': selectedSkus!.map((e) => e.toJson()).toList(),
   };
 }
 
@@ -192,7 +192,7 @@ class SelectedSkuVO {
   ///SKU英文名称
   final String? englishSkuName;
 
-  ///SKU价格（单位：美元）
+  ///SKU价格（该SKU的总价 = 商品基础价 + SKU附加价，单位：美元）
   final double skuPrice;
 
   ///SKU分组ID
@@ -243,6 +243,9 @@ class AddCartParams {
   ///用餐日期 (格式: YYYY-MM-DD)
   final String diningDate;
 
+  ///商品基础价格
+  final double? productPrice;
+
   AddCartParams({
     required this.shopId,
     required this.productId,
@@ -251,18 +254,43 @@ class AddCartParams {
     this.selectedSkus,
     required this.quantity,
     required this.diningDate,
+    this.productPrice,
   });
 
-  Map<String, dynamic> toJson() => {
-    'shopId': shopId,
-    'productId': productId,
-    'productName': productName,
-    if (englishProductName != null) 'englishProductName': englishProductName,
-    if (selectedSkus != null && selectedSkus!.isNotEmpty)
-      'selectedSkus': selectedSkus!.map((e) => e.toJson()).toList(),
-    'quantity': quantity,
-    'diningDate': diningDate,
-  };
+  Map<String, dynamic> toJson() {
+    // 如果有SKU，需要计算附加价发送给后端
+    // SKU附加价 = SKU总价 - 商品基础价
+    List<Map<String, dynamic>>? skusToSend;
+    if (selectedSkus != null &&
+        selectedSkus!.isNotEmpty &&
+        productPrice != null) {
+      skusToSend =
+          selectedSkus!.map((sku) {
+            final additionalPrice = sku.skuPrice - productPrice!;
+            return {
+              'id': sku.id,
+              'skuName': sku.skuName,
+              if (sku.englishSkuName != null)
+                'englishSkuName': sku.englishSkuName,
+              'skuPrice': additionalPrice > 0 ? additionalPrice : 0, // 发送附加价
+              if (sku.skuGroupId != null) 'skuGroupId': sku.skuGroupId,
+              if (sku.skuGroupType != null) 'skuGroupType': sku.skuGroupType,
+            };
+          }).toList();
+    }
+
+    return {
+      'shopId': shopId,
+      'productId': productId,
+      'productName': productName,
+      if (englishProductName != null) 'englishProductName': englishProductName,
+      if (skusToSend != null && skusToSend.isNotEmpty)
+        'selectedSkus': skusToSend,
+      'quantity': quantity,
+      'diningDate': diningDate,
+      // 注意：不发送 productPrice 给后端，后端会根据 productId 自己查询价格
+    };
+  }
 }
 
 /// 获取购物车列表参数
@@ -351,8 +379,11 @@ class CartItemModel {
   ///商品缩略图（商品封面图）
   final String? imageThumbnail;
 
-  ///商品单价
+  ///商品单价（包含SKU后的总价）
   final double? price;
+
+  ///商品基础价格（不含SKU）
+  final double? productPrice;
 
   ///商品ID
   final String? productId;
@@ -393,6 +424,7 @@ class CartItemModel {
     this.id,
     this.imageThumbnail,
     this.price,
+    this.productPrice,
     this.productId,
     this.productName,
     this.englishProductName,
@@ -407,26 +439,41 @@ class CartItemModel {
   });
 
   factory CartItemModel.fromJson(Map<String, dynamic> json) {
+    // 解析 selectedSkus
+    final selectedSkus = JsonUtils.parseList<CartItemSku>(
+      json,
+      'selectedSkus',
+      (e) => CartItemSku.fromJson(e),
+    );
+
+    // 如果后端没有返回 productSpecId，则从 selectedSkus 中获取第一个 SKU 的 ID
+    // 或者使用 productId 作为后备
+    String? productSpecId = json['productSpecId'] as String?;
+    if (productSpecId == null || productSpecId.isEmpty) {
+      if (selectedSkus != null && selectedSkus.isNotEmpty) {
+        productSpecId = selectedSkus.first.id;
+      } else {
+        productSpecId = json['productId'] as String?;
+      }
+    }
+
     return CartItemModel(
       createTime: JsonUtils.parseDateTime(json, 'createTime'),
       diningDate: JsonUtils.parseString(json, 'diningDate'), // 格式: YYYY-MM-DD
       id: json['id'] as String?,
       imageThumbnail: json['imageThumbnail'] as String?,
       price: JsonUtils.parseDouble(json, 'price'),
+      productPrice: JsonUtils.parseDouble(json, 'productPrice'),
       productId: json['productId'] as String?,
       productName: json['productName'] as String?,
       englishProductName: json['englishProductName'] as String?,
-      productSpecId: json['productSpecId'] as String?,
+      productSpecId: productSpecId,
       productSpecName: json['productSpecName'] as String?,
       quantity: JsonUtils.parseInt(json, 'quantity'),
       shopId: json['shopId'] as String?,
       skuSetting: JsonUtils.parseInt(json, 'skuSetting'),
       userId: JsonUtils.parseInt(json, 'userId'),
-      selectedSkus: JsonUtils.parseList<CartItemSku>(
-        json,
-        'selectedSkus',
-        (e) => CartItemSku.fromJson(e),
-      ),
+      selectedSkus: selectedSkus,
       skus: JsonUtils.parseList<CartItemSku>(
         json,
         'skus',

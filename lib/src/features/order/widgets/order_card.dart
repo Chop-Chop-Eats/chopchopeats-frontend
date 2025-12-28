@@ -59,88 +59,40 @@ class OrderCard extends StatelessWidget {
 
   Widget _buildHeader() {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Row(
-          children: [
-            Text(
-              order.shopName ?? '',
-              style: TextStyle(
-                fontSize: 16.sp,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
-            ),
-            Icon(Icons.chevron_right, size: 20.sp, color: Colors.grey),
-          ],
-        ),
-        Text(
-          order.statusName ?? '',
-          style: TextStyle(
-            fontSize: 14.sp,
-            color: _getStatusColor(order.status),
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Color _getStatusColor(int? status) {
-    // 100=待支付
-    if (status == 100) return const Color(0xFFFF5722);
-    // 300=已完成
-    if (status == 300) return Colors.grey;
-    // 4xx=Cancel/Refund
-    if (status != null && status >= 400) return Colors.grey;
-    // Others (In Progress)
-    return Colors.black;
-  }
-
-  Widget _buildContent() {
-    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(
-          child: SizedBox(
-            height: 60.w,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemCount: (order.items?.length ?? 0) > 3 ? 3 : (order.items?.length ?? 0),
-              separatorBuilder: (context, index) => SizedBox(width: 8.w),
-              itemBuilder: (context, index) {
-                // We don't have image URL in OrderItemPageRespVO?
-                // Wait, the API response example shows items, but OrderItemPageRespVO doesn't have 'image'.
-                // Let me check the API response example again.
-                // The example items have: productId, productName, quantity, price, selectedSkus.
-                // No image URL?
-                // That's a problem. The UI shows images.
-                // Maybe I need to fetch product details? Or maybe the API *does* return it but it's not in the doc?
-                // I'll assume there might be a 'picUrl' or 'image' field and add it to the model if I see it in the real response.
-                // For now, I'll use a placeholder or check if I missed it.
-                // Checking the API doc again... "items": [ ... ]. No image field listed.
-                // This is common in some APIs, they expect you to have the image from product ID or it's missing in doc.
-                // I will use a placeholder icon for now.
-                return Container(
-                  width: 60.w,
-                  height: 60.w,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[100],
-                    borderRadius: BorderRadius.circular(8.r),
-                  ),
-                  child: const Icon(Icons.fastfood, color: Colors.grey),
-                );
-              },
-            ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                order.shopName ?? '',
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black,
+                ),
+              ),
+              SizedBox(height: 4.h),
+              Text(
+                '${order.categoryName ?? ''} • ${order.englishCategoryName ?? ''}',
+                style: TextStyle(
+                  fontSize: 12.sp,
+                  color: Colors.grey,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
           ),
         ),
-        SizedBox(width: 16.w),
         Column(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             Text(
               '\$${order.payAmount?.toStringAsFixed(2) ?? '0.00'}',
               style: TextStyle(
-                fontSize: 18.sp,
+                fontSize: 16.sp,
                 fontWeight: FontWeight.bold,
                 color: Colors.black,
               ),
@@ -159,30 +111,69 @@ class OrderCard extends StatelessWidget {
     );
   }
 
+  Widget _buildContent() {
+    return SizedBox(
+      height: 60.w,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: (order.items?.length ?? 0) > 3 ? 3 : (order.items?.length ?? 0),
+        separatorBuilder: (context, index) => SizedBox(width: 8.w),
+        itemBuilder: (context, index) {
+          return Container(
+            width: 60.w,
+            height: 60.w,
+            decoration: BoxDecoration(
+              color: Colors.grey[100],
+              borderRadius: BorderRadius.circular(8.r),
+            ),
+            // Placeholder for image since URL is missing in model
+            child: const Icon(Icons.fastfood, color: Colors.grey),
+          );
+        },
+      ),
+    );
+  }
+
   Widget _buildFooter() {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.end,
       children: [
-        // "..." button (More)
         if (_hasMoreOptions())
-          Container(
-            margin: EdgeInsets.only(right: 8.w),
-            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey[300]!),
-              borderRadius: BorderRadius.circular(20.r),
+          PopupMenuButton<String>(
+            icon: Icon(Icons.more_horiz, size: 20.sp, color: Colors.grey),
+            color: const Color(0xFF333333),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8.r),
             ),
-            child: Icon(Icons.more_horiz, size: 16.sp, color: Colors.black),
+            offset: const Offset(0, -40), // Adjust position to appear above
+            itemBuilder: (context) => [
+              if (order.status == 100) // Pending Payment
+                PopupMenuItem(
+                  value: 'cancel',
+                  height: 32.h,
+                  child: Center(
+                    child: Text(
+                      '取消订单',
+                      style: TextStyle(color: Colors.white, fontSize: 12.sp),
+                    ),
+                  ),
+                ),
+              // Add other options if needed
+            ],
+            onSelected: (value) {
+              if (value == 'cancel') {
+                onCancel?.call();
+              }
+            },
           ),
-        
+        const Spacer(),
         ..._buildActionButtons(),
       ],
     );
   }
 
   bool _hasMoreOptions() {
-    // Logic for "..." button
-    return true; // Simplified
+    // Show for Pending Payment (100) and Completed (300) as per image
+    return order.status == 100 || order.status == 300;
   }
 
   List<Widget> _buildActionButtons() {
