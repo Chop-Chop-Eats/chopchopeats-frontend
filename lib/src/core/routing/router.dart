@@ -22,6 +22,7 @@ import '../../features/splash/pages/splash_page.dart';
 import '../../features/wallet/pages/recharge_page.dart';
 import '../../features/wallet/pages/wallet_detail_page.dart';
 import '../../features/wallet/pages/wallet_page.dart';
+import '../../features/order/pages/order_detail_page.dart';
 import '../maps/pages/map_picker_page.dart';
 import 'routes.dart';
 
@@ -115,6 +116,13 @@ class AppRouter {
     Routes.wallet: (settings) => const WalletPage(),
     Routes.walletDetail: (settings) => const WalletDetailPage(),
     Routes.recharge: (settings) => const RechargePage(),
+    Routes.orderDetail: (settings) {
+      if (settings.arguments is String) {
+        final orderNo = settings.arguments as String;
+        return OrderDetailPage(orderNo: orderNo);
+      }
+      return const ErrorPage(message: "订单编号参数错误或缺失");
+    },
   };
 
   /// 创建路由方法

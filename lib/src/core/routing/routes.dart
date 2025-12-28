@@ -22,4 +22,5 @@ class Routes {
   static const String wallet = '/wallet'; // 钱包页面
   static const String walletDetail = '/walletDetail'; // 钱包详情页面 
   static const String recharge = '/recharge'; // 充值页面
+  static const String orderDetail = '/orderDetail'; // 订单详情页面
 }
