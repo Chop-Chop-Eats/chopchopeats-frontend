@@ -1,4 +1,5 @@
 import 'package:chop_user/src/core/routing/routes.dart';
+import 'package:chop_user/src/core/widgets/common_image.dart';
 import 'package:chop_user/src/features/order/providers/order_provider.dart';
 import 'package:chop_user/src/features/order/widgets/order_card.dart';
 import 'package:flutter/material.dart';
@@ -56,9 +57,7 @@ class _OrderListViewState extends ConsumerState<OrderListView> with AutomaticKee
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Use a placeholder image if available, otherwise icon
-             Icon(Icons.receipt_long, size: 64.sp, color: Colors.grey[300]),
-            SizedBox(height: 16.h),
+            CommonImage(imagePath: "assets/images/no_order.png", width: 300.w, height: 300.h),
             Text(
               "暂无美食订单",
               style: TextStyle(fontSize: 16.sp, color: Colors.grey),
