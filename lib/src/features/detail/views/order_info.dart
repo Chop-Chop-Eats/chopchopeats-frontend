@@ -871,8 +871,10 @@ class _OrderInfoViewState extends ConsumerState<OrderInfoView> {
         CommonSpacing.medium,
         CapsuleButton(
           title: displayTitle,
-          onTap: () {
-            PaymentSelectionSheet.show(context, ref);
+          onTap: () async {
+            // 防止重复点击
+            final result = await PaymentSelectionSheet.show(context, ref);
+            // 可以在这里处理返回结果
           },
           imagePath: iconPath,
         ),

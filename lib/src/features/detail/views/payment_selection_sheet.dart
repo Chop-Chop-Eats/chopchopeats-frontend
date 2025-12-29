@@ -24,14 +24,10 @@ class PaymentSelectionSheet extends ConsumerWidget {
   }) async {
     Logger.info('PaymentSelectionSheet', '打开支付方式选择弹窗');
     
-    // 先预加载支付方式列表，等待完成后再打开弹窗
-    try {
-      await ref.read(paymentMethodsListProvider.future);
-      Logger.info('PaymentSelectionSheet', '支付方式列表预加载完成');
-    } catch (e) {
-      Logger.error('PaymentSelectionSheet', '预加载失败: $e');
-    }
+    // 先预加载支付方式列表
+    final preloadFuture = ref.read(paymentMethodsListProvider.future);
     
+    // 立即显示弹窗，内部会根据加载状态显示loading或内容
     return showModalBottomSheet<PaymentSelectionWrapper>(
       context: context,
       isScrollControlled: true,
