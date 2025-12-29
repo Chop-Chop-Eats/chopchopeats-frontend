@@ -21,17 +21,16 @@ class PaymentSelectionSheet extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref, {
     bool hideWallet = false,
-  }) {
+  }) async {
     Logger.info('PaymentSelectionSheet', '打开支付方式选择弹窗');
     
-    // 在后台异步刷新钱包信息，不阻塞弹窗打开
-    ref.read(walletInfoProvider.notifier).loadWalletInfo().then((_) {
-      final walletInfo = ref.read(walletInfoDataProvider);
-      Logger.info(
-        'PaymentSelectionSheet',
-        '后台刷新完成: balance=\$${walletInfo?.balance.toStringAsFixed(2) ?? "null"}',
-      );
-    });
+    // 先预加载支付方式列表，等待完成后再打开弹窗
+    try {
+      await ref.read(paymentMethodsListProvider.future);
+      Logger.info('PaymentSelectionSheet', '支付方式列表预加载完成');
+    } catch (e) {
+      Logger.error('PaymentSelectionSheet', '预加载失败: $e');
+    }
     
     return showModalBottomSheet<PaymentSelectionWrapper>(
       context: context,

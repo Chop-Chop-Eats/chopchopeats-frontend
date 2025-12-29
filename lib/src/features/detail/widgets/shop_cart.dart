@@ -227,13 +227,28 @@ class _ShopCartState extends ConsumerState<ShopCart> {
     final isDisabled = cartState.isEmpty || isBusy;
     
     return GestureDetector(
-      onTap: isDisabled ? null : () {
+      onTap: isDisabled ? null : () async {
         Logger.info('ShopCart', '点击下单 shopId=${widget.shopId}');
-        Navigate.push(
+        final result = await Navigate.push(
           context,
           Routes.confirmOrder,
           arguments: {"shopId": widget.shopId},
         );
+        
+        // 支付成功后清空购物车
+        if (result == true || (result is Map && result['success'] == true)) {
+          final notifier = ref.read(cartProvider.notifier);
+          try {
+            await notifier.clearCart(
+              shopId: widget.shopId,
+              diningDate: cartState.diningDate,
+            );
+            Logger.info('ShopCart', '支付成功，购物车已清空');
+          } catch (e) {
+            Logger.error('ShopCart', '清空购物车失败: $e');
+            _toast('清空购物车失败');
+          }
+        }
       },
       child: Container(
         decoration: BoxDecoration(
