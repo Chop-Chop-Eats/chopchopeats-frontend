@@ -57,7 +57,7 @@ class OrderService {
 
   Future<AppTradeOrderDetailRespVO> getOrderDetail(String orderNo) async {
     final response = await _client.get(ApiPaths.getOrderDetailApi, queryParameters: {'orderNo': orderNo});
-    return AppTradeOrderDetailRespVO.fromJson(response.data['data']);
+    return AppTradeOrderDetailRespVO.fromJson(response.data as Map<String, dynamic>);
   }
 
   Future<bool> cancelOrder(String orderNo, String cancelReason) async {

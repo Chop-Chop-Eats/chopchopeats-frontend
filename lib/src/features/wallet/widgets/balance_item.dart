@@ -8,7 +8,13 @@ class BalanceItem extends StatelessWidget {
   final String value;
   final String time;
   final String balance;
-  const BalanceItem({super.key, required this.title, required this.value, required this.time, required this.balance});
+  const BalanceItem({
+    super.key,
+    required this.title,
+    required this.value,
+    required this.time,
+    required this.balance,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -18,16 +24,22 @@ class BalanceItem extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(title , style: AppValues.labelTitle.copyWith(fontWeight: FontWeight.w500),),
-            Text(value , style: AppValues.labelTitle.copyWith(fontWeight: FontWeight.w500),),
+            Text(
+              title,
+              style: AppValues.labelTitle.copyWith(fontWeight: FontWeight.w500),
+            ),
+            Text(
+              value,
+              style: AppValues.labelTitle.copyWith(fontWeight: FontWeight.w500),
+            ),
           ],
         ),
         CommonSpacing.small,
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(time , style: AppValues.labelValue,),
-            Text(balance , style: AppValues.labelValue,),
+            Text(time, style: AppValues.labelValue),
+            Text("余额：$balance", style: AppValues.labelValue),
           ],
         ),
         CommonSpacing.medium,

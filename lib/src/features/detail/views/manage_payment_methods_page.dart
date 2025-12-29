@@ -28,6 +28,29 @@ class ManagePaymentMethodsPage extends ConsumerWidget {
           
           return Column(
             children: [
+              // 添加提示信息
+              Container(
+                margin: EdgeInsets.all(16.w),
+                padding: EdgeInsets.all(12.w),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFF9E6),
+                  borderRadius: BorderRadius.circular(8.r),
+                  border: Border.all(color: const Color(0xFFFFD966)),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(Icons.info_outline, color: const Color(0xFFFF9800), size: 20.sp),
+                    SizedBox(width: 8.w),
+                    Expanded(
+                      child: Text(
+                        '如果支付时提示卡片无效，请删除该卡片后重新添加',
+                        style: TextStyle(fontSize: 12.sp, color: const Color(0xFF996600)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
               Expanded(
                 child: ListView(
                   padding: EdgeInsets.all(24.w),

@@ -423,18 +423,78 @@ class _ConfirmOrderPageState extends ConsumerState<ConfirmOrderPage> {
     SPIModel res;
 
     try {
-      // 获取支付方式ID
+      // 获取支付方式ID（使用数据库ID，而不是Stripe PM ID）
       final paymentMethodId = paymentMethod?.type == AppPaymentMethodType.stripeCard
-          ? paymentMethod?.card?.stripePaymentMethodId
+          ? paymentMethod?.card?.id
           : null;
       Logger.info('ConfirmOrderPage', '支付方式ID: $paymentMethodId');
 
       res = await OrderServices().createSPI(orderNo, paymentMethodId: paymentMethodId);
-      Logger.info('ConfirmOrderPage', 'SPI创建成功');
+      Logger.info('ConfirmOrderPage', 'SPI创建成功，status: ${res.status}');
+      
+      // 如果支付已经成功，直接跳转成功页面
+      if (res.status == 'succeeded') {
+        Logger.info('ConfirmOrderPage', '支付已在后端完成，无需调用Stripe SDK');
+        Pop.hideLoading();
+        
+        if (!mounted) return;
+        
+        toast('支付成功');
+        
+        Logger.info('ConfirmOrderPage', '准备刷新订单列表...');
+        
+        // 支付成功后返回，并传递需要刷新的标志
+        Navigator.pop(context, true);
+        
+        // 延迟刷新，确保已经返回到订单页面
+        Future.delayed(const Duration(milliseconds: 300), () {
+          Logger.info('ConfirmOrderPage', '开始刷新订单列表（后端直接支付）');
+          if (mounted) {
+            ref.read(orderListProvider(null).notifier).refresh();  // 全部
+            ref.read(orderListProvider(1).notifier).refresh();     // 待支付
+            ref.read(orderListProvider(2).notifier).refresh();     // 进行中
+          } else {
+            Logger.error('ConfirmOrderPage', 'Widget已销毁，无法刷新');
+          }
+        });
+        return;
+      }
     } catch (e) {
-      Logger.error('ConfirmOrderPage', '创建订单失败: $e');
+      Logger.error('ConfirmOrderPage', '创建支付意图失败: $e');
       Pop.hideLoading();
-      toast('创建订单失败: $e');
+      
+      // 检查是否是支付方式无效的错误
+      final errorMsg = e.toString();
+      if (errorMsg.contains('支付方式不存在') || errorMsg.contains('不属于当前用户')) {
+        if (!mounted) return;
+        
+        // 显示友好的错误提示，并提供解决方案
+        await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('支付卡片无效'),
+            content: const Text(
+              '您选择的支付卡片已失效或不可用。\n\n'
+              '可能的原因：\n'
+              '• 卡片已过期\n'
+              '• 卡片信息已变更\n'
+              '• 卡片已被银行冻结\n\n'
+              '建议您：\n'
+              '1. 前往"管理支付方式"删除此卡片\n'
+              '2. 重新添加新的银行卡\n'
+              '3. 或使用钱包余额支付'
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('返回修改'),
+              ),
+            ],
+          ),
+        );
+      } else {
+        toast('创建支付失败: $e');
+      }
       return;
     }
 

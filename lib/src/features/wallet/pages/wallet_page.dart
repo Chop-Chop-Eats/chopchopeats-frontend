@@ -181,7 +181,7 @@ class _WalletPageState extends ConsumerState<WalletPage> {
                     itemBuilder: (context, index) {
                       final item = recentHistory[index];
                       return _buildBalanceDetailItem(
-                        title: item.payTypeName,
+                        title: item.txTypeName,
                         value: '\$${item.transactionAmount.toStringAsFixed(2)}',
                         time: dateFormat.format(item.recordDate),
                         balance: '\$${item.balanceAfter.toStringAsFixed(2)}',
