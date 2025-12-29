@@ -88,15 +88,77 @@ class _OrderListViewState extends ConsumerState<OrderListView> with AutomaticKee
             ));
           }
           final order = state.list[index];
-          return OrderCard(
-            order: order,
-            onTap: () {
-              Navigator.pushNamed(context, Routes.orderDetail, arguments: order.orderNo);
-            },
-            onPay: () {
-              // Handle pay
-            },
-            // ... other callbacks
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      order.statusGroupName ?? order.statusName ?? '',
+                      style: TextStyle(
+                        fontSize: 18.sp,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
+                    ),
+                    SizedBox(height: 4.h),
+                    if (order.status == 100) ...[
+                      // Pending Payment - Real countdown
+                      Builder(
+                        builder: (context) {
+                          if (order.createTime == null || order.orderPeriod == null) return const SizedBox();
+                          final createTime = DateTime.tryParse(order.createTime!);
+                          if (createTime == null) return const SizedBox();
+                          
+                          final expireTime = createTime.add(Duration(minutes: order.orderPeriod!));
+                          final now = DateTime.now();
+                          final diff = expireTime.difference(now);
+                          
+                          if (diff.isNegative) {
+                             return Text(
+                              "已失效",
+                              style: TextStyle(fontSize: 12.sp, color: Colors.grey),
+                            );
+                          }
+                          
+                          final minutes = diff.inMinutes;
+                          final seconds = diff.inSeconds % 60;
+                          
+                          return Text(
+                            "$minutes分 $seconds秒 后失效",
+                            style: TextStyle(
+                              fontSize: 12.sp,
+                              color: const Color(0xFFFF5722),
+                            ),
+                          );
+                        }
+                      ),
+                    ] else ...[
+                      Text(
+                        order.statusDesc ?? '',
+                        style: TextStyle(
+                          fontSize: 12.sp,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              OrderCard(
+                order: order,
+                onTap: () {
+                  Navigator.pushNamed(context, Routes.orderDetail, arguments: order.orderNo);
+                },
+                onPay: () {
+                  // Handle pay
+                },
+                // ... other callbacks
+              ),
+            ],
           );
         },
       ),

@@ -58,34 +58,57 @@ class OrderCard extends StatelessWidget {
   }
 
   Widget _buildHeader() {
-    return Row(
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                order.shopName ?? '',
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
-              ),
-              SizedBox(height: 4.h),
-              Text(
-                '${order.categoryName ?? ''} • ${order.englishCategoryName ?? ''}',
-                style: TextStyle(
-                  fontSize: 12.sp,
-                  color: Colors.grey,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
+        Text(
+          order.shopName ?? '',
+          style: TextStyle(
+            fontSize: 16.sp,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
           ),
         ),
+        SizedBox(height: 4.h),
+        Text(
+          '${order.categoryName ?? ''} • ${order.englishCategoryName ?? ''}',
+          style: TextStyle(
+            fontSize: 12.sp,
+            color: Colors.grey,
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildContent() {
+    return Row(
+      children: [
+        Expanded(
+          child: SizedBox(
+            height: 60.w,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: (order.items?.length ?? 0) > 3 ? 3 : (order.items?.length ?? 0),
+              separatorBuilder: (context, index) => SizedBox(width: 8.w),
+              itemBuilder: (context, index) {
+                return Container(
+                  width: 60.w,
+                  height: 60.w,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[100],
+                    borderRadius: BorderRadius.circular(8.r),
+                  ),
+                  // Placeholder for image since URL is missing in model
+                  child: const Icon(Icons.fastfood, color: Colors.grey),
+                );
+              },
+            ),
+          ),
+        ),
+        SizedBox(width: 16.w),
         Column(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
@@ -108,29 +131,6 @@ class OrderCard extends StatelessWidget {
           ],
         ),
       ],
-    );
-  }
-
-  Widget _buildContent() {
-    return SizedBox(
-      height: 60.w,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: (order.items?.length ?? 0) > 3 ? 3 : (order.items?.length ?? 0),
-        separatorBuilder: (context, index) => SizedBox(width: 8.w),
-        itemBuilder: (context, index) {
-          return Container(
-            width: 60.w,
-            height: 60.w,
-            decoration: BoxDecoration(
-              color: Colors.grey[100],
-              borderRadius: BorderRadius.circular(8.r),
-            ),
-            // Placeholder for image since URL is missing in model
-            child: const Icon(Icons.fastfood, color: Colors.grey),
-          );
-        },
-      ),
     );
   }
 
