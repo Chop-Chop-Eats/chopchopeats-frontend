@@ -194,11 +194,12 @@ class OrderCard extends StatelessWidget {
       buttons.add(SizedBox(width: 8.w));
       buttons.add(_buildButton("写评价", Colors.white, Colors.black, onReview));
     }
-    // 4xx=Cancel/Refund
-    else if (status == 901 || status == 902) { // Cancelled
+    // 901, 902=Cancelled
+    else if (status == 901 || status == 902) {
       buttons.add(_buildButton("重新下单", Colors.white, Colors.black, onReorder));
     }
-    else if (status == 440) { // Refunded
+    // 440=Refunded
+    else if (status == 440) {
       buttons.add(_buildButton("删除订单", Colors.white, Colors.black, onDelete));
     }
 
@@ -209,16 +210,16 @@ class OrderCard extends StatelessWidget {
     return GestureDetector(
       onTap: onPressed,
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 6.h),
+        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
         decoration: BoxDecoration(
           color: bgColor,
-        border: Border.all(color: isPrimary ? textColor : Colors.grey[300]!),
-          borderRadius: BorderRadius.circular(20.r),
+          border: Border.all(color: isPrimary ? textColor : const Color(0xFFE0E0E0)),
+          borderRadius: BorderRadius.circular(16.r),
         ),
         child: Text(
           text,
           style: TextStyle(
-            fontSize: 14.sp,
+            fontSize: 12.sp,
             color: textColor,
             fontWeight: FontWeight.w500,
           ),
