@@ -124,6 +124,7 @@ class OrderItemPageRespVO {
   final double? productPrice;
   final double? price;
   final List<SelectedSkuRespVO>? selectedSkus;
+  final String? picUrl;
 
   OrderItemPageRespVO({
     this.productId,
@@ -133,6 +134,7 @@ class OrderItemPageRespVO {
     this.productPrice,
     this.price,
     this.selectedSkus,
+    this.picUrl,
   });
 
   factory OrderItemPageRespVO.fromJson(Map<String, dynamic> json) {
@@ -144,6 +146,7 @@ class OrderItemPageRespVO {
       productPrice: JsonUtils.parseDouble(json, 'productPrice'),
       price: JsonUtils.parseDouble(json, 'price'),
       selectedSkus: JsonUtils.parseList(json, 'selectedSkus', (e) => SelectedSkuRespVO.fromJson(e)),
+      picUrl: JsonUtils.parseString(json, 'picUrl'),
     );
   }
 }
@@ -411,6 +414,7 @@ class OrderItemDetailVO {
   final bool? hotMark;
   final bool? newMark;
   final List<SelectedSkuRespVO>? selectedSkus;
+  final String? picUrl;
 
   OrderItemDetailVO({
     this.productId,
@@ -423,6 +427,7 @@ class OrderItemDetailVO {
     this.hotMark,
     this.newMark,
     this.selectedSkus,
+    this.picUrl,
   });
 
   factory OrderItemDetailVO.fromJson(Map<String, dynamic> json) {
@@ -437,6 +442,7 @@ class OrderItemDetailVO {
       hotMark: JsonUtils.parseBool(json, 'hotMark'),
       newMark: JsonUtils.parseBool(json, 'newMark'),
       selectedSkus: JsonUtils.parseList(json, 'selectedSkus', (e) => SelectedSkuRespVO.fromJson(e)),
+      picUrl: JsonUtils.parseString(json, 'picUrl'),
     );
   }
 }

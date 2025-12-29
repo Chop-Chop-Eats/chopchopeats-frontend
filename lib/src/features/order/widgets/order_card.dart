@@ -1,3 +1,4 @@
+import 'package:chop_user/src/core/widgets/common_image.dart';
 import 'package:chop_user/src/features/order/models/order_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -94,15 +95,20 @@ class OrderCard extends StatelessWidget {
               itemCount: (order.items?.length ?? 0) > 3 ? 3 : (order.items?.length ?? 0),
               separatorBuilder: (context, index) => SizedBox(width: 8.w),
               itemBuilder: (context, index) {
-                return Container(
-                  width: 60.w,
-                  height: 60.w,
-                  decoration: BoxDecoration(
+                final item = order.items![index];
+                return ClipRRect(
+                  borderRadius: BorderRadius.circular(8.r),
+                  child: Container(
+                    width: 60.w,
+                    height: 60.w,
                     color: Colors.grey[100],
-                    borderRadius: BorderRadius.circular(8.r),
+                    child: CommonImage(
+                      imagePath: item.picUrl ?? '',
+                      width: 60.w,
+                      height: 60.w,
+                      fit: BoxFit.cover,
+                    ),
                   ),
-                  // Placeholder for image since URL is missing in model
-                  child: const Icon(Icons.fastfood, color: Colors.grey),
                 );
               },
             ),
@@ -210,11 +216,11 @@ class OrderCard extends StatelessWidget {
     return GestureDetector(
       onTap: onPressed,
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
         decoration: BoxDecoration(
           color: bgColor,
           border: Border.all(color: isPrimary ? textColor : const Color(0xFFE0E0E0)),
-          borderRadius: BorderRadius.circular(16.r),
+          borderRadius: BorderRadius.circular(20.r),
         ),
         child: Text(
           text,

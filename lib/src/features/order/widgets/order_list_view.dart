@@ -99,12 +99,12 @@ class _OrderListViewState extends ConsumerState<OrderListView> with AutomaticKee
                     Text(
                       order.statusGroupName ?? order.statusName ?? '',
                       style: TextStyle(
-                        fontSize: 18.sp,
+                        fontSize: 20.sp, // Increased from 18
                         fontWeight: FontWeight.bold,
                         color: Colors.black,
                       ),
                     ),
-                    SizedBox(height: 4.h),
+                    SizedBox(height: 6.h), // Increased from 4
                     if (order.status == 100) ...[
                       // Pending Payment - Real countdown
                       Builder(
@@ -120,7 +120,7 @@ class _OrderListViewState extends ConsumerState<OrderListView> with AutomaticKee
                           if (diff.isNegative) {
                              return Text(
                               "已失效",
-                              style: TextStyle(fontSize: 12.sp, color: Colors.grey),
+                              style: TextStyle(fontSize: 14.sp, color: Colors.grey),
                             );
                           }
                           
@@ -130,7 +130,7 @@ class _OrderListViewState extends ConsumerState<OrderListView> with AutomaticKee
                           return Text(
                             "$minutes分 $seconds秒 后失效",
                             style: TextStyle(
-                              fontSize: 12.sp,
+                              fontSize: 14.sp, // Increased from 12
                               color: const Color(0xFFFF5722),
                             ),
                           );
