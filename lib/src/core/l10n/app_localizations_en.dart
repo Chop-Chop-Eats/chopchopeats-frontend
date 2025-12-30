@@ -28,6 +28,18 @@ class AppLocalizationsEn implements AppLocalizations {
   @override
   String get tabMine => 'Mine';
 
+  // ============== 订单状态标签 ==============
+  @override
+  String get orderTabAll => 'All';
+  @override
+  String get orderTabPending => 'To Pay';
+  @override
+  String get orderTabInProgress => 'Active';
+  @override
+  String get orderTabCompleted => 'Done';
+  @override
+  String get orderTabCancelled => 'Cancelled';
+
   // ============== 通用按钮 ==============
   @override
   String get btnConfirm => 'Confirm';

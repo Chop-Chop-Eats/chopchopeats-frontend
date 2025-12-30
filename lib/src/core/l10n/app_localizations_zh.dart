@@ -28,6 +28,18 @@ class AppLocalizationsZh implements AppLocalizations {
   @override
   String get tabMine => '我的';
 
+  // ============== 订单状态标签 ==============
+  @override
+  String get orderTabAll => '全部';
+  @override
+  String get orderTabPending => '待支付';
+  @override
+  String get orderTabInProgress => '进行中';
+  @override
+  String get orderTabCompleted => '已完成';
+  @override
+  String get orderTabCancelled => '取消/退款';
+
   // ============== 通用按钮 ==============
   @override
   String get btnConfirm => '确认';

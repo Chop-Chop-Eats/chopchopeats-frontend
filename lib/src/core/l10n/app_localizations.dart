@@ -30,6 +30,13 @@ abstract class AppLocalizations {
   String get tabOrder;
   String get tabMine;
 
+  // ============== 订单状态标签 ==============
+  String get orderTabAll;
+  String get orderTabPending;
+  String get orderTabInProgress;
+  String get orderTabCompleted;
+  String get orderTabCancelled;
+
   // ============== 通用按钮 ==============
   String get btnConfirm;
   String get btnCancel;
