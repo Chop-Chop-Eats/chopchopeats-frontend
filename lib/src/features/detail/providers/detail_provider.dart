@@ -488,3 +488,8 @@ final productDetailErrorProvider =
 final selectedWeekdayProvider = StateProvider<int>((ref) {
   return DateTime.now().weekday;
 });
+
+/// 当前选中的完整日期（DateTime）
+final selectedDateProvider = StateProvider<DateTime>((ref) {
+  return DateTime.now();
+});

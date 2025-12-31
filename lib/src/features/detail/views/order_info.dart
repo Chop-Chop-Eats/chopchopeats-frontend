@@ -14,7 +14,6 @@ import '../../wallet/providers/wallet_provider.dart';
 import '../providers/cart_notifier.dart';
 import '../providers/detail_provider.dart';
 import '../providers/confirm_order_provider.dart';
-import '../utils/calendar_popup_utils.dart';
 import '../widgets/cart_item_list.dart';
 import '../widgets/confirm_order_widgets.dart';
 import '../utils/order_price_calculator.dart';
@@ -28,6 +27,7 @@ class OrderInfoView extends ConsumerStatefulWidget {
   const OrderInfoView({
     super.key,
     required this.shopId,
+    this.initialDiningDate,
     required this.remarkController,
     required this.remarkFocusNode,
     required this.customTipController,
@@ -35,6 +35,7 @@ class OrderInfoView extends ConsumerStatefulWidget {
   });
 
   final String shopId;
+  final String? initialDiningDate; // 可选的初始日期参数
   final TextEditingController remarkController;
   final FocusNode remarkFocusNode;
   final TextEditingController customTipController;
@@ -76,12 +77,12 @@ class _OrderInfoViewState extends ConsumerState<OrderInfoView> {
     };
     widget.customTipFocusNode.addListener(_focusListener);
     
-    // 初始化当日日期并获取配送时间
+    // 初始化日期并获取配送时间
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final today = DateTime.now();
-      final todayStr = formatDiningDate(today);
-      ref.read(selectedDiningDateProvider(widget.shopId).notifier).state = todayStr;
-      _fetchDeliveryTimes(todayStr);
+      // 如果传入了初始日期，使用传入的日期；否则使用当天
+      final diningDateStr = widget.initialDiningDate ?? formatDiningDate(DateTime.now());
+      ref.read(selectedDiningDateProvider(widget.shopId).notifier).state = diningDateStr;
+      _fetchDeliveryTimes(diningDateStr);
       
       // 预加载钱包信息，提升支付方式弹窗打开速度
       ref.read(walletInfoProvider.notifier).loadWalletInfo();
@@ -202,9 +203,6 @@ class _OrderInfoViewState extends ConsumerState<OrderInfoView> {
     final selectedDeliveryTime = ref.watch(
       selectedDeliveryTimeProvider(widget.shopId),
     );
-    final selectedDiningDate = ref.watch(
-      selectedDiningDateProvider(widget.shopId),
-    );
 
     // 如果没有店铺数据，显示占位
     if (shop == null) {
@@ -265,34 +263,15 @@ class _OrderInfoViewState extends ConsumerState<OrderInfoView> {
         GestureDetector(
           behavior: HitTestBehavior.opaque,
           onTap: () async {
-            final result = await CalendarPopupUtils.showCalendar(context, controller);
-            if (result != null) {
-              // 更新选中的日期
-              final diningDateStr = formatDiningDate(result);
-              ref.read(selectedDiningDateProvider(widget.shopId).notifier).state = diningDateStr;
-              // 清空之前选择的配送时间
-              ref.read(selectedDeliveryTimeProvider(widget.shopId).notifier).state = null;
-              // 调用接口获取新的配送时间
-              _fetchDeliveryTimes(diningDateStr);
-            }
+          
           },
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisAlignment: MainAxisAlignment.start,
             children: [
               Text(
                 l10n.confirmOrderDeliveryTime,
                 style: titleText,
               ),
-              Row(
-                children: [
-                  Text(
-                    selectedDiningDate ?? formatDiningDate(DateTime.now()),
-                    style: textStyle,
-                  ),
-                  CommonSpacing.width(4.w),
-                  Icon(Icons.arrow_forward_ios, size: 16.w, color: Colors.black),
-                ],
-              )
             ],
           )
         ),
@@ -873,7 +852,7 @@ class _OrderInfoViewState extends ConsumerState<OrderInfoView> {
           title: displayTitle,
           onTap: () async {
             // 防止重复点击
-            final result = await PaymentSelectionSheet.show(context, ref);
+            await PaymentSelectionSheet.show(context, ref);
             // 可以在这里处理返回结果
           },
           imagePath: iconPath,

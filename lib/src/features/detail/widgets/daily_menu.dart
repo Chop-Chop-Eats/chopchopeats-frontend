@@ -7,7 +7,7 @@ import '../../home/widgets/section_header.dart';
 
 /// 每日菜单数据模型
 class DailyMenuItem {
-  final String date; // 格式如: 10.21
+  final String date; // 格式如: 10/21
   final String weekdayDisplay; // 显示用的星期文本，如：周一、Today、Mon
   final int weekday; // 1-7 代表周一到周日，用于接口调用
   final DateTime dateTime; // 完整的日期时间
@@ -63,8 +63,8 @@ class _DailyMenuState extends State<DailyMenu> {
       final date = mondayOfThisWeek.add(Duration(days: index));
       final weekday = date.weekday; // 1-7 代表周一到周日
       
-      // 格式化日期显示 MM.dd
-      final dateString = '${date.month.toString().padLeft(2, '0')}.${date.day.toString().padLeft(2, '0')}';
+      // 格式化日期显示 MM/dd
+      final dateString = '${date.month.toString().padLeft(2, '0')}/${date.day.toString().padLeft(2, '0')}';
       
       // 获取星期显示文本
       String weekdayDisplay;
@@ -94,6 +94,13 @@ class _DailyMenuState extends State<DailyMenu> {
     
     if (mounted) {
       setState(() {});
+      // 在 setState 之后，使用 addPostFrameCallback 延迟通知，避免布局错误
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          final selectedItem = _dailyMenuItems[_selectedIndex];
+          widget.onDateChanged(selectedItem.weekday, selectedItem);
+        }
+      });
     }
   }
 
@@ -170,7 +177,7 @@ class _DailyMenuState extends State<DailyMenu> {
 
   /// 构建每日菜单项
   Widget _buildDailyItem({
-    required String date, // 日期 格式：MM.dd
+    required String date, // 日期 格式：MM/dd
     required String weekday, // 星期显示文本
     required bool selected, // 是否选中
     required VoidCallback onTap, // 点击回调

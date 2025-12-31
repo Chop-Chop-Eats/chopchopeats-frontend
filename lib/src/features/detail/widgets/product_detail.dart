@@ -12,11 +12,13 @@ import 'shop_info_card.dart';
 class ProductDetail extends ConsumerStatefulWidget {
   final ShopModel shop;
   final double logoHeight;
+  final ValueChanged<DateTime>? onDateChanged; // 日期变化回调
 
   const ProductDetail({
     super.key,
     required this.shop,
     required this.logoHeight,
+    this.onDateChanged,
   });
 
   @override
@@ -32,25 +34,29 @@ class _ProductDetailState extends ConsumerState<ProductDetail> {
     super.initState();
     // 2. 初始化时，从 provider 读取初始值
     _previousWeekday = ref.read(selectedWeekdayProvider);
+    // 日期初始化由 DailyMenu 的初始化回调处理，这里不需要重复设置
   }
 
-  /// 处理日期变化 (这个方法保持不变)
+  /// 处理日期变化
   void _onDateChanged(int weekday, DailyMenuItem item) {
     ref.read(selectedWeekdayProvider.notifier).state = weekday;
+    // 通过回调通知父组件日期变化
+    widget.onDateChanged?.call(item.dateTime);
     Logger.info("ProductDetail", "切换每日菜单 - 日期: ${item.dateTime}, 星期: $weekday");
   }
 
   @override
   Widget build(BuildContext context) {
-    // 3. 使用 ref.listen 监听 provider 的变化。
-    //    它的作用是：当 provider 的值从 A 变为 B 时，它会触发回调，
-    //    并且回调参数中会同时包含旧值(A)和新值(B)。
-    //    我们在这里更新 _previousWeekday。
+    // 3. 使用 ref.listen 监听 provider 的变化
     ref.listen<int>(selectedWeekdayProvider, (previous, next) {
       // 当日期变化时，用上一个值更新我们的内部状态
       if (mounted) {
-        setState(() {
-          _previousWeekday = previous ?? DateTime.now().weekday;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            setState(() {
+              _previousWeekday = previous ?? DateTime.now().weekday;
+            });
+          }
         });
       }
     });

@@ -35,6 +35,7 @@ class _DetailPageState extends ConsumerState<DetailPage> {
   final RefreshController _refreshController = RefreshController(
     initialRefresh: false,
   );
+  DateTime _selectedDate = DateTime.now(); // 当前选中的日期
 
   @override
   void initState() {
@@ -275,7 +276,20 @@ class _DetailPageState extends ConsumerState<DetailPage> {
               child: Stack(
                 children: [
                   CarouselBackground(shop: shop, logoHeight: logoHeight),
-                  ProductDetail(shop: shop, logoHeight: logoHeight),
+                  ProductDetail(
+                    shop: shop,
+                    logoHeight: logoHeight,
+                    onDateChanged: (date) {
+                      // 使用 addPostFrameCallback 避免在布局过程中调用 setState
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        if (mounted) {
+                          setState(() {
+                            _selectedDate = date;
+                          });
+                        }
+                      });
+                    },
+                  ),
                 ],
               ),
             ),
@@ -285,7 +299,10 @@ class _DetailPageState extends ConsumerState<DetailPage> {
               bottom: 0,
               left: 0,
               right: 0,
-              child: ShopCart(shopId: widget.id),
+              child: ShopCart(
+                shopId: widget.id,
+                selectedDate: _selectedDate,
+              ),
             ),
 
             // 固定在顶部的AppBar

@@ -24,9 +24,14 @@ import '../../address/providers/address_provider.dart';
 import '../../wallet/providers/wallet_provider.dart';
 
 class ConfirmOrderPage extends ConsumerStatefulWidget {
-  const ConfirmOrderPage({super.key, required this.shopId});
+  const ConfirmOrderPage({
+    super.key,
+    required this.shopId,
+    this.initialDiningDate,
+  });
 
   final String shopId;
+  final String? initialDiningDate; // 可选的初始日期参数
 
   @override
   ConsumerState<ConfirmOrderPage> createState() => _ConfirmOrderPageState();
@@ -100,6 +105,7 @@ class _ConfirmOrderPageState extends ConsumerState<ConfirmOrderPage> {
         Expanded(
           child: OrderInfoView(
             shopId: widget.shopId,
+            initialDiningDate: widget.initialDiningDate,
             remarkController: remarkController,
             remarkFocusNode: remarkFocusNode,
             customTipController: customTipController,

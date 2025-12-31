@@ -107,8 +107,12 @@ class AppRouter {
       if (settings.arguments is Map<String, dynamic>) {
         final args = settings.arguments as Map<String, dynamic>;
         final shopId = args["shopId"];
+        final initialDiningDate = args["initialDiningDate"] as String?;
         if (shopId is String) {
-          return ConfirmOrderPage(shopId: shopId);
+          return ConfirmOrderPage(
+            shopId: shopId,
+            initialDiningDate: initialDiningDate,
+          );
         }
       }
       return const ErrorPage(message: "店铺ID参数错误或缺失");

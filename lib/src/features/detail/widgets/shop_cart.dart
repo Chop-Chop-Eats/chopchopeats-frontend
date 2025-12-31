@@ -14,13 +14,19 @@ import '../../../core/widgets/common_image.dart';
 import '../../../core/widgets/common_spacing.dart';
 import '../providers/cart_notifier.dart';
 import '../providers/cart_state.dart';
+import '../models/order_model.dart' show formatDiningDate;
 import 'bottom_arc_container.dart';
 import 'cart_item_list.dart';
 
 class ShopCart extends ConsumerStatefulWidget {
-  const ShopCart({super.key, required this.shopId});
+  const ShopCart({
+    super.key,
+    required this.shopId,
+    required this.selectedDate,
+  });
 
   final String shopId;
+  final DateTime selectedDate; // 当前选中的日期
 
   @override
   ConsumerState<ShopCart> createState() => _ShopCartState();
@@ -229,10 +235,15 @@ class _ShopCartState extends ConsumerState<ShopCart> {
     return GestureDetector(
       onTap: isDisabled ? null : () async {
         Logger.info('ShopCart', '点击下单 shopId=${widget.shopId}');
+        // 使用传入的选中日期
+        final diningDateStr = formatDiningDate(widget.selectedDate);
         final result = await Navigate.push(
           context,
           Routes.confirmOrder,
-          arguments: {"shopId": widget.shopId},
+          arguments: {
+            "shopId": widget.shopId,
+            "initialDiningDate": diningDateStr,
+          },
         );
         
         // 支付成功后清空购物车
