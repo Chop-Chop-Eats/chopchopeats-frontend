@@ -47,3 +47,8 @@ android {
 flutter {
     source = "../.."
 }
+
+dependencies {
+    // Stripe Android SDK - 需要与 flutter_stripe 插件兼容
+    implementation("com.stripe:stripe-android:20.48.1")
+}

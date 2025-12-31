@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import '../models/payment_models.dart';
@@ -15,6 +18,19 @@ final stripeConfigProvider = FutureProvider<void>((ref) async {
     if (config != null && config.publishableKey.isNotEmpty) {
       Stripe.publishableKey = config.publishableKey;
       Logger.info('Stripe', 'Stripe initialized with key: ${config.publishableKey}');
+      
+      // Android 端需要额外初始化 PaymentConfiguration
+      if (Platform.isAndroid) {
+        try {
+          const platform = MethodChannel('stripe_config');
+          await platform.invokeMethod('initializeStripe', {
+            'publishableKey': config.publishableKey,
+          });
+          Logger.info('Stripe', 'Android PaymentConfiguration initialized');
+        } catch (e) {
+          Logger.error('Stripe', 'Failed to initialize Android PaymentConfiguration: $e');
+        }
+      }
     } else {
       Logger.error('Stripe', 'Failed to get Stripe config');
     }
