@@ -123,7 +123,8 @@ class MapsService {
 
     final params = _createParams({
       'input': input,
-      'types': 'geocode',
+      // 注释支持更多搜索范围
+      // 'types': 'geocode',
     });
 
     if (biasLocation != null) {
