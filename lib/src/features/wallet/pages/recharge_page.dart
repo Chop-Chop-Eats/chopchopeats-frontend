@@ -14,7 +14,6 @@ import '../../../core/widgets/common_button.dart';
 import '../../../core/widgets/common_indicator.dart';
 import '../../../core/widgets/common_spacing.dart';
 import '../../detail/models/payment_models.dart';
-import '../../detail/providers/payment_provider.dart';
 import '../../detail/views/payment_selection_sheet.dart';
 import '../../mine/providers/mine_provider.dart';
 import '../models/wallet_models.dart';
