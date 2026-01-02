@@ -1,3 +1,4 @@
+import '../../../core/l10n/locale_service.dart';
 import '../../../core/utils/json_utils.dart';
 
 /// 注册推送token params
@@ -48,13 +49,17 @@ class MessageListModel {
 
   factory MessageListModel.fromJson(Map<String, dynamic> json) {
     return MessageListModel(
-      list: json['list'].map((e) => MessageItem.fromJson(e)).toList(),
-      total: json['total'],
+      list: JsonUtils.parseList<MessageItem>(
+        json,
+        'list',
+        (e) => MessageItem.fromJson(e),
+      ) ?? [],
+      total: json['total'] ?? 0,
     );
   }
 }
 
-///AppMessageInboxRespVO，用户 APP - 消息收件箱 Response VO
+
 class MessageItem {
   ///消息内容
   final String? body;
@@ -121,5 +126,14 @@ class MessageItem {
       status: json['status'],
       title: json['title'],
     );
+  }
+
+ 
+  String get localizedTitle {
+    return LocaleService.getLocalizedText(title, englishTitle);
+  }
+
+  String get localizedBody {
+    return LocaleService.getLocalizedText(body, englishBody);
   }
 }

@@ -26,12 +26,12 @@ class MessageServices {
     return response.data;
   }
 
-  // 分页查询用户消息
-  static Future<MessageListModel> getMessageList(int messageTypeId, int page, int pageSize) async {
+  // 分页查询用户消息 messageTypeId = 1 订单消息 messageTypeId = 2 系统消息 不传或者为空是所有数据
+  static Future<MessageListModel> getMessageList(int? messageTypeId, int page, int pageSize) async {
     final response = await ApiClient().get(
       ApiPaths.getMessageListApi,
       queryParameters: {
-        'messageTypeId': messageTypeId,
+        if (messageTypeId != null) 'messageTypeId': messageTypeId,
         'page': page,
         'pageSize': pageSize,
       },
