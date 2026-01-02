@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:unified_popups/unified_popups.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../push/push_service.dart';
 import '../utils/logger/logger.dart';
 import 'app.dart';
 import 'app_services.dart';
@@ -41,6 +43,10 @@ class AppBootstrap {
       if (listenToGlobalErrors) {
         Logger.initializeGlobalErrorHandlers();
       }
+
+      await Firebase.initializeApp(); // 初始化 Firebase
+  
+      await PushService().init(); // 初始化推送服务
 
       //  初始化需要在第一帧绘制后执行的服务
       _initializePostFrameServices(stopwatch);
