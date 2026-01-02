@@ -366,15 +366,15 @@ class _ConfirmOrderPageState extends ConsumerState<ConfirmOrderPage> {
       Logger.info('ConfirmOrderPage', '订单创建成功: orderId=$orderId');
 
       // 根据支付方式类型处理不同的支付流程
-      if (selectedPaymentMethod?.type == AppPaymentMethodType.wallet) {
-        // 钱包支付：直接调用钱包支付 API
-        Logger.info('ConfirmOrderPage', '使用钱包支付');
-        await _processWalletPayment(orderId);
-      } else {
-        // Stripe 卡支付：创建 Payment Intent 并显示支付面板
-        Logger.info('ConfirmOrderPage', '使用 Stripe 卡支付');
-        await _processStripePayment(orderId, selectedPaymentMethod);
-      }
+      // if (selectedPaymentMethod?.type == AppPaymentMethodType.wallet) {
+      //   // 钱包支付：直接调用钱包支付 API
+      //   Logger.info('ConfirmOrderPage', '使用钱包支付');
+      //   await _processWalletPayment(orderId);
+      // } else {
+      //   // Stripe 卡支付：创建 Payment Intent 并显示支付面板
+      //   Logger.info('ConfirmOrderPage', '使用 Stripe 卡支付');
+      //   await _processStripePayment(orderId, selectedPaymentMethod);
+      // }
     } catch (e) {
       Logger.error('ConfirmOrderPage', '创建订单失败: $e');
       Pop.hideLoading();

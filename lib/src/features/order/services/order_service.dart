@@ -60,12 +60,12 @@ class OrderService {
     return AppTradeOrderDetailRespVO.fromJson(response.data as Map<String, dynamic>);
   }
 
-  Future<bool> cancelOrder(String orderNo, String cancelReason) async {
+  Future<void> cancelOrder(String orderNo, String cancelReason) async {
     final data = {
       'orderNo': orderNo,
       'cancelReason': cancelReason,
     };
     final response = await _client.put(ApiPaths.cancelOrderApi, data: data);
-    return JsonUtils.parseBool(response.data, 'data') ?? false;
+    Logger.info('OrderService', '取消订单: ${response.data}');
   }
 }

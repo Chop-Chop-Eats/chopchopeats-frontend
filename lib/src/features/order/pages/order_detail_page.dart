@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import '../../detail/services/order_services.dart';
+import '../services/order_service.dart';
+
 class OrderDetailPage extends ConsumerWidget {
   final String orderNo;
 
@@ -321,7 +324,7 @@ class OrderDetailPage extends ConsumerWidget {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, -2),
           ),
@@ -337,7 +340,9 @@ class OrderDetailPage extends ConsumerWidget {
             Row(
               children: [
                 if (order.status == 100) ...[
-                  _buildActionButton("取消订单", Colors.black, Colors.white, () {}),
+                  _buildActionButton("取消订单", Colors.black, Colors.white, () {
+                    OrderService().cancelOrder(order.orderNo ?? '', '用户取消');
+                  }),
                   SizedBox(width: 12.w),
                   _buildActionButton("立即支付", Colors.white, const Color(0xFFFF5722), () {}, isPrimary: true),
                 ],

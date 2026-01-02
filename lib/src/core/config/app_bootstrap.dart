@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:unified_popups/unified_popups.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -45,7 +46,10 @@ class AppBootstrap {
       }
 
       await Firebase.initializeApp(); // 初始化 Firebase
-  
+
+      // 注册后台消息处理器（必须在 runApp() 之前）
+      FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+
       await PushService().init(); // 初始化推送服务
 
       //  初始化需要在第一帧绘制后执行的服务
