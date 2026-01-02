@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "273156686715",
+    "project_id": "chop-chop-app-473015",
+    "storage_bucket": "chop-chop-app-473015.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:273156686715:android:3bc36a41293487cddbb3de",
+        "android_client_info": {
+          "package_name": "com.example.chop_user"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD8oUmWcmYAgCbv2ZtV38tVnOs6Q3xLN1o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

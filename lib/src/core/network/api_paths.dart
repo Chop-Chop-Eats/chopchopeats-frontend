@@ -200,4 +200,26 @@ class ApiPaths {
   // [支付配置模块]
   // 获取 Stripe Publishable Key
   static const String getStripePublicKeyApi = "/app-api/trade/stripe-config/public-key";
+
+  // [消息模块]
+  // 注册推送token
+  static const String registerPushTokenApi = "/app-api/message/register-token";
+  
+  // 标记消息已读
+  static const String markMessageReadApi = "/app-api/message/inbox/read";
+
+  // 分页查询用户消息
+  static const String getMessageListApi = "/app-api/message/inbox/page";
+
+  // 清除站内消息
+  static const String clearMessageApi = "/app-api/message/inbox/clear-all";
+
+  // 删除消息
+  static const String deleteMessageApi = "/app-api/message/inbox/delete";
+
+  // 获取未读消息数量
+  static const String getUnreadMessageCountApi = "/app-api/message/inbox/unread-count";
+
+
+
 }
