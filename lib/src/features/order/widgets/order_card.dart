@@ -3,6 +3,8 @@ import 'package:chop_user/src/features/order/models/order_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import '../services/order_service.dart';
+
 
 class OrderCard extends StatelessWidget {
   final AppTradeOrderPageRespVO order;
@@ -155,6 +157,9 @@ class OrderCard extends StatelessWidget {
               if (order.status == 100) // Pending Payment
                 PopupMenuItem(
                   value: 'cancel',
+                  onTap: () async {
+                    await OrderService().cancelOrder(order.orderNo ?? '' , "用户取消");
+                  },
                   height: 32.h,
                   child: Center(
                     child: Text(
