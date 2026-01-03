@@ -53,10 +53,9 @@ class AppBootstrap {
         // 注册后台消息处理器（必须在 runApp() 之前）
         FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
         
-        // 初始化推送服务
-        await PushService().init();
-        _logMilestone(stopwatch, "推送服务初始化完成");
-      } catch (e, stack) {
+        // PushService 初始化延迟到应用启动后执行，避免阻塞启动
+        // 将在 _initializePostFrameServices 中异步初始化
+      } catch (e) {
         Logger.error("Bootstrap", "Firebase 初始化失败（可能缺少配置文件）: $e");
         Logger.warn("Bootstrap", "应用将在没有推送通知功能的情况下继续运行");
         // 不阻止应用启动，继续运行
@@ -86,6 +85,13 @@ class AppBootstrap {
       // 从服务注册表中获取 navigatorKey
       PopupManager.initialize(navigatorKey: AppServices.navigatorKey);
       Logger.info("Bootstrap", "PopupManager initialized successfully.");
+      
+      // 异步初始化 PushService，不阻塞 UI
+      // 这样即使 PushService 初始化失败或阻塞，也不会影响应用启动
+      PushService().init().catchError((e, stack) {
+        Logger.error("Bootstrap", "PushService 初始化失败: $e", error: e);
+        Logger.warn("Bootstrap", "应用将在没有推送通知功能的情况下继续运行");
+      });
     });
   }
 

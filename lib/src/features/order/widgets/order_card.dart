@@ -103,7 +103,7 @@ class OrderCard extends StatelessWidget {
                     height: 60.w,
                     color: Colors.grey[100],
                     child: CommonImage(
-                      imagePath: item.imageThumbnail ?? '',
+                      imagePath: item.imageThumbnail ?? 'assets/images/restaurant1.png',
                       width: 60.w,
                       height: 60.w,
                       fit: BoxFit.cover,
