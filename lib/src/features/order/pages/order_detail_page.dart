@@ -2,10 +2,13 @@ import 'dart:async';
 
 import 'package:chop_user/src/features/order/models/order_model.dart';
 import 'package:chop_user/src/features/order/providers/order_provider.dart';
+import 'package:chop_user/src/features/order/utils/order_payment_handler.dart';
 import 'package:chop_user/src/core/widgets/common_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+
+import 'cancel_order_page.dart';
 
 
 
@@ -30,7 +33,7 @@ class OrderDetailPage extends ConsumerWidget {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, stack) => Center(child: Text('Error: $err')),
       ),
-      bottomNavigationBar: orderAsync.hasValue ? _buildBottomBar(context, orderAsync.value!) : null,
+      bottomNavigationBar: orderAsync.hasValue ? _buildBottomBar(context, orderAsync.value!, ref) : null,
     );
   }
 
@@ -420,7 +423,7 @@ class OrderDetailPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildBottomBar(BuildContext context, AppTradeOrderDetailRespVO order) {
+  Widget _buildBottomBar(BuildContext context, AppTradeOrderDetailRespVO order, WidgetRef ref) {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
       decoration: BoxDecoration(
@@ -438,35 +441,195 @@ class OrderDetailPage extends ConsumerWidget {
         ],
       ),
       child: SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // If status allows refund (e.g. paid and not completed), show refund button
-            // For now, mirroring the image which shows "申请退款"
-            GestureDetector(
-              onTap: () {
-                // Handle refund request
-              },
-              child: Container(
-                width: double.infinity,
-                padding: EdgeInsets.symmetric(vertical: 14.h),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(30.r),
-                  border: Border.all(color: const Color(0xFFE0E0E0)),
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  "申请退款",
-                  style: TextStyle(
-                    fontSize: 16.sp,
-                    color: const Color(0xFF333333),
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+        child: _buildBottomContent(context, order, ref),
+      ),
+    );
+  }
+
+  Widget _buildBottomContent(BuildContext context, AppTradeOrderDetailRespVO order, WidgetRef ref) {
+    // Status Group 1: Pending Payment
+    if (order.statusGroup == 1 || order.status == 100) {
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          _buildMoreOptions(context, order, ref),
+          _buildActionButton(
+            "立即支付",
+            Colors.white,
+            const Color(0xFFFF5722),
+            () {
+              OrderPaymentHandler.processPayment(
+                orderNo: order.orderNo ?? '',
+                onSuccess: () {
+                  ref.invalidate(orderDetailProvider(orderNo));
+                },
+                onError: (error) {
+                  // Error already handled by OrderPaymentHandler
+                },
+              );
+            },
+            isPrimary: true,
+          ),
+        ],
+      );
+    }
+
+    // Status Group 2: In Progress
+    if (order.statusGroup == 2 || (order.status != null && order.status! > 100 && order.status! < 175)) {
+      return _buildFullWidthButton(
+        "申请退款",
+        const Color(0xFF333333),
+        Colors.white,
+        () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => CancelOrderPage(
+                orderNo: order.orderNo ?? '',
+                isRefund: true,
+                onSuccess: () {
+                  ref.invalidate(orderDetailProvider(orderNo));
+                },
               ),
             ),
-          ],
+          );
+        },
+        hasBorder: true,
+      );
+    }
+
+    // Status Group 3: Completed
+    if (order.statusGroup == 3 || order.status == 175) {
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          _buildMoreOptions(context, order, ref),
+          _buildActionButton(
+            "留下评价",
+            Colors.white,
+            const Color(0xFFFF5722),
+            () {
+              // Review action
+            },
+            isPrimary: true,
+          ),
+        ],
+      );
+    }
+
+    // Status Group 4: Cancelled or Refunded
+    if (order.statusGroup == 4 || order.status == 180) {
+      // If status is 180, it is explicitly Cancelled -> Delete Order
+      if (order.status == 180) {
+        return _buildFullWidthButton(
+          "删除订单",
+          Colors.red,
+          Colors.white,
+          () {
+            // Delete action
+          },
+          hasBorder: true,
+        );
+      }
+      
+      // Otherwise, assume Refunded -> Reorder
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          _buildMoreOptions(context, order, ref),
+          _buildActionButton(
+            "重新下单",
+            const Color(0xFF333333),
+            Colors.white,
+            () {
+              // Reorder action
+            },
+            isPrimary: false,
+          ),
+        ],
+      );
+    }
+
+    return const SizedBox.shrink();
+  }
+
+  Widget _buildMoreOptions(BuildContext context, AppTradeOrderDetailRespVO order, WidgetRef ref) {
+    return PopupMenuButton<String>(
+      icon: Icon(Icons.more_horiz, color: Colors.grey, size: 24.sp),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+      onSelected: (value) {
+        if (value == 'cancel') {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => CancelOrderPage(
+                orderNo: order.orderNo ?? '',
+                onSuccess: () {
+                  ref.invalidate(orderDetailProvider(orderNo));
+                },
+              ),
+            ),
+          );
+        }
+      },
+      itemBuilder: (BuildContext context) {
+        final List<PopupMenuItem<String>> items = [];
+        // Only show Cancel Order for Pending Payment
+        if (order.statusGroup == 1 || order.status == 100) {
+          items.add(
+            PopupMenuItem<String>(
+              value: 'cancel',
+              child: Text('取消订单', style: TextStyle(fontSize: 14.sp)),
+            ),
+          );
+        }
+        // Add other options if needed for other statuses
+        return items;
+      },
+    );
+  }
+
+  Widget _buildActionButton(String text, Color textColor, Color bgColor, VoidCallback onPressed, {bool isPrimary = false}) {
+    return GestureDetector(
+      onTap: onPressed,
+      child: Container(
+        padding: EdgeInsets.symmetric(horizontal: 32.w, vertical: 12.h),
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(24.r),
+          border: isPrimary ? null : Border.all(color: Colors.grey[300]!),
+        ),
+        child: Text(
+          text,
+          style: TextStyle(
+            fontSize: 16.sp,
+            color: textColor,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFullWidthButton(String text, Color textColor, Color bgColor, VoidCallback onPressed, {bool hasBorder = false}) {
+    return GestureDetector(
+      onTap: onPressed,
+      child: Container(
+        width: double.infinity,
+        padding: EdgeInsets.symmetric(vertical: 14.h),
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(30.r),
+          border: hasBorder ? Border.all(color: const Color(0xFFE0E0E0)) : null,
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          text,
+          style: TextStyle(
+            fontSize: 16.sp,
+            color: textColor,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
     );

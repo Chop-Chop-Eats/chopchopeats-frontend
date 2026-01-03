@@ -1,6 +1,8 @@
 import 'package:chop_user/src/core/routing/routes.dart';
 import 'package:chop_user/src/core/widgets/common_image.dart';
+import 'package:chop_user/src/features/order/pages/cancel_order_page.dart';
 import 'package:chop_user/src/features/order/providers/order_provider.dart';
+import 'package:chop_user/src/features/order/utils/order_payment_handler.dart';
 import 'package:chop_user/src/features/order/widgets/order_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -154,9 +156,33 @@ class _OrderListViewState extends ConsumerState<OrderListView> with AutomaticKee
                   Navigator.pushNamed(context, Routes.orderDetail, arguments: order.orderNo);
                 },
                 onPay: () {
-                  // Handle pay
+                  OrderPaymentHandler.processPayment(
+                    orderNo: order.orderNo ?? '',
+                    onSuccess: () {
+                      ref.read(orderListProvider(widget.statusGroup).notifier).refresh();
+                    },
+                    onError: (error) {
+                      // Error already handled by OrderPaymentHandler
+                    },
+                  );
                 },
-                // ... other callbacks
+                onRefund: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => CancelOrderPage(
+                        orderNo: order.orderNo ?? '',
+                        isRefund: true,
+                        onSuccess: () {
+                          ref.read(orderListProvider(widget.statusGroup).notifier).refresh();
+                        },
+                      ),
+                    ),
+                  );
+                },
+                onCancel: () {
+                  ref.read(orderListProvider(widget.statusGroup).notifier).refresh();
+                },
               ),
             ],
           );

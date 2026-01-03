@@ -69,6 +69,15 @@ class OrderService {
     Logger.info('OrderService', '取消订单: ${response.data}');
   }
 
+  Future<void> applyRefund(String orderNo, String refundReason) async {
+    final data = {
+      'orderNo': orderNo,
+      'refundReason': refundReason,
+    };
+    final response = await _client.post(ApiPaths.applyRefundApi, data: data);
+    Logger.info('OrderService', '申请退款: ${response.data}');
+  }
+
   Future<List<AppTradeRefundReasonRespVO>> getRefundReasonListByCategory(int reasonCategory) async {
     final response = await _client.get(
       ApiPaths.getRefundReasonListByCategoryApi,

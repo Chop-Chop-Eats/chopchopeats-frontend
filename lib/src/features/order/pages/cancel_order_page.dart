@@ -9,11 +9,13 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 class CancelOrderPage extends StatefulWidget {
   final String orderNo;
   final VoidCallback onSuccess;
+  final bool isRefund;
 
   const CancelOrderPage({
     super.key,
     required this.orderNo,
     required this.onSuccess,
+    this.isRefund = false,
   });
 
   @override
@@ -27,7 +29,7 @@ class _CancelOrderPageState extends State<CancelOrderPage> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(
-          '取消/退款',
+          widget.isRefund ? '申请退款' : '取消/退款',
           style: TextStyle(
             fontSize: 18.sp,
             fontWeight: FontWeight.bold,
@@ -49,7 +51,7 @@ class _CancelOrderPageState extends State<CancelOrderPage> {
           children: [
             SizedBox(height: 16.h),
             Text(
-              '您为什么取消订单',
+              widget.isRefund ? '您为什么申请退款' : '您为什么取消订单',
               style: TextStyle(
                 fontSize: 20.sp,
                 fontWeight: FontWeight.bold,
@@ -58,7 +60,7 @@ class _CancelOrderPageState extends State<CancelOrderPage> {
             ),
             SizedBox(height: 8.h),
             Text(
-              '取消原因私厨不可见，您的选择会促使我们努力改善',
+              widget.isRefund ? '退款原因私厨不可见，您的选择会促使我们努力改善' : '取消原因私厨不可见，您的选择会促使我们努力改善',
               style: TextStyle(
                 fontSize: 12.sp,
                 color: Colors.grey,
@@ -76,6 +78,7 @@ class _CancelOrderPageState extends State<CancelOrderPage> {
                       category: 1,
                       categoryName: '私厨/商品的原因',
                       onSuccess: widget.onSuccess,
+                      isRefund: widget.isRefund,
                     ),
                   ),
                 );
@@ -93,6 +96,7 @@ class _CancelOrderPageState extends State<CancelOrderPage> {
                       category: 2,
                       categoryName: '我自己的原因',
                       onSuccess: widget.onSuccess,
+                      isRefund: widget.isRefund,
                     ),
                   ),
                 );
@@ -144,6 +148,7 @@ class CancelReasonPage extends StatefulWidget {
   final int category;
   final String categoryName;
   final VoidCallback onSuccess;
+  final bool isRefund;
 
   const CancelReasonPage({
     super.key,
@@ -151,6 +156,7 @@ class CancelReasonPage extends StatefulWidget {
     required this.category,
     required this.categoryName,
     required this.onSuccess,
+    this.isRefund = false,
   });
 
   @override
@@ -193,7 +199,7 @@ class _CancelReasonPageState extends State<CancelReasonPage> {
 
   Future<void> _submit() async {
     if (_selectedReasonText.isEmpty) {
-      Toast.show('请选择取消原因');
+      Toast.show(widget.isRefund ? '请选择退款原因' : '请选择取消原因');
       return;
     }
 
@@ -202,18 +208,30 @@ class _CancelReasonPageState extends State<CancelReasonPage> {
     });
 
     try {
-      await _orderService.cancelOrder(widget.orderNo, _selectedReasonText);
-      if (mounted) {
-        Toast.success('订单已取消');
-        // Pop Reason Page
-        Navigator.pop(context);
-        // Pop Category Page
-        Navigator.pop(context);
-        widget.onSuccess();
+      if (widget.isRefund) {
+        await _orderService.applyRefund(widget.orderNo, _selectedReasonText);
+        if (mounted) {
+          Toast.success('退款申请已提交');
+          // Pop Reason Page
+          Navigator.pop(context);
+          // Pop Category Page
+          Navigator.pop(context);
+          widget.onSuccess();
+        }
+      } else {
+        await _orderService.cancelOrder(widget.orderNo, _selectedReasonText);
+        if (mounted) {
+          Toast.success('订单已取消');
+          // Pop Reason Page
+          Navigator.pop(context);
+          // Pop Category Page
+          Navigator.pop(context);
+          widget.onSuccess();
+        }
       }
     } catch (e) {
       if (mounted) {
-        Toast.error('取消失败: $e');
+        Toast.error(widget.isRefund ? '申请退款失败: $e' : '取消失败: $e');
         setState(() {
           _isSubmitting = false;
         });
@@ -227,7 +245,7 @@ class _CancelReasonPageState extends State<CancelReasonPage> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(
-          '取消订单',
+          widget.isRefund ? '申请退款' : '取消订单',
           style: TextStyle(
             fontSize: 18.sp,
             fontWeight: FontWeight.bold,
@@ -254,7 +272,7 @@ class _CancelReasonPageState extends State<CancelReasonPage> {
                       children: [
                         SizedBox(height: 16.h),
                         Text(
-                          '您为什么取消订单',
+                          widget.isRefund ? '您为什么申请退款' : '您为什么取消订单',
                           style: TextStyle(
                             fontSize: 20.sp,
                             fontWeight: FontWeight.bold,
@@ -263,7 +281,7 @@ class _CancelReasonPageState extends State<CancelReasonPage> {
                         ),
                         SizedBox(height: 8.h),
                         Text(
-                          '取消原因私厨不可见，您的选择会促使我们努力改善',
+                          widget.isRefund ? '退款原因私厨不可见，您的选择会促使我们努力改善' : '取消原因私厨不可见，您的选择会促使我们努力改善',
                           style: TextStyle(
                             fontSize: 12.sp,
                             color: Colors.grey,
