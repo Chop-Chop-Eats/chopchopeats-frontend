@@ -1,10 +1,10 @@
 import 'package:chop_user/src/features/order/models/order_model.dart';
 import 'package:chop_user/src/features/order/providers/order_provider.dart';
+import 'package:chop_user/src/core/widgets/common_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../detail/services/order_services.dart';
 import '../services/order_service.dart';
 
 class OrderDetailPage extends ConsumerWidget {
@@ -104,7 +104,7 @@ class OrderDetailPage extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "${order.address ?? ''}, ${order.state ?? ''}",
+                      order.deliveryAddress ?? "${order.address ?? ''} ${order.detailAddress ?? ''}".trim(),
                       style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
                     ),
                     SizedBox(height: 4.h),
@@ -180,7 +180,17 @@ class OrderDetailPage extends ConsumerWidget {
                       color: Colors.grey[100],
                       borderRadius: BorderRadius.circular(8.r),
                     ),
-                    child: const Icon(Icons.fastfood, color: Colors.grey),
+                    child: (item.imageThumbnail != null && item.imageThumbnail!.isNotEmpty)
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(8.r),
+                            child: CommonImage(
+                              imagePath: item.imageThumbnail!,
+                              width: 60.w,
+                              height: 60.w,
+                              fit: BoxFit.cover,
+                            ),
+                          )
+                        : const Icon(Icons.fastfood, color: Colors.grey),
                   ),
                   SizedBox(width: 12.w),
                   Expanded(

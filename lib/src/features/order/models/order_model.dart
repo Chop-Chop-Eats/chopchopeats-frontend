@@ -120,21 +120,23 @@ class OrderItemPageRespVO {
   final String? productId;
   final String? productName;
   final String? englishProductName;
+  final String? imageThumbnail;
+  final List<String>? detailImages;
   final int? quantity;
   final double? productPrice;
   final double? price;
   final List<SelectedSkuRespVO>? selectedSkus;
-  final String? picUrl;
 
   OrderItemPageRespVO({
     this.productId,
     this.productName,
     this.englishProductName,
+    this.imageThumbnail,
+    this.detailImages,
     this.quantity,
     this.productPrice,
     this.price,
     this.selectedSkus,
-    this.picUrl,
   });
 
   factory OrderItemPageRespVO.fromJson(Map<String, dynamic> json) {
@@ -142,11 +144,14 @@ class OrderItemPageRespVO {
       productId: JsonUtils.parseString(json, 'productId'),
       productName: JsonUtils.parseString(json, 'productName'),
       englishProductName: JsonUtils.parseString(json, 'englishProductName'),
+      imageThumbnail: JsonUtils.parseString(json, 'imageThumbnail'),
+      detailImages: json['detailImages'] is List
+          ? (json['detailImages'] as List).whereType<String>().toList()
+          : null,
       quantity: JsonUtils.parseInt(json, 'quantity'),
       productPrice: JsonUtils.parseDouble(json, 'productPrice'),
       price: JsonUtils.parseDouble(json, 'price'),
       selectedSkus: JsonUtils.parseList(json, 'selectedSkus', (e) => SelectedSkuRespVO.fromJson(e)),
-      picUrl: JsonUtils.parseString(json, 'picUrl'),
     );
   }
 }
@@ -407,6 +412,8 @@ class OrderItemDetailVO {
   final String? productId;
   final String? productName;
   final String? englishProductName;
+  final String? imageThumbnail;
+  final List<String>? detailImages;
   final int? quantity;
   final double? productPrice;
   final double? price;
@@ -420,6 +427,8 @@ class OrderItemDetailVO {
     this.productId,
     this.productName,
     this.englishProductName,
+    this.imageThumbnail,
+    this.detailImages,
     this.quantity,
     this.productPrice,
     this.price,
@@ -435,6 +444,10 @@ class OrderItemDetailVO {
       productId: JsonUtils.parseString(json, 'productId'),
       productName: JsonUtils.parseString(json, 'productName'),
       englishProductName: JsonUtils.parseString(json, 'englishProductName'),
+      imageThumbnail: JsonUtils.parseString(json, 'imageThumbnail'),
+      detailImages: json['detailImages'] is List
+          ? (json['detailImages'] as List).whereType<String>().toList()
+          : null,
       quantity: JsonUtils.parseInt(json, 'quantity'),
       productPrice: JsonUtils.parseDouble(json, 'productPrice'),
       price: JsonUtils.parseDouble(json, 'price'),
