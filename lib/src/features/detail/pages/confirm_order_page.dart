@@ -214,38 +214,36 @@ class _ConfirmOrderPageState extends ConsumerState<ConfirmOrderPage> {
 
       // 转换 CartItemSku 为 SelectedSkuVO
       // 根据后端反馈：使用 skus 列表中的附加价（数据库价格），而不是 selectedSkus 中的错误价格
-      final selectedSkus = item.selectedSkus?.map((sku) {
-        // 从 skus 列表查找对应的 SKU 以获取数据库中的正确附加价
-        final dbSku = item.skus?.firstWhere(
-          (s) => s.id == sku.id,
-          orElse: () => sku,
-        );
-        
-        final cartSkuPrice = sku.skuPrice ?? 0; // 购物车返回的价格（可能不准确）
-        final dbSkuPrice = dbSku?.skuPrice ?? cartSkuPrice; // 数据库中的正确附加价
-        
-        Logger.info(
-          'ConfirmOrderPage',
-          'SKU ${sku.id}: cartSkuPrice=$cartSkuPrice, '
-              'dbSkuPrice=$dbSkuPrice (使用数据库价格)',
-        );
+      final selectedSkus =
+          item.selectedSkus?.map((sku) {
+            // 从 skus 列表查找对应的 SKU 以获取数据库中的正确附加价
+            final dbSku = item.skus?.firstWhere(
+              (s) => s.id == sku.id,
+              orElse: () => sku,
+            );
 
-        return SelectedSkuVO(
-          id: sku.id ?? '',
-          skuName: sku.skuName ?? '',
-          englishSkuName: sku.englishSkuName,
-          skuPrice: dbSkuPrice, // 使用数据库中的正确附加价
-          skuGroupId: sku.skuGroupId,
-          skuGroupType: sku.skuGroupType,
-        );
-      }).toList();
+            final cartSkuPrice = sku.skuPrice ?? 0; // 购物车返回的价格（可能不准确）
+            final dbSkuPrice = dbSku?.skuPrice ?? cartSkuPrice; // 数据库中的正确附加价
+
+            Logger.info(
+              'ConfirmOrderPage',
+              'SKU ${sku.id}: cartSkuPrice=$cartSkuPrice, '
+                  'dbSkuPrice=$dbSkuPrice (使用数据库价格)',
+            );
+
+            return SelectedSkuVO(
+              id: sku.id ?? '',
+              skuName: sku.skuName ?? '',
+              englishSkuName: sku.englishSkuName,
+              skuPrice: dbSkuPrice, // 使用数据库中的正确附加价
+              skuGroupId: sku.skuGroupId,
+              skuGroupType: sku.skuGroupType,
+            );
+          }).toList();
 
       // 重新计算正确的 price = productPrice + sum(selectedSkus.skuPrice)
-      final sumOfSkuPrices = selectedSkus?.fold<double>(
-            0,
-            (sum, sku) => sum + sku.skuPrice,
-          ) ??
-          0;
+      final sumOfSkuPrices =
+          selectedSkus?.fold<double>(0, (sum, sku) => sum + sku.skuPrice) ?? 0;
       final correctPrice = (item.productPrice ?? 0) + sumOfSkuPrices;
 
       Logger.info(
@@ -279,7 +277,7 @@ class _ConfirmOrderPageState extends ConsumerState<ConfirmOrderPage> {
     final serviceFeeRate = shop?.platformCommissionRate ?? 0.0;
     final recalculatedTaxAmount = recalculatedMealSubtotal * taxRate;
     final recalculatedServiceFee = recalculatedMealSubtotal * serviceFeeRate;
-    
+
     // 重新计算 deliveryTip，基于修正后的 mealSubtotal
     final tipRate = pricesMap['tipRate'] ?? 0.1;
     final recalculatedDeliveryTip = recalculatedMealSubtotal * tipRate;
@@ -365,16 +363,25 @@ class _ConfirmOrderPageState extends ConsumerState<ConfirmOrderPage> {
       orderId = await OrderServices().createOrder(orderParams);
       Logger.info('ConfirmOrderPage', '订单创建成功: orderId=$orderId');
 
-      // 根据支付方式类型处理不同的支付流程
-      // if (selectedPaymentMethod?.type == AppPaymentMethodType.wallet) {
-      //   // 钱包支付：直接调用钱包支付 API
-      //   Logger.info('ConfirmOrderPage', '使用钱包支付');
-      //   await _processWalletPayment(orderId);
-      // } else {
-      //   // Stripe 卡支付：创建 Payment Intent 并显示支付面板
-      //   Logger.info('ConfirmOrderPage', '使用 Stripe 卡支付');
-      //   await _processStripePayment(orderId, selectedPaymentMethod);
-      // }
+      await Pop.confirm(
+        title: '确认支付',
+        content: '确认支付订单 $orderId？',
+        confirmText: '确认',
+        cancelText: '取消',
+        onConfirm: () async {
+          // 根据支付方式类型处理不同的支付流程
+          if (selectedPaymentMethod?.type == AppPaymentMethodType.wallet) {
+            // 钱包支付：直接调用钱包支付 API
+            Logger.info('ConfirmOrderPage', '使用钱包支付');
+            await _processWalletPayment(orderId);
+          } else {
+            // Stripe 卡支付：创建 Payment Intent 并显示支付面板
+            Logger.info('ConfirmOrderPage', '使用 Stripe 卡支付');
+            await _processStripePayment(orderId, selectedPaymentMethod);
+          }
+        },
+        onCancel: Pop.hideLoading,
+      );
     } catch (e) {
       Logger.error('ConfirmOrderPage', '创建订单失败: $e');
       Pop.hideLoading();
@@ -397,19 +404,19 @@ class _ConfirmOrderPageState extends ConsumerState<ConfirmOrderPage> {
       if (!mounted) return;
 
       toast('支付成功');
-      
+
       Logger.info('ConfirmOrderPage', '准备刷新订单列表...');
-      
+
       // 支付成功后返回，并传递需要刷新的标志
       Navigator.pop(context, true);
-      
+
       // 延迟刷新，确保已经返回到订单页面
       Future.delayed(const Duration(milliseconds: 300), () {
         Logger.info('ConfirmOrderPage', '开始刷新订单列表（钱包支付）');
         if (mounted) {
-          ref.read(orderListProvider(null).notifier).refresh();  // 全部
-          ref.read(orderListProvider(1).notifier).refresh();     // 待支付
-          ref.read(orderListProvider(2).notifier).refresh();     // 进行中
+          ref.read(orderListProvider(null).notifier).refresh(); // 全部
+          ref.read(orderListProvider(1).notifier).refresh(); // 待支付
+          ref.read(orderListProvider(2).notifier).refresh(); // 进行中
         } else {
           Logger.error('ConfirmOrderPage', 'Widget已销毁，无法刷新');
         }
@@ -430,35 +437,39 @@ class _ConfirmOrderPageState extends ConsumerState<ConfirmOrderPage> {
 
     try {
       // 获取支付方式ID（使用数据库ID，而不是Stripe PM ID）
-      final paymentMethodId = paymentMethod?.type == AppPaymentMethodType.stripeCard
-          ? paymentMethod?.card?.id
-          : null;
+      final paymentMethodId =
+          paymentMethod?.type == AppPaymentMethodType.stripeCard
+              ? paymentMethod?.card?.id
+              : null;
       Logger.info('ConfirmOrderPage', '支付方式ID: $paymentMethodId');
 
-      res = await OrderServices().createSPI(orderNo, paymentMethodId: paymentMethodId);
+      res = await OrderServices().createSPI(
+        orderNo,
+        paymentMethodId: paymentMethodId,
+      );
       Logger.info('ConfirmOrderPage', 'SPI创建成功，status: ${res.status}');
-      
+
       // 如果支付已经成功，直接跳转成功页面
       if (res.status == 'succeeded') {
         Logger.info('ConfirmOrderPage', '支付已在后端完成，无需调用Stripe SDK');
         Pop.hideLoading();
-        
+
         if (!mounted) return;
-        
+
         toast('支付成功');
-        
+
         Logger.info('ConfirmOrderPage', '准备刷新订单列表...');
-        
+
         // 支付成功后返回，并传递需要刷新的标志
         Navigator.pop(context, true);
-        
+
         // 延迟刷新，确保已经返回到订单页面
         Future.delayed(const Duration(milliseconds: 300), () {
           Logger.info('ConfirmOrderPage', '开始刷新订单列表（后端直接支付）');
           if (mounted) {
-            ref.read(orderListProvider(null).notifier).refresh();  // 全部
-            ref.read(orderListProvider(1).notifier).refresh();     // 待支付
-            ref.read(orderListProvider(2).notifier).refresh();     // 进行中
+            ref.read(orderListProvider(null).notifier).refresh(); // 全部
+            ref.read(orderListProvider(1).notifier).refresh(); // 待支付
+            ref.read(orderListProvider(2).notifier).refresh(); // 进行中
           } else {
             Logger.error('ConfirmOrderPage', 'Widget已销毁，无法刷新');
           }
@@ -468,35 +479,36 @@ class _ConfirmOrderPageState extends ConsumerState<ConfirmOrderPage> {
     } catch (e) {
       Logger.error('ConfirmOrderPage', '创建支付意图失败: $e');
       Pop.hideLoading();
-      
+
       // 检查是否是支付方式无效的错误
       final errorMsg = e.toString();
       if (errorMsg.contains('支付方式不存在') || errorMsg.contains('不属于当前用户')) {
         if (!mounted) return;
-        
+
         // 显示友好的错误提示，并提供解决方案
         await showDialog(
           context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('支付卡片无效'),
-            content: const Text(
-              '您选择的支付卡片已失效或不可用。\n\n'
-              '可能的原因：\n'
-              '• 卡片已过期\n'
-              '• 卡片信息已变更\n'
-              '• 卡片已被银行冻结\n\n'
-              '建议您：\n'
-              '1. 前往"管理支付方式"删除此卡片\n'
-              '2. 重新添加新的银行卡\n'
-              '3. 或使用钱包余额支付'
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('返回修改'),
+          builder:
+              (context) => AlertDialog(
+                title: const Text('支付卡片无效'),
+                content: const Text(
+                  '您选择的支付卡片已失效或不可用。\n\n'
+                  '可能的原因：\n'
+                  '• 卡片已过期\n'
+                  '• 卡片信息已变更\n'
+                  '• 卡片已被银行冻结\n\n'
+                  '建议您：\n'
+                  '1. 前往"管理支付方式"删除此卡片\n'
+                  '2. 重新添加新的银行卡\n'
+                  '3. 或使用钱包余额支付',
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('返回修改'),
+                  ),
+                ],
               ),
-            ],
-          ),
         );
       } else {
         toast('创建支付失败: $e');
@@ -536,25 +548,25 @@ class _ConfirmOrderPageState extends ConsumerState<ConfirmOrderPage> {
 
       // 5. 唤起支付面板
       await Stripe.instance.presentPaymentSheet();
-      
+
       Pop.hideLoading();
-      
+
       if (!mounted) return;
 
       toast('支付成功');
-      
+
       Logger.info('ConfirmOrderPage', '准备刷新订单列表...');
-      
+
       // 支付成功后返回，并传递需要刷新的标志
       Navigator.pop(context, true);
-      
+
       // 延迟刷新，确保已经返回到订单页面
       Future.delayed(const Duration(milliseconds: 300), () {
         Logger.info('ConfirmOrderPage', '开始刷新订单列表（Stripe支付）');
         if (mounted) {
-          ref.read(orderListProvider(null).notifier).refresh();  // 全部
-          ref.read(orderListProvider(1).notifier).refresh();     // 待支付
-          ref.read(orderListProvider(2).notifier).refresh();     // 进行中
+          ref.read(orderListProvider(null).notifier).refresh(); // 全部
+          ref.read(orderListProvider(1).notifier).refresh(); // 待支付
+          ref.read(orderListProvider(2).notifier).refresh(); // 进行中
         } else {
           Logger.error('ConfirmOrderPage', 'Widget已销毁，无法刷新');
         }

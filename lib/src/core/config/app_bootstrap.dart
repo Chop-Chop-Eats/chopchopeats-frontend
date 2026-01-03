@@ -45,12 +45,22 @@ class AppBootstrap {
         Logger.initializeGlobalErrorHandlers();
       }
 
-      await Firebase.initializeApp(); // 初始化 Firebase
-
-      // 注册后台消息处理器（必须在 runApp() 之前）
-      FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
-
-      await PushService().init(); // 初始化推送服务
+      // 初始化 Firebase（优雅处理配置文件缺失的情况）
+      try {
+        await Firebase.initializeApp(); // 初始化 Firebase
+        _logMilestone(stopwatch, "Firebase 初始化完成");
+        
+        // 注册后台消息处理器（必须在 runApp() 之前）
+        FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+        
+        // 初始化推送服务
+        await PushService().init();
+        _logMilestone(stopwatch, "推送服务初始化完成");
+      } catch (e, stack) {
+        Logger.error("Bootstrap", "Firebase 初始化失败（可能缺少配置文件）: $e");
+        Logger.warn("Bootstrap", "应用将在没有推送通知功能的情况下继续运行");
+        // 不阻止应用启动，继续运行
+      }
 
       //  初始化需要在第一帧绘制后执行的服务
       _initializePostFrameServices(stopwatch);
