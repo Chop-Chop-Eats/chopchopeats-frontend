@@ -32,11 +32,11 @@ class AppLocalizationsEn implements AppLocalizations {
   @override
   String get orderTabAll => 'All';
   @override
-  String get orderTabPending => 'To Pay';
+  String get orderTabPending => 'Unpaid';
   @override
-  String get orderTabInProgress => 'Active';
+  String get orderTabInProgress => 'In Progress';
   @override
-  String get orderTabCompleted => 'Done';
+  String get orderTabCompleted => 'Completed';
   @override
   String get orderTabCancelled => 'Cancelled';
 
