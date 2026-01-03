@@ -68,4 +68,18 @@ class OrderService {
     final response = await _client.put(ApiPaths.cancelOrderApi, data: data);
     Logger.info('OrderService', '取消订单: ${response.data}');
   }
+
+  Future<List<AppTradeRefundReasonRespVO>> getRefundReasonListByCategory(int reasonCategory) async {
+    final response = await _client.get(
+      ApiPaths.getRefundReasonListByCategoryApi,
+      queryParameters: {'reasonCategory': reasonCategory},
+    );
+    
+    if (response.data is List) {
+      return (response.data as List)
+          .map((e) => AppTradeRefundReasonRespVO.fromJson(e as Map<String, dynamic>))
+          .toList();
+    }
+    return [];
+  }
 }

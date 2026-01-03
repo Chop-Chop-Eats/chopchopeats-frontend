@@ -3,8 +3,9 @@ import 'package:chop_user/src/features/order/models/order_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../services/order_service.dart';
 
+
+import 'package:chop_user/src/features/order/pages/cancel_order_page.dart';
 
 class OrderCard extends StatelessWidget {
   final AppTradeOrderPageRespVO order;
@@ -27,7 +28,7 @@ class OrderCard extends StatelessWidget {
     this.onDelete,
     this.onReorder,
   });
-
+// ... (existing code)
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -53,7 +54,7 @@ class OrderCard extends StatelessWidget {
             SizedBox(height: 16.h),
             _buildContent(),
             SizedBox(height: 16.h),
-            _buildFooter(),
+            _buildFooter(context),
           ],
         ),
       ),
@@ -142,7 +143,7 @@ class OrderCard extends StatelessWidget {
     );
   }
 
-  Widget _buildFooter() {
+  Widget _buildFooter(BuildContext context) {
     return Row(
       children: [
         if (_hasMoreOptions())
@@ -157,8 +158,21 @@ class OrderCard extends StatelessWidget {
               if (order.status == 100) // Pending Payment
                 PopupMenuItem(
                   value: 'cancel',
-                  onTap: () async {
-                    await OrderService().cancelOrder(order.orderNo ?? '' , "用户取消");
+                  onTap: () {
+                    // Use Future.delayed to wait for popup to close before navigating
+                    Future.delayed(const Duration(milliseconds: 100), () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => CancelOrderPage(
+                            orderNo: order.orderNo ?? '',
+                            onSuccess: () {
+                              onCancel?.call();
+                            },
+                          ),
+                        ),
+                      );
+                    });
                   },
                   height: 32.h,
                   child: Center(
@@ -171,9 +185,7 @@ class OrderCard extends StatelessWidget {
               // Add other options if needed
             ],
             onSelected: (value) {
-              if (value == 'cancel') {
-                onCancel?.call();
-              }
+              // Handled in onTap for specific items if needed, or here
             },
           ),
         const Spacer(),

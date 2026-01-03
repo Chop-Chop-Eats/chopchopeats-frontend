@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:chop_user/src/features/order/models/order_model.dart';
 import 'package:chop_user/src/features/order/providers/order_provider.dart';
 import 'package:chop_user/src/core/widgets/common_image.dart';
@@ -17,14 +19,14 @@ class OrderDetailPage extends ConsumerWidget {
     final orderAsync = ref.watch(orderDetailProvider(orderNo));
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
+      backgroundColor: const Color(0xFFF4F4F4),
       appBar: AppBar(
         backgroundColor: const Color(0xFFF5F5F5),
         elevation: 0,
         leading: const BackButton(color: Colors.black),
       ),
       body: orderAsync.when(
-        data: (order) => _buildBody(context, order),
+        data: (order) => _buildBody(context, order, ref),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, stack) => Center(child: Text('Error: $err')),
       ),
@@ -32,13 +34,13 @@ class OrderDetailPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildBody(BuildContext context, AppTradeOrderDetailRespVO order) {
+  Widget _buildBody(BuildContext context, AppTradeOrderDetailRespVO order, WidgetRef ref) {
     return SingleChildScrollView(
       // padding: EdgeInsets.all(16.w),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildStatusHeader(order),
+          _buildStatusHeader(order, ref),
           SizedBox(height: 24.h),
           Container(
             decoration: BoxDecoration(
@@ -65,6 +67,34 @@ class OrderDetailPage extends ConsumerWidget {
                   SizedBox(height: 12.h),
                   _buildItemsAndPriceCard(order),
                   SizedBox(height: 24.h),
+          
+                  _buildPriceRow("餐品小计", order.mealSubtotal),
+                  _buildPriceRow("税费&服务费", (order.taxAmount ?? 0) + (order.serviceFee ?? 0)),
+                  _buildPriceRow("配送费", order.deliveryFee),
+                  _buildPriceRow("优惠券抵扣", -(order.couponAmount ?? 0), isDiscount: true),
+                  SizedBox(height: 12.h),
+                  const Divider(height: 1, color: Color(0xFFEEEEEE)),
+                  SizedBox(height: 12.h),                                     
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Text("实付款", style: TextStyle(fontSize: 16.sp, color: const Color(0xFF333333))),
+                          if ((order.deliveryTip ?? 0) > 0)
+                            Text(
+                              "(含小费\$${order.deliveryTip?.toStringAsFixed(2)})",
+                              style: TextStyle(fontSize: 12.sp, color: const Color(0xFF999999)),
+                            ),
+                        ],
+                      ),
+                      Text(
+                        "\$${order.payAmount?.toStringAsFixed(2)}",
+                        style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold, color: const Color(0xFF333333)),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 24.h),
                   _buildSectionTitle("订单信息"),
                   SizedBox(height: 12.h),
                   _buildOrderInfoCard(order),
@@ -89,7 +119,7 @@ class OrderDetailPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildStatusHeader(AppTradeOrderDetailRespVO order) {
+  Widget _buildStatusHeader(AppTradeOrderDetailRespVO order, WidgetRef ref) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 16.w),
       child: Column(
@@ -104,13 +134,22 @@ class OrderDetailPage extends ConsumerWidget {
             ),
           ),
           SizedBox(height: 8.h),
-          Text(
-            order.statusDesc ?? '私厨已接单，待骑手接单',
-            style: TextStyle(
-              fontSize: 14.sp,
-              color: const Color(0xFF999999),
+          if (order.status == 100 && order.createTime != null && order.orderPeriod != null) ...[
+            _OrderCountdown(
+              createTime: order.createTime!,
+              orderPeriod: order.orderPeriod!,
+              onExpired: () {
+                ref.invalidate(orderDetailProvider(orderNo));
+              },
             ),
-          ),
+          ] else
+            Text(
+              order.statusDesc ?? '私厨已接单，待骑手接单',
+              style: TextStyle(
+                fontSize: 14.sp,
+                color: const Color(0xFF999999),
+              ),
+            ),
         ],
       ),
     );
@@ -286,33 +325,7 @@ class OrderDetailPage extends ConsumerWidget {
               );
             },
           ),
-          SizedBox(height: 24.h),
-          const Divider(height: 1, color: Color(0xFFEEEEEE)),
-          SizedBox(height: 16.h),
-          _buildPriceRow("餐品小计", order.mealSubtotal),
-          _buildPriceRow("税费&服务费", (order.taxAmount ?? 0) + (order.serviceFee ?? 0)),
-          _buildPriceRow("配送费", order.deliveryFee),
-          _buildPriceRow("优惠券抵扣", -(order.couponAmount ?? 0), isDiscount: true),
-          SizedBox(height: 12.h),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Text("实付款", style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold, color: const Color(0xFF333333))),
-                  if ((order.deliveryTip ?? 0) > 0)
-                    Text(
-                      "(含小费\$${order.deliveryTip?.toStringAsFixed(2)})",
-                      style: TextStyle(fontSize: 12.sp, color: const Color(0xFF999999)),
-                    ),
-                ],
-              ),
-              Text(
-                "\$${order.payAmount?.toStringAsFixed(2)}",
-                style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold, color: const Color(0xFF333333)),
-              ),
-            ],
-          ),
+          
         ],
       ),
     );
@@ -339,7 +352,7 @@ class OrderDetailPage extends ConsumerWidget {
 
   Widget _buildOrderInfoCard(AppTradeOrderDetailRespVO order) {
     return Container(
-      padding: EdgeInsets.all(20.w),
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.w),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24.r),
@@ -355,7 +368,9 @@ class OrderDetailPage extends ConsumerWidget {
               "${order.stripePaymentMethodInfo!.cardBrand?.toUpperCase() ?? 'Card'} *${order.stripePaymentMethodInfo!.cardLast4 ?? ''}",
               isPayment: true,
               cardBrand: order.stripePaymentMethodInfo!.cardBrand,
-            ),
+            )
+          else if (order.payTypeName != null)
+            _buildInfoRow("支付方式", order.payTypeName),
         ],
       ),
     );
@@ -363,7 +378,7 @@ class OrderDetailPage extends ConsumerWidget {
 
   Widget _buildInfoRow(String label, String? value, {bool isPayment = false, String? cardBrand}) {
     return Padding(
-      padding: EdgeInsets.only(bottom: 12.h),
+      padding: EdgeInsets.only(bottom: 6.w,top: 6.w),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -383,9 +398,9 @@ class OrderDetailPage extends ConsumerWidget {
                     style: TextStyle(fontSize: 10.sp, color: Colors.white, fontWeight: FontWeight.bold),
                   ),
                 ),
-                SizedBox(width: 8.w),
+                SizedBox(width: 4.w),
               ],
-              Text(value ?? '', style: TextStyle(fontSize: 14.sp, color: const Color(0xFF333333))),
+              Text(value ?? '', style: TextStyle(fontSize: 12.sp, color: const Color(0xFF333333))),
               if (label == "订单编号")
                 Padding(
                   padding: EdgeInsets.only(left: 8.w),
@@ -458,4 +473,109 @@ class OrderDetailPage extends ConsumerWidget {
   }
 
 
+}
+
+class _OrderCountdown extends StatefulWidget {
+  final String createTime;
+  final int orderPeriod;
+  final VoidCallback onExpired;
+
+  const _OrderCountdown({
+    required this.createTime,
+    required this.orderPeriod,
+    required this.onExpired,
+  });
+
+  @override
+  State<_OrderCountdown> createState() => _OrderCountdownState();
+}
+
+class _OrderCountdownState extends State<_OrderCountdown> {
+  late Timer _timer;
+  Duration _remaining = Duration.zero;
+
+  @override
+  void initState() {
+    super.initState();
+    _calculateRemaining();
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      _calculateRemaining();
+    });
+  }
+
+  void _calculateRemaining() {
+    DateTime? create;
+
+    // 1. Try parsing as milliseconds timestamp (e.g. "1767425203000")
+    final timestamp = int.tryParse(widget.createTime);
+    if (timestamp != null) {
+      create = DateTime.fromMillisecondsSinceEpoch(timestamp);
+    } else {
+      // 2. Try parsing as ISO-8601 string
+      // If the time string doesn't have timezone info (no 'Z' or offset),
+      // we assume it is UTC to avoid timezone offset issues (e.g. server sending UTC but parsed as local).
+      if (!widget.createTime.endsWith('Z') && !widget.createTime.contains('+')) {
+         create = DateTime.tryParse("${widget.createTime}Z")?.toLocal();
+      } else {
+         create = DateTime.tryParse(widget.createTime);
+      }
+    }
+
+    if (create == null) return;
+
+    // User confirmed: if orderPeriod is 30, it means 30 minutes.
+    // We strictly treat it as minutes.
+    final duration = Duration(minutes: widget.orderPeriod);
+
+    final end = create.add(duration); 
+    final now = DateTime.now();
+    final diff = end.difference(now);
+
+    if (diff.isNegative) {
+      _timer.cancel();
+      if (_remaining != Duration.zero) {
+         widget.onExpired();
+      }
+      setState(() {
+        _remaining = Duration.zero;
+      });
+    } else {
+      setState(() {
+        _remaining = diff;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final minutes = _remaining.inMinutes;
+    final seconds = _remaining.inSeconds % 60;
+    return RichText(
+      text: TextSpan(
+        children: [
+          TextSpan(
+            text: "${minutes}分${seconds.toString().padLeft(2, '0')}秒",
+            style: TextStyle(
+              fontSize: 14.sp,
+              color: const Color(0xFFFF5722),
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          TextSpan(
+            text: " 后失效",
+            style: TextStyle(
+              fontSize: 14.sp,
+              color: const Color(0xFF333333),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

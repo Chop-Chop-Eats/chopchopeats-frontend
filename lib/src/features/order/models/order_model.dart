@@ -459,3 +459,29 @@ class OrderItemDetailVO {
     );
   }
 }
+
+class AppTradeRefundReasonRespVO {
+  final int? id;
+  final String? reasonChinese;
+  final String? reasonEnglish;
+  final int? sort;
+  final int? reasonCategory;
+
+  AppTradeRefundReasonRespVO({
+    this.id,
+    this.reasonChinese,
+    this.reasonEnglish,
+    this.sort,
+    this.reasonCategory,
+  });
+
+  factory AppTradeRefundReasonRespVO.fromJson(Map<String, dynamic> json) {
+    return AppTradeRefundReasonRespVO(
+      id: JsonUtils.parseInt(json, 'id'),
+      reasonChinese: JsonUtils.parseString(json, 'reasonChinese'),
+      reasonEnglish: JsonUtils.parseString(json, 'reasonEnglish'),
+      sort: JsonUtils.parseInt(json, 'sort'),
+      reasonCategory: JsonUtils.parseInt(json, 'reasonCategory'),
+    );
+  }
+}
