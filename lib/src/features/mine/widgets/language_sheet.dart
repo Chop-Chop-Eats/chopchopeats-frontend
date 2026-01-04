@@ -1,10 +1,13 @@
+import 'package:chop_user/src/core/utils/pop/toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:unified_popups/unified_popups.dart';
 
 import '../../../core/config/app_services.dart';
 import '../../../core/enums/language_mode.dart';
 import '../../../core/l10n/app_localizations.dart';
 import '../../../core/theme/app_theme.dart';
+import '../services/mine_services.dart';
 
 class LanguageSheet extends StatelessWidget {
   final VoidCallback dismiss;
@@ -15,8 +18,22 @@ class LanguageSheet extends StatelessWidget {
     final isSelected = languageMode == AppServices.appSettings.languageMode;
     return GestureDetector(
       onTap: () async {
-        await AppServices.appSettings.updateLanguageMode(languageMode);
-        dismiss();
+        Pop.loading();
+        final success = await MineServices().updateLanguage(languageMode == LanguageMode.zh ? 1 : 2);
+        try {
+          if (!success) {
+            toast.success(l10n.updateLanguageFailed);
+            return;
+          }
+          await AppServices.appSettings.updateLanguageMode(languageMode);
+          toast.success(l10n.updateLanguageSuccess);
+          dismiss();
+        } catch (e) {
+          toast.error(l10n.updateLanguageFailed);
+        }finally {
+          Pop.hideLoading();
+        }
+        
       },
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
@@ -44,7 +61,7 @@ class LanguageSheet extends StatelessWidget {
       children: [
         _buildLanguageItem(l10n, LanguageMode.zh),
         _buildLanguageItem(l10n, LanguageMode.en),
-        _buildLanguageItem(l10n, LanguageMode.system),
+        // _buildLanguageItem(l10n, LanguageMode.system),
       ],
     );
   }

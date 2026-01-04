@@ -102,7 +102,8 @@ abstract class AppLocalizations {
   String get languageSystem;
   String get languageChinese;
   String get languageEnglish;
-
+  String get updateLanguageFailed;
+  String get updateLanguageSuccess;
   // ============== Splash 启动页 ==============
   String get locationPermissionTitle;
   String get locationPermissionSubtitle;

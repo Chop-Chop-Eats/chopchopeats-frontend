@@ -220,6 +220,6 @@ class ApiPaths {
   // 获取未读消息数量
   static const String getUnreadMessageCountApi = "/app-api/message/inbox/unread-count";
 
-
-
+  // 修改语言设置
+  static const String updateLanguageApi = "/app-api/member/user/language-setting";
 }

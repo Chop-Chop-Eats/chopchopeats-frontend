@@ -164,7 +164,10 @@ class AppLocalizationsEn implements AppLocalizations {
   String get languageChinese => 'Chinese';
   @override
   String get languageEnglish => 'English';
-
+  @override
+  String get updateLanguageFailed => 'Update language failed';
+  @override
+  String get updateLanguageSuccess => 'Update language success';
   // ============== Splash 启动页 ==============
   @override
   String get locationPermissionTitle => 'Location Permission Required';

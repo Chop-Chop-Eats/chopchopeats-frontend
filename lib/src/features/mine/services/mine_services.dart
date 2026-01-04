@@ -45,4 +45,14 @@ class MineServices {
     Logger.info('MineServices', 'uploadAvatar response: ${response.data}');
     return response.data as String;
   }
+
+  // 修改语言设置 1:中文 2:英文 
+  Future<bool> updateLanguage(int language) async {
+    final response = await ApiClient().put(
+      ApiPaths.updateLanguageApi,
+      data: {'languageSetting': language},
+    );
+    Logger.info('MineServices', 'updateLanguage response: ${response.data}');
+    return response.data;
+  }
 }
