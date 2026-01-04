@@ -4,9 +4,12 @@ import 'package:chop_user/src/features/order/pages/cancel_order_page.dart';
 import 'package:chop_user/src/features/order/providers/order_provider.dart';
 import 'package:chop_user/src/features/order/utils/order_payment_handler.dart';
 import 'package:chop_user/src/features/order/widgets/order_card.dart';
+import 'package:chop_user/src/features/order/models/order_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:chop_user/src/features/detail/pages/detail_page.dart';
+import 'package:chop_user/src/core/utils/logger/logger.dart';
 
 class OrderListView extends ConsumerStatefulWidget {
   final int? statusGroup;
@@ -183,10 +186,43 @@ class _OrderListViewState extends ConsumerState<OrderListView> with AutomaticKee
                 onCancel: () {
                   ref.read(orderListProvider(widget.statusGroup).notifier).refresh();
                 },
+                onReorder: () => _handleReorder(context, order, ref),
               ),
             ],
           );
         },
+      ),
+    );
+  }
+
+  /// 处理重新下单逻辑
+  Future<void> _handleReorder(BuildContext context, AppTradeOrderPageRespVO order, WidgetRef ref) async {
+    if (order.shopId == null || order.shopId!.isEmpty) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('提示'),
+          content: const Text('无法获取店铺信息'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('确定'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
+    Logger.info('OrderListView', '重新下单: 跳转到店铺详情页 shopId=${order.shopId}');
+
+    if (!context.mounted) return;
+
+    // 直接导航到店铺详情页，让用户重新选择商品
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => DetailPage(id: order.shopId!),
       ),
     );
   }

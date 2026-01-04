@@ -9,6 +9,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'cancel_order_page.dart';
+import '../../detail/pages/detail_page.dart';
+import '../../../core/utils/logger/logger.dart';
 
 
 
@@ -541,9 +543,7 @@ class OrderDetailPage extends ConsumerWidget {
             "重新下单",
             const Color(0xFF333333),
             Colors.white,
-            () {
-              // Reorder action
-            },
+            () => _handleReorder(context, order, ref),
             isPrimary: false,
           ),
         ],
@@ -616,6 +616,7 @@ class OrderDetailPage extends ConsumerWidget {
       onTap: onPressed,
       child: Container(
         width: double.infinity,
+        height:54.w,
         padding: EdgeInsets.symmetric(vertical: 14.h),
         decoration: BoxDecoration(
           color: bgColor,
@@ -631,6 +632,38 @@ class OrderDetailPage extends ConsumerWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
+      ),
+    );
+  }
+
+  /// 处理重新下单逻辑
+  Future<void> _handleReorder(BuildContext context, AppTradeOrderDetailRespVO order, WidgetRef ref) async {
+    if (order.shopId == null || order.shopId!.isEmpty) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('提示'),
+          content: const Text('无法获取店铺信息'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('确定'),
+            ),
+          ],
+        ),
+      );
+      return;
+    }
+
+    Logger.info('OrderDetailPage', '重新下单: 跳转到店铺详情页 shopId=${order.shopId}');
+
+    if (!context.mounted) return;
+
+    // 直接导航到店铺详情页，让用户重新选择商品
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => DetailPage(id: order.shopId!),
       ),
     );
   }
