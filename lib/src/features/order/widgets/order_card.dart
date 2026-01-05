@@ -6,6 +6,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 
 import 'package:chop_user/src/features/order/pages/cancel_order_page.dart';
+import 'package:chop_user/src/features/comment/pages/write_review_page.dart';
 
 class OrderCard extends StatelessWidget {
   final AppTradeOrderPageRespVO order;
@@ -189,7 +190,7 @@ class OrderCard extends StatelessWidget {
             },
           ),
         const Spacer(),
-        ..._buildActionButtons(),
+        ..._buildActionButtons(context),
       ],
     );
   }
@@ -199,7 +200,7 @@ class OrderCard extends StatelessWidget {
     return order.status == 100 || order.status == 300;
   }
 
-  List<Widget> _buildActionButtons() {
+  List<Widget> _buildActionButtons(BuildContext context) {
     List<Widget> buttons = [];
     final status = order.status;
 
@@ -215,7 +216,18 @@ class OrderCard extends StatelessWidget {
     else if (status == 300) {
       buttons.add(_buildButton("申请退款", Colors.white, Colors.black, onRefund));
       buttons.add(SizedBox(width: 8.w));
-      buttons.add(_buildButton("写评价", Colors.white, Colors.black, onReview));
+      buttons.add(_buildButton("写评价", Colors.white, Colors.black, () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => WriteReviewPage(order: order),
+          ),
+        ).then((value) {
+          if (value == true) {
+            onReview?.call();
+          }
+        });
+      }));
     }
     // 901, 902=Cancelled
     else if (status == 901 || status == 902) {

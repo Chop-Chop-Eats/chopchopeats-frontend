@@ -197,6 +197,10 @@ class ApiPaths {
   // 申请退款
   static const String applyRefundApi = "/app-api/trade/app-order/apply-refund";
 
+  // [评价模块]
+  // 创建店铺评论
+  static const String shopCommentCreateApi = "/app-api/merchant/shop-comment/create";
+
   // [支付配置模块]
   // 获取 Stripe Publishable Key
   static const String getStripePublicKeyApi = "/app-api/trade/stripe-config/public-key";
