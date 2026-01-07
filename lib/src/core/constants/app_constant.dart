@@ -1,8 +1,8 @@
 // lib/config/app_constants.dart
 class AppConstants {
   AppConstants._(); // 私有构造
-  // 记录api请求时间  
-  static const String apiStartTime = "API_START_TIME";  
+  // 记录api请求时间
+  static const String apiStartTime = "API_START_TIME";
   // 设备信息
   static const String deviceUuid = "DEVICE_UUID";
   // 主题模式
@@ -29,4 +29,6 @@ class AppConstants {
   static const String locationLabel = "APP_LOCATION_LABEL";
   // 位置是否已初始化（用户是否选择过位置）
   static const String isLocationInitialized = "APP_LOCATION_INITIALIZED";
+  // App是否已初始化（用于判断首次启动）
+  static const String appInitialized = "APP_INITIALIZED";
 }
