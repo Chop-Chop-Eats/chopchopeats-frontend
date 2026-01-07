@@ -44,23 +44,17 @@ class _DailyMenuState extends State<DailyMenu> {
     _initializeDailyMenu();
   }
 
-  /// 初始化每日菜单数据（生成本周7天的菜单项）
+  /// 初始化每日菜单数据（从当前日期算未来7天）
   /// 
-  /// 原来的设计：从今天开始，生成未来7天
-  /// 用户需求：从本周一开始，到本周日结束（完整的本周7天）
-  /// 例如：今天是10.21周二，应该显示10.20周一 到 10.26周日
+  /// 从今天开始，生成未来7天（今天 + 未来6天）
+  /// 例如：今天是10.21周二，应该显示10.21今天 到 10.27周一
   void _initializeDailyMenu() {
     final l10n = AppLocalizations.of(context)!;
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     
-    // 计算本周一的日期
-    // weekday: 1=周一, 2=周二, ..., 7=周日
-    // 要回到周一，需要减去 (weekday - 1) 天
-    final mondayOfThisWeek = today.subtract(Duration(days: today.weekday - 1));
-    
     _dailyMenuItems = List.generate(7, (index) {
-      final date = mondayOfThisWeek.add(Duration(days: index));
+      final date = today.add(Duration(days: index));
       final weekday = date.weekday; // 1-7 代表周一到周日
       
       // 格式化日期显示 MM/dd
@@ -84,13 +78,8 @@ class _DailyMenuState extends State<DailyMenu> {
       );
     });
     
-    // 设置默认选中项为今天（如果今天在本周范围内）
-    final todayIndex = _dailyMenuItems.indexWhere((item) => item.dateTime.isAtSameMomentAs(today));
-    if (todayIndex != -1) {
-      _selectedIndex = todayIndex;
-    } else {
-      _selectedIndex = 0; // 如果今天不在本周范围内，默认选中周一
-    }
+    // 设置默认选中项为今天（索引0）
+    _selectedIndex = 0;
     
     if (mounted) {
       setState(() {});
