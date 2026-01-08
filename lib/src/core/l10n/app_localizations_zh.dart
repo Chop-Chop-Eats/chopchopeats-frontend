@@ -602,4 +602,30 @@ class AppLocalizationsZh implements AppLocalizations {
   String get orderCountdownSuffix => ' 后失效';
   @override
   String get orderStatusDescDefault => '私厨已接单，待骑手接单';
+
+  // ============== 消息中心 ==============
+  @override
+  String get messageCenter => '消息中心';
+  @override
+  String get messageTabAll => '全部';
+  @override
+  String get messageTabOrder => '订单消息';
+  @override
+  String get messageTabSystem => '系统消息';
+  @override
+  String get messageClearConfirmTitle => '确认清除';
+  @override
+  String get messageClearConfirmContent => '确定要清除所有消息吗？此操作不可恢复。';
+  @override
+  String get messageClearConfirmBtn => '确定';
+  @override
+  String get messageClearCancelBtn => '取消';
+  @override
+  String get messageNoData => '暂无消息';
+  @override
+  String get messageLoadFailed => '加载失败';
+  @override
+  String get messageRetry => '重试';
+  @override
+  String get messageYesterday => '昨天';
 }

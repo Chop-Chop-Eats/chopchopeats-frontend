@@ -5,6 +5,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:pull_to_refresh/pull_to_refresh.dart';
 import 'package:unified_popups/unified_popups.dart';
 
+import '../../../core/l10n/app_localizations.dart';
 import '../../../core/widgets/base_page.dart';
 import '../../../core/widgets/common_image.dart';
 import '../../../core/widgets/common_indicator.dart';
@@ -25,7 +26,7 @@ class MessagePage extends ConsumerStatefulWidget {
 
 class _MessagePageState extends ConsumerState<MessagePage> {
   int _selectedTabIndex = 0;
-  final List<String> _tabs = ["全部", "订单消息", "系统消息"];
+  final List<String> _tabs = [];
   
   // 为每个 Tab 创建独立的 RefreshController
   final RefreshController _allMessagesController = RefreshController(initialRefresh: false);
@@ -56,6 +57,11 @@ class _MessagePageState extends ConsumerState<MessagePage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    // 初始化 tabs 列表
+    _tabs.clear();
+    _tabs.addAll([l10n.messageTabAll, l10n.messageTabOrder, l10n.messageTabSystem]);
+
     // 监听 Tab 切换，当切换到消息页时刷新未读消息数量
     ref.listen<int>(currentTabIndexProvider, (previous, next) {
       if (next == 3 && previous != 3 && mounted) {
@@ -65,7 +71,7 @@ class _MessagePageState extends ConsumerState<MessagePage> {
     });
 
     return BasePage(
-      title: "消息中心",
+      title: l10n.messageCenter,
       rightWidget: _buildRightWidget(),
       content: MessageTabBar(
         tabs: _tabs,
@@ -153,11 +159,12 @@ class _MessagePageState extends ConsumerState<MessagePage> {
 
   /// 显示清除消息确认对话框
   Future<void> _showClearMessagesDialog() async {
+    final l10n = AppLocalizations.of(context)!;
     await Pop.confirm(
-      title: '确认清除',
-      content: '确定要清除所有消息吗？此操作不可恢复。',
-      confirmText: '确定',
-      cancelText: '取消',
+      title: l10n.messageClearConfirmTitle,
+      content: l10n.messageClearConfirmContent,
+      confirmText: l10n.messageClearConfirmBtn,
+      cancelText: l10n.messageClearCancelBtn,
       onConfirm: () async {
         await ref.read(messageProvider(null).notifier).clearAllMessages();
         // 刷新未读消息数量
@@ -176,6 +183,7 @@ class _MessagePageState extends ConsumerState<MessagePage> {
   }
 
   Widget _buildMessageList(int? messageTypeId, RefreshController controller) {
+    final l10n = AppLocalizations.of(context)!;
     final messages = ref.watch(messageListProvider(messageTypeId));
     final isLoading = ref.watch(messageLoadingProvider(messageTypeId));
     final error = ref.watch(messageErrorProvider(messageTypeId));
@@ -209,13 +217,13 @@ class _MessagePageState extends ConsumerState<MessagePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text('加载失败: $error'),
+            Text('${l10n.messageLoadFailed}: $error'),
             SizedBox(height: 16.h),
             ElevatedButton(
               onPressed: () {
                 ref.read(messageProvider(messageTypeId).notifier).loadMessages(messageTypeId);
               },
-              child: Text('重试'),
+              child: Text(l10n.messageRetry),
             ),
           ],
         ),
@@ -235,7 +243,7 @@ class _MessagePageState extends ConsumerState<MessagePage> {
             ),
             CommonSpacing.large,
             Text(
-              '暂无消息',
+              l10n.messageNoData,
               style: TextStyle(
                 fontSize: 16.sp,
                 fontWeight: FontWeight.bold,

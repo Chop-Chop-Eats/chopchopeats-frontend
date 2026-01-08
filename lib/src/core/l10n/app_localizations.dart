@@ -337,6 +337,20 @@ abstract class AppLocalizations {
   String orderCountdownTime(int minutes, int seconds); // 倒计时时间
   String get orderCountdownSuffix; // 后失效
   String get orderStatusDescDefault; // 默认状态描述
+
+  // ============== 消息中心 ==============
+  String get messageCenter; // 消息中心
+  String get messageTabAll; // 全部
+  String get messageTabOrder; // 订单消息
+  String get messageTabSystem; // 系统消息
+  String get messageClearConfirmTitle; // 确认清除
+  String get messageClearConfirmContent; // 确定要清除所有消息吗？此操作不可恢复。
+  String get messageClearConfirmBtn; // 确定
+  String get messageClearCancelBtn; // 取消
+  String get messageNoData; // 暂无消息
+  String get messageLoadFailed; // 加载失败
+  String get messageRetry; // 重试
+  String get messageYesterday; // 昨天
 }
 
 // Delegate 类，Flutter 会用它来加载对应的语言类

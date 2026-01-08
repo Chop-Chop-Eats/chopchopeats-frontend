@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
+import '../../../core/l10n/app_localizations.dart';
 import '../../../core/widgets/common_spacing.dart';
 import '../../../core/widgets/common_image.dart';
 import '../models/message_models.dart' as models;
@@ -32,7 +33,7 @@ class MessageItemWidget extends StatelessWidget {
     final isUnread = message.status == 0;
 
     // 格式化时间
-    final timeText = _formatTime(message.sentTime);
+    final timeText = _formatTime(context, message.sentTime);
 
     // 获取图标路径
     final imagePath = _getIconPath(message.messageTypeId);
@@ -100,7 +101,8 @@ class MessageItemWidget extends StatelessWidget {
   }
 
   /// 格式化时间显示
-  String _formatTime(DateTime? sentTime) {
+  String _formatTime(BuildContext context, DateTime? sentTime) {
+    final l10n = AppLocalizations.of(context)!;
     if (sentTime == null) return '';
     
     final now = DateTime.now();
@@ -115,7 +117,7 @@ class MessageItemWidget extends StatelessWidget {
 
     // 如果是昨天
     if (difference.inDays == 1) {
-      return '昨天 ${DateFormat('HH:mm').format(sentTime)}';
+      return '${l10n.messageYesterday} ${DateFormat('HH:mm').format(sentTime)}';
     }
 
     // 如果是一周内

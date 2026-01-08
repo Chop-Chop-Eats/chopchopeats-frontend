@@ -614,4 +614,30 @@ class AppLocalizationsEn implements AppLocalizations {
   String get orderCountdownSuffix => ' until expiration';
   @override
   String get orderStatusDescDefault => 'Chef accepted, waiting for driver';
+
+  // ============== Message Center ==============
+  @override
+  String get messageCenter => 'Message Center';
+  @override
+  String get messageTabAll => 'All';
+  @override
+  String get messageTabOrder => 'Order';
+  @override
+  String get messageTabSystem => 'System';
+  @override
+  String get messageClearConfirmTitle => 'Confirm Clear';
+  @override
+  String get messageClearConfirmContent => 'Are you sure you want to clear all messages? This action cannot be undone.';
+  @override
+  String get messageClearConfirmBtn => 'Confirm';
+  @override
+  String get messageClearCancelBtn => 'Cancel';
+  @override
+  String get messageNoData => 'No Messages';
+  @override
+  String get messageLoadFailed => 'Load Failed';
+  @override
+  String get messageRetry => 'Retry';
+  @override
+  String get messageYesterday => 'Yesterday';
 }
