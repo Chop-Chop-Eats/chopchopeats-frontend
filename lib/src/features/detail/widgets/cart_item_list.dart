@@ -29,7 +29,7 @@ class CartItemList extends ConsumerWidget {
 
     return ListView.builder(
       shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
+      physics: const BouncingScrollPhysics(),
       padding: EdgeInsets.zero,
       itemCount: items.length,
       itemBuilder: (context, index) {

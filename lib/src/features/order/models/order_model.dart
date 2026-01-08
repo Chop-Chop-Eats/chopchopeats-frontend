@@ -38,6 +38,7 @@ class AppTradeOrderPageRespVO {
   final String? responseRefundTime;
   final String? finishRefundTime;
   final String? driverMobile;
+  final bool? commentMark;
   final List<OrderItemPageRespVO>? items;
 
   AppTradeOrderPageRespVO({
@@ -77,6 +78,7 @@ class AppTradeOrderPageRespVO {
     this.responseRefundTime,
     this.finishRefundTime,
     this.driverMobile,
+    this.commentMark,
     this.items,
   });
 
@@ -118,6 +120,7 @@ class AppTradeOrderPageRespVO {
       responseRefundTime: JsonUtils.parseString(json, 'responseRefundTime'),
       finishRefundTime: JsonUtils.parseString(json, 'finishRefundTime'),
       driverMobile: JsonUtils.parseString(json, 'driverMobile'),
+      commentMark: JsonUtils.parseBool(json, 'commentMark'),
       items: JsonUtils.parseList(
         json,
         'items',

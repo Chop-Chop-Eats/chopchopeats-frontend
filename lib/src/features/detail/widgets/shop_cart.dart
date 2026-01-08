@@ -126,11 +126,13 @@ class _ShopCartState extends ConsumerState<ShopCart> {
                       ),
                     )
                   else
-                    Expanded(
-                      child: CartItemList(
-                        shopId: widget.shopId,
-                        items: currentCartState.items,
-                        diningDate: currentCartState.diningDate,
+                    Flexible(
+                      child: SingleChildScrollView(
+                        child: CartItemList(
+                          shopId: widget.shopId,
+                          items: currentCartState.items,
+                          diningDate: currentCartState.diningDate,
+                        ),
                       ),
                     ),
                 ],

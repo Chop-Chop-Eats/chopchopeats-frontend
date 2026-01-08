@@ -252,19 +252,29 @@ class OrderCard extends StatelessWidget {
         ),
       );
       buttons.add(SizedBox(width: 8.w));
+      // Check if already commented
+      final isCommented = order.commentMark ?? false;
       buttons.add(
-        _buildButton(l10n.orderWriteReview, Colors.white, Colors.black, () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => WriteReviewPage(order: order),
-            ),
-          ).then((value) {
-            if (value == true) {
-              onReview?.call();
-            }
-          });
-        }),
+        _buildButton(
+          l10n.orderWriteReview,
+          Colors.white,
+          isCommented ? Colors.grey : Colors.black,
+          isCommented
+              ? null
+              : () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => WriteReviewPage(order: order),
+                  ),
+                ).then((value) {
+                  if (value == true) {
+                    onReview?.call();
+                  }
+                });
+              },
+          isCommented: isCommented,
+        ),
       );
     }
     // 901, 902=Cancelled
@@ -294,15 +304,18 @@ class OrderCard extends StatelessWidget {
     Color textColor,
     VoidCallback? onPressed, {
     bool isPrimary = false,
+    bool isCommented = false,
   }) {
     return GestureDetector(
       onTap: onPressed,
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
         decoration: BoxDecoration(
-          color: bgColor,
+          color: isCommented ? Colors.grey[200] : bgColor,
           border: Border.all(
-            color: isPrimary ? textColor : const Color(0xFFE0E0E0),
+            color: isPrimary
+                ? textColor
+                : (isCommented ? Colors.grey[300]! : const Color(0xFFE0E0E0)),
           ),
           borderRadius: BorderRadius.circular(20.r),
         ),
