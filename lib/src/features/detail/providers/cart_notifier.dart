@@ -246,6 +246,10 @@ class CartNotifier extends StateNotifier<Map<String, CartState>> {
           dataOrigin: CartDataOrigin.remote,
         ),
       );
+      Logger.info(
+        'CartNotifier',
+        '静默刷新成功: shopId=$shopId, 商品数=${items.length}',
+      );
     } catch (e) {
       Logger.warn('CartNotifier', '静默刷新购物车失败: $e');
       // 静默失败，不影响用户体验
@@ -279,6 +283,11 @@ class CartNotifier extends StateNotifier<Map<String, CartState>> {
     if (params.quantity <= 0) {
       // 数量为 0，移除商品
       updatedItems = [...current.items]..removeAt(targetIndex);
+      Logger.info(
+        'CartNotifier',
+        '乐观更新: 移除商品 cartId=${params.cartId}, '
+            '剩余商品数: ${updatedItems.length}',
+      );
     } else {
       // 更新数量
       updatedItems = current.items.map((item) {
@@ -308,24 +317,17 @@ class CartNotifier extends StateNotifier<Map<String, CartState>> {
     );
 
     try {
-      if (params.quantity <= 0) {
-        // 数量为 0，调用更新接口将数量设为0（后端会自动删除）
-        await _orderServices.updateCartQuantity(
-          UpdateCartParams(cartId: params.cartId, quantity: 0),
-        );
-      } else {
-        // 后台异步调用更新接口
-        await _orderServices.updateCartQuantity(params);
-      }
-
-      // 静默刷新以同步服务器数据
-      _silentRefreshCart(shopId: shopId, diningDate: diningDate);
+      // 调用更新接口（quantity=0时后端会自动删除该商品）
+      await _orderServices.updateCartQuantity(params);
 
       Logger.info(
         'CartNotifier',
         '更新数量成功: shopId=$shopId, cartId=${params.cartId}, '
             'quantity=${params.quantity}',
       );
+
+      // 等待静默刷新完成以同步服务器数据（确保quantity=0的商品被移除）
+      await _silentRefreshCart(shopId: shopId, diningDate: diningDate);
     } catch (e) {
       Logger.error('CartNotifier', '更新数量失败: $e');
       // 回滚到之前的状态
@@ -469,11 +471,12 @@ class CartNotifier extends StateNotifier<Map<String, CartState>> {
       return;
     }
 
+    // 减1，如果减到0，后端会自动删除该商品
     final nextQuantity = currentQuantity - 1;
     await updateQuantity(
       params: UpdateCartParams(
         cartId: existing.id!,
-        quantity: nextQuantity < 0 ? 0 : nextQuantity,
+        quantity: nextQuantity,
       ),
       shopId: shopId,
       diningDate: resolvedDate,

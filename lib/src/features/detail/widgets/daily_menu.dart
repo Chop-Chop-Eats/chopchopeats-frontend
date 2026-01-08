@@ -45,10 +45,10 @@ class _DailyMenuState extends State<DailyMenu> {
   }
 
   /// 初始化每日菜单数据（生成本周7天的菜单项）
-  /// 
-  /// 原来的设计：从今天开始，生成未来7天
-  /// 用户需求：从本周一开始，到本周日结束（完整的本周7天）
-  /// 例如：今天是10.21周二，应该显示10.20周一 到 10.26周日
+  /// 貌似是推翻了之前的设定
+  /// 显示本周7天，但今天排在第一个
+  /// 排序规则：今天、今天之后的日期（本周内）、今天之前的日期（本周内）
+  /// 例如：今天是周三，显示顺序为：周三、周四、周五、周六、周日、周一、周二
   void _initializeDailyMenu() {
     final l10n = AppLocalizations.of(context)!;
     final now = DateTime.now();
@@ -59,7 +59,8 @@ class _DailyMenuState extends State<DailyMenu> {
     // 要回到周一，需要减去 (weekday - 1) 天
     final mondayOfThisWeek = today.subtract(Duration(days: today.weekday - 1));
     
-    _dailyMenuItems = List.generate(7, (index) {
+    // 先生成本周完整的7天数据
+    final allDaysOfWeek = List.generate(7, (index) {
       final date = mondayOfThisWeek.add(Duration(days: index));
       final weekday = date.weekday; // 1-7 代表周一到周日
       
@@ -84,12 +85,21 @@ class _DailyMenuState extends State<DailyMenu> {
       );
     });
     
-    // 设置默认选中项为今天（如果今天在本周范围内）
-    final todayIndex = _dailyMenuItems.indexWhere((item) => item.dateTime.isAtSameMomentAs(today));
+    // 重新排序：今天放第一个，之后是今天之后的日期，最后是今天之前的日期
+    final todayIndex = allDaysOfWeek.indexWhere((item) => item.dateTime.isAtSameMomentAs(today));
     if (todayIndex != -1) {
-      _selectedIndex = todayIndex;
+      // 今天及之后的日期
+      final todayAndAfter = allDaysOfWeek.sublist(todayIndex);
+      // 今天之前的日期
+      final beforeToday = allDaysOfWeek.sublist(0, todayIndex);
+      // 合并：今天开始 + 之前的日期
+      _dailyMenuItems = [...todayAndAfter, ...beforeToday];
+      // 今天在第一个位置
+      _selectedIndex = 0;
     } else {
-      _selectedIndex = 0; // 如果今天不在本周范围内，默认选中周一
+      // 如果今天不在本周范围内（理论上不会发生），使用原顺序
+      _dailyMenuItems = allDaysOfWeek;
+      _selectedIndex = 0;
     }
     
     if (mounted) {

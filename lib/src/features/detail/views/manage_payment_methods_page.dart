@@ -20,12 +20,15 @@ class ManagePaymentMethodsPage extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: const CommonAppBar(title: '管理支付方式'),
+      appBar: const CommonAppBar(title: 'Manage Payment Methods'),
       body: paymentMethodsAsync.when(
         data: (methods) {
           // 过滤掉钱包，只显示卡片
-          final cards = methods.where((m) => m.type == AppPaymentMethodType.stripeCard).toList();
-          
+          final cards =
+              methods
+                  .where((m) => m.type == AppPaymentMethodType.stripeCard)
+                  .toList();
+
           return Column(
             children: [
               // 添加提示信息
@@ -40,12 +43,19 @@ class ManagePaymentMethodsPage extends ConsumerWidget {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.info_outline, color: const Color(0xFFFF9800), size: 20.sp),
+                    Icon(
+                      Icons.info_outline,
+                      color: const Color(0xFFFF9800),
+                      size: 20.sp,
+                    ),
                     SizedBox(width: 8.w),
                     Expanded(
                       child: Text(
-                        '如果支付时提示卡片无效，请删除该卡片后重新添加',
-                        style: TextStyle(fontSize: 12.sp, color: const Color(0xFF996600)),
+                        'If card is invalid during payment, please delete and re-add it',
+                        style: TextStyle(
+                          fontSize: 12.sp,
+                          color: const Color(0xFF996600),
+                        ),
                       ),
                     ),
                   ],
@@ -55,14 +65,18 @@ class ManagePaymentMethodsPage extends ConsumerWidget {
                 child: ListView(
                   padding: EdgeInsets.all(24.w),
                   children: [
-                    ...cards.map((method) => _buildCardItem(context, ref, method)),
+                    ...cards.map(
+                      (method) => _buildCardItem(context, ref, method),
+                    ),
                     SizedBox(height: 20.h),
                     // 添加新卡按钮
                     GestureDetector(
                       onTap: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (_) => const AddCardPage()),
+                          MaterialPageRoute(
+                            builder: (_) => const AddCardPage(),
+                          ),
                         );
                       },
                       child: Container(
@@ -73,7 +87,7 @@ class ManagePaymentMethodsPage extends ConsumerWidget {
                         ),
                         alignment: Alignment.center,
                         child: Text(
-                          '添加新卡',
+                          'Add New Card',
                           style: TextStyle(
                             color: AppTheme.primaryOrange,
                             fontSize: 16.sp,
@@ -89,14 +103,18 @@ class ManagePaymentMethodsPage extends ConsumerWidget {
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, stack) => Center(child: Text('加载失败: $err')),
+        error: (err, stack) => Center(child: Text('Failed to load: $err')),
       ),
     );
   }
 
-  Widget _buildCardItem(BuildContext context, WidgetRef ref, PaymentSelectionWrapper method) {
+  Widget _buildCardItem(
+    BuildContext context,
+    WidgetRef ref,
+    PaymentSelectionWrapper method,
+  ) {
     final iconPath = _getCardIconPath(method.card?.cardBrand ?? '');
-    
+
     return Container(
       margin: EdgeInsets.only(bottom: 16.h),
       padding: EdgeInsets.all(16.w),
@@ -132,17 +150,23 @@ class ManagePaymentMethodsPage extends ConsumerWidget {
                     if (method.card?.isDefault == true) ...[
                       SizedBox(width: 8.w),
                       Container(
-                        padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 6.w,
+                          vertical: 2.h,
+                        ),
                         decoration: BoxDecoration(
                           color: const Color(0xFFFFE4D6),
                           borderRadius: BorderRadius.circular(4.r),
                         ),
                         child: Text(
-                          '默认',
-                          style: TextStyle(fontSize: 10.sp, color: AppTheme.primaryOrange),
+                          'Default',
+                          style: TextStyle(
+                            fontSize: 10.sp,
+                            color: AppTheme.primaryOrange,
+                          ),
                         ),
-                      )
-                    ]
+                      ),
+                    ],
                   ],
                 ),
               ],
@@ -152,7 +176,7 @@ class ManagePaymentMethodsPage extends ConsumerWidget {
           GestureDetector(
             onTap: () => _showDeleteConfirmDialog(context, ref, method),
             child: Text(
-              '解绑卡片',
+              'Unbind Card',
               style: TextStyle(
                 fontSize: 12.sp,
                 color: AppTheme.primaryOrange,
@@ -177,33 +201,42 @@ class ManagePaymentMethodsPage extends ConsumerWidget {
     return 'assets/images/wallet.png';
   }
 
-  void _showDeleteConfirmDialog(BuildContext context, WidgetRef ref, PaymentSelectionWrapper method) {
+  void _showDeleteConfirmDialog(
+    BuildContext context,
+    WidgetRef ref,
+    PaymentSelectionWrapper method,
+  ) {
     showDialog(
       context: context,
-      builder: (context) => CommonDialog(
-        title: '确认解绑',
-        subtitle: '确定要解绑 ${method.displayName} 吗？',
-        cancelText: '取消',
-        confirmText: '解绑',
-        confirmButtonColor: const Color(0xFFFF4D4F),
-        confirmTextColor: Colors.white,
-        onConfirm: () => _deleteCard(context, ref, method),
-      ),
+      builder:
+          (context) => CommonDialog(
+            title: 'Confirm Unbind',
+            subtitle: 'Are you sure you want to unbind ${method.displayName}?',
+            cancelText: 'Cancel',
+            confirmText: 'Unbind',
+            confirmButtonColor: const Color(0xFFFF4D4F),
+            confirmTextColor: Colors.white,
+            onConfirm: () => _deleteCard(context, ref, method),
+          ),
     );
   }
 
-  Future<void> _deleteCard(BuildContext context, WidgetRef ref, PaymentSelectionWrapper method) async {
+  Future<void> _deleteCard(
+    BuildContext context,
+    WidgetRef ref,
+    PaymentSelectionWrapper method,
+  ) async {
     if (method.card == null) return;
 
     final service = ref.read(paymentServiceProvider);
     final success = await service.deletePaymentMethod(method.card!.id);
 
     if (success) {
-      toast('解绑成功');
+      toast('Unbind Successful');
       // 刷新列表
       ref.invalidate(paymentMethodsListProvider);
     } else {
-      toast('解绑失败，请重试');
+      toast('Unbind failed, please try again');
     }
   }
 }

@@ -28,7 +28,7 @@ class _AddCardPageState extends ConsumerState<AddCardPage> {
 
   Future<void> _handleSave() async {
     if (!_cardEditController.complete) {
-      toast('请填写完整的卡片信息');
+      toast('Please fill in complete card information');
       return;
     }
 
@@ -43,24 +43,26 @@ class _AddCardPageState extends ConsumerState<AddCardPage> {
       );
 
       // 将 PaymentMethod ID 发送给后端
-      final success = await ref.read(paymentServiceProvider).addPaymentMethod(
-        paymentMethod.id,
-        isDefault: _isDefault,
-      );
+      final success = await ref
+          .read(paymentServiceProvider)
+          .addPaymentMethod(paymentMethod.id, isDefault: _isDefault);
 
       if (success) {
-        toast('添加成功');
+        toast('Added successfully');
         ref.invalidate(paymentMethodsListProvider);
         if (mounted) Navigator.pop(context);
       } else {
-        toast('添加失败，请重试');
+        toast('Failed to add, please try again');
       }
     } on StripeException catch (e) {
-      final errorMsg = e.error.localizedMessage ?? e.error.message ?? '卡片验证失败';
+      final errorMsg =
+          e.error.localizedMessage ??
+          e.error.message ??
+          'Card verification failed';
       toast(errorMsg);
       debugPrint('Stripe Error: ${e.error.code} - $errorMsg');
     } catch (e, stackTrace) {
-      toast('发生错误，请重试');
+      toast('An error occurred, please try again');
       debugPrint('Add card error: $e');
       debugPrint('Stack trace: $stackTrace');
     } finally {
@@ -72,20 +74,23 @@ class _AddCardPageState extends ConsumerState<AddCardPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: const CommonAppBar(title: '添加卡片'),
+      appBar: const CommonAppBar(title: 'Add Card'),
       body: SingleChildScrollView(
         padding: EdgeInsets.all(24.w),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _buildLabel('卡片信息'),
+            _buildLabel('Card Information'),
             SizedBox(height: 8.h),
             _buildCardField(),
             SizedBox(height: 24.h),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('设置为默认卡号', style: TextStyle(fontSize: 14.sp, color: Colors.grey[600])),
+                Text(
+                  'Set as default card',
+                  style: TextStyle(fontSize: 14.sp, color: Colors.grey[600]),
+                ),
                 Switch(
                   value: _isDefault,
                   activeColor: AppTheme.primaryOrange,
@@ -101,24 +106,31 @@ class _AddCardPageState extends ConsumerState<AddCardPage> {
                 onPressed: _isLoading ? null : _handleSave,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.primaryOrange,
-                  disabledBackgroundColor: AppTheme.primaryOrange.withOpacity(0.6),
+                  disabledBackgroundColor: AppTheme.primaryOrange.withOpacity(
+                    0.6,
+                  ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(25.r),
                   ),
                 ),
-                child: _isLoading
-                    ? SizedBox(
-                        width: 20.w,
-                        height: 20.w,
-                        child: const CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2,
+                child:
+                    _isLoading
+                        ? SizedBox(
+                          width: 20.w,
+                          height: 20.w,
+                          child: const CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                        : Text(
+                          'Save',
+                          style: TextStyle(
+                            fontSize: 16.sp,
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
-                      )
-                    : Text(
-                        '保存',
-                        style: TextStyle(fontSize: 16.sp, color: Colors.white, fontWeight: FontWeight.bold),
-                      ),
               ),
             ),
           ],
@@ -130,7 +142,11 @@ class _AddCardPageState extends ConsumerState<AddCardPage> {
   Widget _buildLabel(String text) {
     return Text(
       text,
-      style: TextStyle(fontSize: 14.sp, color: Colors.black87, fontWeight: FontWeight.w500),
+      style: TextStyle(
+        fontSize: 14.sp,
+        color: Colors.black87,
+        fontWeight: FontWeight.w500,
+      ),
     );
   }
 

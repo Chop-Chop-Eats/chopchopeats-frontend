@@ -17,7 +17,6 @@ import '../../utils/logger/logger.dart';
 import '../maps_config.dart';
 import '../services/maps_service.dart';
 import '../providers/map_providers.dart';
-import '../widgets/map_nearby_sheet.dart';
 
 class MapPickerArguments {
   MapPickerArguments({
@@ -68,6 +67,7 @@ class _MapPickerPageState extends ConsumerState<MapPickerPage> {
   bool _isCameraMoving = false;
   bool _isNavigatingBack = false;
   bool _isKeyboardVisible = false; // 键盘状态标志
+  bool _showConfirmCard = false; // 是否显示确认卡片
 
   @override
   void initState() {
@@ -85,7 +85,6 @@ class _MapPickerPageState extends ConsumerState<MapPickerPage> {
         position: widget.arguments.initialPosition,
         address: widget.arguments.initialAddress,
       );
-      _showSheetOnce();
     });
   }
 
@@ -109,25 +108,18 @@ class _MapPickerPageState extends ConsumerState<MapPickerPage> {
     
     final hasFocus = _searchFocusNode.hasFocus;
     
-    // 键盘显示：关闭 sheet
+    // 键盘显示：隐藏确认卡片
     if (hasFocus && !_isKeyboardVisible) {
       _isKeyboardVisible = true;
-      Logger.info('MapPickerPage', '键盘显示，关闭 sheet');
-      if (PopupManager.hasNonToastPopup) {
-        PopupManager.hideLastNonToast();
+      if (_showConfirmCard) {
+        setState(() {
+          _showConfirmCard = false;
+        });
       }
     }
-    // 键盘隐藏：显示 sheet
+    // 键盘隐藏
     else if (!hasFocus && _isKeyboardVisible) {
       _isKeyboardVisible = false;
-      Logger.info('MapPickerPage', '键盘隐藏，显示 sheet');
-      // 延迟一下，确保键盘完全收起后再显示 sheet
-      Future.delayed(const Duration(milliseconds: 100), () {
-        // 严格检查：确保页面仍然挂载且没有导航返回，且焦点仍然不在搜索框
-        if (mounted && !_isNavigatingBack && !_searchFocusNode.hasFocus) {
-          _showSheetOnce();
-        }
-      });
     }
   }
 
@@ -154,8 +146,6 @@ class _MapPickerPageState extends ConsumerState<MapPickerPage> {
     if (widget.arguments.enableReverseGeocode && !hasValidLastKnownPlace) {
       await notifier.resolveAddress(position);
     }
-
-    await notifier.loadNearbyPlaces(position);
   }
 
   void _onCameraMove(CameraPosition position) {
@@ -164,7 +154,6 @@ class _MapPickerPageState extends ConsumerState<MapPickerPage> {
     }
     _isCameraMoving = true;
     ref.read(mapPickerProvider.notifier).updatePosition(position.target);
-    _showSheetOnce();
   }
 
   Future<void> _moveCamera(LatLng target) async {
@@ -179,15 +168,14 @@ class _MapPickerPageState extends ConsumerState<MapPickerPage> {
   }
 
   Future<void> _onSuggestionSelected(
-    PlaceSuggestion suggestion, {
-    bool closePicker = false,
-  }) async {
+    PlaceSuggestion suggestion,
+  ) async {
     final notifier = ref.read(mapPickerProvider.notifier);
     final activeSuggestion = notifier.cacheSuggestion(suggestion);
     LatLng? targetPosition;
     String targetAddress = activeSuggestion.description;
     String targetLabel = activeSuggestion.description;
-    Logger.info('MapPickerPage', 'onSuggestionSelected: ${activeSuggestion.description}, closePicker: $closePicker');
+    Logger.info('MapPickerPage', 'onSuggestionSelected: ${activeSuggestion.description}');
     if (notifier.isCurrentPositionSuggestion(activeSuggestion)) {
       final mapState = ref.read(mapPickerProvider);
       targetPosition = mapState.currentPosition;
@@ -212,36 +200,14 @@ class _MapPickerPageState extends ConsumerState<MapPickerPage> {
         toast.warn(AppLocalizations.of(context)?.mapNoAddress ?? '暂无可用位置');
         return;
       }
-      Logger.info('MapPickerPage', 'targetPosition: $targetPosition, targetAddress: $targetAddress');
       
-      // 获取地址组件信息
-      AddressComponents? addressComponents;
-      try {
-        final geocodeResult = await mapsService.reverseGeocodeWithComponents(targetPosition);
-        addressComponents = geocodeResult?.addressComponents;
-      } catch (e, stack) {
-        Logger.error('MapPickerPage', '获取地址组件失败: $e\n$stack');
-        // 继续执行，即使获取地址组件失败也不影响返回结果
-      }
-      
-      if (closePicker) {
-        _isNavigatingBack = true;
-        // 直接使用原始suggestion的primaryText和secondaryText
-        Navigator.of(context).pop<MapPickerResult>(
-          MapPickerResult(
-            position: targetPosition,
-            address: targetAddress,
-            label: targetLabel,
-            primaryText: activeSuggestion.primaryText,
-            secondaryText: activeSuggestion.secondaryText,
-            addressComponents: addressComponents,
-          ),
-        );
-      } else {
-        _searchController.text = targetLabel.isNotEmpty ? targetLabel : targetAddress;
-        // 点击搜索结果后，清除搜索建议列表
-        _clearSuggestions();
-      }
+      // 清空搜索框，收起键盘，显示确认卡片
+      _searchController.clear();
+      _searchFocusNode.unfocus();
+      _clearSuggestions();
+      setState(() {
+        _showConfirmCard = true;
+      });
       return;
     }
 
@@ -252,7 +218,10 @@ class _MapPickerPageState extends ConsumerState<MapPickerPage> {
         toast.warn(AppLocalizations.of(context)?.mapNoAddress ?? '暂无可用位置');
         return;
       }
+      
+      // 移动地图到选中的位置
       await _moveCamera(targetPosition);
+      
       targetAddress = (enrichedSuggestion.address ?? suggestion.description).trim();
       if (targetAddress.isEmpty) {
         targetAddress = suggestion.description;
@@ -260,6 +229,8 @@ class _MapPickerPageState extends ConsumerState<MapPickerPage> {
       if (targetLabel.trim().isEmpty && targetAddress.isNotEmpty) {
         targetLabel = targetAddress;
       }
+      
+      // 更新状态
       notifier.updatePosition(targetPosition);
       notifier.setSelectedPlace(
         suggestion: enrichedSuggestion,
@@ -268,53 +239,17 @@ class _MapPickerPageState extends ConsumerState<MapPickerPage> {
         label: targetLabel,
         street: enrichedSuggestion.street,
       );
-      _searchController.text = targetLabel.isNotEmpty ? targetLabel : targetAddress;
+      
+      // 清空搜索框，收起键盘，清除搜索建议
+      _searchController.clear();
       _searchFocusNode.unfocus();
-      // 点击搜索结果后，清除搜索建议列表
       _clearSuggestions();
       
-      // 获取地址组件信息
-      AddressComponents? addressComponents;
-      if (enrichedSuggestion.placeId.isNotEmpty) {
-        try {
-          final placeDetails = await mapsService.fetchPlaceDetails(enrichedSuggestion.placeId);
-          addressComponents = placeDetails?.addressComponents;
-        } catch (e, stack) {
-          Logger.error('MapPickerPage', '从PlaceDetails获取地址组件失败: $e\n$stack');
-          // 如果从PlaceDetails获取失败，尝试使用reverseGeocode
-          try {
-            final geocodeResult = await mapsService.reverseGeocodeWithComponents(targetPosition);
-            addressComponents = geocodeResult?.addressComponents;
-          } catch (e2, stack2) {
-            Logger.error('MapPickerPage', '从reverseGeocode获取地址组件失败: $e2\n$stack2');
-            // 继续执行，即使获取地址组件失败也不影响返回结果
-          }
-        }
-      } else {
-        // 如果没有placeId，使用reverseGeocode
-        try {
-          final geocodeResult = await mapsService.reverseGeocodeWithComponents(targetPosition);
-          addressComponents = geocodeResult?.addressComponents;
-        } catch (e, stack) {
-          Logger.error('MapPickerPage', '获取地址组件失败: $e\n$stack');
-          // 继续执行，即使获取地址组件失败也不影响返回结果
-        }
-      }
+      // 显示确认卡片
+      setState(() {
+        _showConfirmCard = true;
+      });
       
-      if (closePicker) {
-        if (!mounted) return;
-        _isNavigatingBack = true;
-        Navigator.of(context).pop<MapPickerResult>(
-          MapPickerResult(
-            position: targetPosition,
-            address: targetAddress,
-            label: targetLabel,
-            primaryText: enrichedSuggestion.primaryText,
-            secondaryText: enrichedSuggestion.secondaryText,
-            addressComponents: addressComponents,
-          ),
-        );
-      }
     } catch (e, stack) {
       Logger.error('MapPickerPage', '获取地点详情失败: $e\n$stack');
       if (!mounted) return;
@@ -340,28 +275,6 @@ class _MapPickerPageState extends ConsumerState<MapPickerPage> {
         toast.warn(AppLocalizations.of(context)?.mapSearchFailed ?? '搜索失败，请检查网络后重试');
       }
     });
-  }
-
-
-  Future<void> _showSheetOnce() async {
-    // 严格检查：确保页面仍然挂载且没有导航返回
-    if (!mounted || _isNavigatingBack) {
-      return;
-    }
-    if (PopupManager.hasNonToastPopup) {
-      return;
-    }
-    final l10n = AppLocalizations.of(context)!;
-    await Pop.sheet<void>(
-      height: SheetDimension.fraction(0.48),
-      maxHeight: SheetDimension.fraction(0.48),
-      title: l10n.mapSelectLocationTitle ,
-      showBarrier: false,
-      childBuilder: (dismiss) => MapNearbySheet(
-        dismiss: dismiss,
-        onSelectPlace: (suggestion) => _onSuggestionSelected(suggestion, closePicker: true),
-      ),
-    );
   }
 
 
@@ -401,7 +314,6 @@ class _MapPickerPageState extends ConsumerState<MapPickerPage> {
       if (widget.arguments.enableReverseGeocode) {
         await notifier.resolveAddress(target);
       }
-      await notifier.loadNearbyPlaces(target);
     } catch (e, stack) {
       Logger.error('MapPickerPage', '定位失败: $e\n$stack');
       if (!mounted) return;
@@ -417,10 +329,6 @@ class _MapPickerPageState extends ConsumerState<MapPickerPage> {
     final myLocationTooltip = l10n.mapUseMyLocation;
     // 始终使用传入的初始位置，确保地图显示的是应用的当前位置
     final currentPosition = widget.arguments.initialPosition;
-    
-    // 计算地图padding：底部44%（让地图显示为56%高度，更美观）
-    final screenHeight = MediaQuery.of(context).size.height;
-    final mapBottomPadding = screenHeight * 0.44;
 
     return PopScope(
       canPop: true,
@@ -443,9 +351,6 @@ class _MapPickerPageState extends ConsumerState<MapPickerPage> {
             myLocationButtonEnabled: false,
             myLocationEnabled: true,
             zoomControlsEnabled: false,
-            padding: EdgeInsets.only(
-              bottom: mapBottomPadding,
-            ),
             onMapCreated: (controller) => _mapController = controller,
             onCameraMove: _onCameraMove,
             onCameraIdle: _handleCameraIdle,
@@ -472,9 +377,11 @@ class _MapPickerPageState extends ConsumerState<MapPickerPage> {
           if (!_isKeyboardVisible)
             Positioned(
               right: 16.w,
-              bottom: MediaQuery.of(context).size.height * 0.48  + 24.h,
+              bottom: _showConfirmCard ? 180.h : 32.h,
               child: _buildMyLocationButton(myLocationTooltip),
             ),
+          if (_showConfirmCard && !_isKeyboardVisible)
+            _buildConfirmCard(mapState),
         ],
       ),
       ),
@@ -643,6 +550,109 @@ class _MapPickerPageState extends ConsumerState<MapPickerPage> {
           fillColor: Colors.white,
           contentPadding: EdgeInsets.symmetric(horizontal: 0.w, vertical: 0.h),
         ),
+      ),
+    );
+  }
+
+  Widget _buildConfirmCard(MapPickerState state) {
+    final l10n = AppLocalizations.of(context)!;
+    final address = state.currentAddress ?? state.currentLabel ?? '';
+    
+    return Positioned(
+      left: 16.w,
+      right: 16.w,
+      bottom: 32.h,
+      child: Container(
+        padding: EdgeInsets.all(16.w),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16.r),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.1),
+              blurRadius: 16,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              address,
+              style: TextStyle(
+                fontSize: 16.sp,
+                fontWeight: FontWeight.w600,
+                color: Colors.black,
+              ),
+            ),
+            CommonSpacing.medium,
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () => _confirmAndReturn(state),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryOrange,
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(vertical: 12.h),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8.r),
+                  ),
+                ),
+                child: Text(
+                  l10n.mapConfirmLocation,
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _confirmAndReturn(MapPickerState state) async {
+    if (_isNavigatingBack) return;
+    
+    final position = state.currentPosition;
+    if (position == null) {
+      toast.warn(AppLocalizations.of(context)?.mapNoAddress ?? '暂无可用位置');
+      return;
+    }
+
+    final address = state.currentAddress ?? state.currentLabel ?? '';
+    final label = state.currentLabel ?? state.currentAddress ?? '';
+    final lastKnownPlace = state.lastKnownPlace;
+    
+    // 获取地址组件信息
+    AddressComponents? addressComponents;
+    try {
+      if (lastKnownPlace?.placeId.isNotEmpty == true) {
+        final placeDetails = await mapsService.fetchPlaceDetails(lastKnownPlace!.placeId);
+        addressComponents = placeDetails?.addressComponents;
+      } else {
+        final geocodeResult = await mapsService.reverseGeocodeWithComponents(position);
+        addressComponents = geocodeResult?.addressComponents;
+      }
+    } catch (e, stack) {
+      Logger.error('MapPickerPage', '获取地址组件失败: $e\n$stack');
+    }
+
+    _isNavigatingBack = true;
+    if (!mounted) return;
+    
+    Navigator.of(context).pop<MapPickerResult>(
+      MapPickerResult(
+        position: position,
+        address: address,
+        label: label,
+        primaryText: lastKnownPlace?.primaryText ?? label,
+        secondaryText: lastKnownPlace?.secondaryText,
+        addressComponents: addressComponents,
       ),
     );
   }

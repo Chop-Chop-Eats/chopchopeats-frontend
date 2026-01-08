@@ -550,4 +550,68 @@ class AppLocalizationsEn implements AppLocalizations {
   String get loadingFailedWithError => 'Loading failed';
   @override
   String loadingFailedMessage(String error) => 'Loading failed: $error';
+
+  // ============== 订单列表和详情 ==============
+  @override
+  String get orderNoOrders => 'No Orders Yet';
+  @override
+  String get orderNoOrdersDesc => 'Go find the taste of home';
+  @override
+  String get orderExpired => 'Expired';
+  @override
+  String orderExpiresIn(int minutes, int seconds) =>
+      'Expires in $minutes min $seconds sec';
+  @override
+  String get orderTotalItems => 'Total';
+  @override
+  String orderTotalQuantity(int quantity) => 'Total $quantity items';
+  @override
+  String get orderPayNow => 'Pay Now';
+  @override
+  String get orderCancelOrder => 'Cancel Order';
+  @override
+  String get orderRequestRefund => 'Request Refund';
+  @override
+  String get orderWriteReview => 'Write Review';
+  @override
+  String get orderReorder => 'Reorder';
+  @override
+  String get orderDeleteOrder => 'Delete Order';
+  @override
+  String get orderDeliveryAddress => 'Delivery Address';
+  @override
+  String get orderChef => 'Chef';
+  @override
+  String get orderOrderDetails => 'Order Details';
+  @override
+  String get orderSubtotal => 'Subtotal';
+  @override
+  String get orderTaxAndServiceFee => 'Tax & Service Fee';
+  @override
+  String get orderDeliveryFee => 'Delivery Fee';
+  @override
+  String get orderCouponDiscount => 'Coupon Discount';
+  @override
+  String get orderActualPayment => 'Actual Payment';
+  @override
+  String orderActualPaymentWithTip(String tip) => '(including tip \$$tip)';
+  @override
+  String get orderOrderInfo => 'Order Info';
+  @override
+  String get orderOrderNo => 'Order No';
+  @override
+  String get orderOrderTime => 'Order Time';
+  @override
+  String get orderPaymentMethod => 'Payment Method';
+  @override
+  String orderDistance(double distance) => 'Distance ${distance}km';
+  @override
+  String orderDeliveryTime(String time) => 'Planned to start delivery at $time';
+  @override
+  String orderCountdownTime(int minutes, int seconds) =>
+      '${minutes}m ${seconds.toString().padLeft(2, '0')}s';
+  @override
+  String get orderCountdownSuffix => ' until expiration';
+  @override
+  String get orderStatusDescDefault => 'Chef accepted, waiting for driver';
 }

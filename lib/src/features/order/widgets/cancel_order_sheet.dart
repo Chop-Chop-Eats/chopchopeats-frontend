@@ -59,9 +59,9 @@ class _CancelOrderSheetState extends State<CancelOrderSheet> {
 
   Future<void> _submit() async {
     if (_selectedReasonText.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('请选择取消原因')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('请选择取消原因')));
       return;
     }
 
@@ -72,17 +72,17 @@ class _CancelOrderSheetState extends State<CancelOrderSheet> {
     try {
       await _orderService.cancelOrder(widget.orderNo, _selectedReasonText);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('订单已取消')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('订单已取消')));
         Navigator.pop(context);
         widget.onSuccess();
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('取消失败: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('取消失败: $e')));
         setState(() {
           _isSubmitting = false;
         });
@@ -179,14 +179,13 @@ class _CancelOrderSheetState extends State<CancelOrderSheet> {
             Expanded(
               child: Text(
                 reason.reasonChinese ?? '',
-                style: TextStyle(
-                  fontSize: 14.sp,
-                  color: Colors.black87,
-                ),
+                style: TextStyle(fontSize: 14.sp, color: Colors.black87),
               ),
             ),
             Icon(
-              isSelected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
+              isSelected
+                  ? Icons.radio_button_checked
+                  : Icons.radio_button_unchecked,
               color: isSelected ? const Color(0xFFFF5722) : Colors.grey,
               size: 20.sp,
             ),

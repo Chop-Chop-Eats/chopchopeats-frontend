@@ -60,11 +60,10 @@ class _CancelOrderPageState extends State<CancelOrderPage> {
             ),
             SizedBox(height: 8.h),
             Text(
-              widget.isRefund ? '退款原因私厨不可见，您的选择会促使我们努力改善' : '取消原因私厨不可见，您的选择会促使我们努力改善',
-              style: TextStyle(
-                fontSize: 12.sp,
-                color: Colors.grey,
-              ),
+              widget.isRefund
+                  ? '退款原因私厨不可见，您的选择会促使我们努力改善'
+                  : '取消原因私厨不可见，您的选择会促使我们努力改善',
+              style: TextStyle(fontSize: 12.sp, color: Colors.grey),
             ),
             SizedBox(height: 32.h),
             _buildCategoryItem(
@@ -73,13 +72,14 @@ class _CancelOrderPageState extends State<CancelOrderPage> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => CancelReasonPage(
-                      orderNo: widget.orderNo,
-                      category: 1,
-                      categoryName: '私厨/商品的原因',
-                      onSuccess: widget.onSuccess,
-                      isRefund: widget.isRefund,
-                    ),
+                    builder:
+                        (context) => CancelReasonPage(
+                          orderNo: widget.orderNo,
+                          category: 1,
+                          categoryName: '私厨/商品的原因',
+                          onSuccess: widget.onSuccess,
+                          isRefund: widget.isRefund,
+                        ),
                   ),
                 );
               },
@@ -91,13 +91,14 @@ class _CancelOrderPageState extends State<CancelOrderPage> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => CancelReasonPage(
-                      orderNo: widget.orderNo,
-                      category: 2,
-                      categoryName: '我自己的原因',
-                      onSuccess: widget.onSuccess,
-                      isRefund: widget.isRefund,
-                    ),
+                    builder:
+                        (context) => CancelReasonPage(
+                          orderNo: widget.orderNo,
+                          category: 2,
+                          categoryName: '我自己的原因',
+                          onSuccess: widget.onSuccess,
+                          isRefund: widget.isRefund,
+                        ),
                   ),
                 );
               },
@@ -108,7 +109,10 @@ class _CancelOrderPageState extends State<CancelOrderPage> {
     );
   }
 
-  Widget _buildCategoryItem({required String title, required VoidCallback onTap}) {
+  Widget _buildCategoryItem({
+    required String title,
+    required VoidCallback onTap,
+  }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -179,7 +183,9 @@ class _CancelReasonPageState extends State<CancelReasonPage> {
 
   Future<void> _loadReasons() async {
     try {
-      final reasons = await _orderService.getRefundReasonListByCategory(widget.category);
+      final reasons = await _orderService.getRefundReasonListByCategory(
+        widget.category,
+      );
       if (mounted) {
         setState(() {
           _reasons = reasons;
@@ -263,45 +269,48 @@ class _CancelReasonPageState extends State<CancelReasonPage> {
       body: Column(
         children: [
           Expanded(
-            child: _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : SingleChildScrollView(
-                    padding: EdgeInsets.symmetric(horizontal: 16.w),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(height: 16.h),
-                        Text(
-                          widget.isRefund ? '您为什么申请退款' : '您为什么取消订单',
-                          style: TextStyle(
-                            fontSize: 20.sp,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black,
+            child:
+                _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : SingleChildScrollView(
+                      padding: EdgeInsets.symmetric(horizontal: 16.w),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          SizedBox(height: 16.h),
+                          Text(
+                            widget.isRefund ? '您为什么申请退款' : '您为什么取消订单',
+                            style: TextStyle(
+                              fontSize: 20.sp,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                            ),
                           ),
-                        ),
-                        SizedBox(height: 8.h),
-                        Text(
-                          widget.isRefund ? '退款原因私厨不可见，您的选择会促使我们努力改善' : '取消原因私厨不可见，您的选择会促使我们努力改善',
-                          style: TextStyle(
-                            fontSize: 12.sp,
-                            color: Colors.grey,
+                          SizedBox(height: 8.h),
+                          Text(
+                            widget.isRefund
+                                ? '退款原因私厨不可见，您的选择会促使我们努力改善'
+                                : '取消原因私厨不可见，您的选择会促使我们努力改善',
+                            style: TextStyle(
+                              fontSize: 12.sp,
+                              color: Colors.grey,
+                            ),
                           ),
-                        ),
-                        SizedBox(height: 32.h),
-                        Text(
-                          widget.categoryName,
-                          style: TextStyle(
-                            fontSize: 16.sp,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black87,
+                          SizedBox(height: 32.h),
+                          Text(
+                            widget.categoryName,
+                            style: TextStyle(
+                              fontSize: 16.sp,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
                           ),
-                        ),
-                        SizedBox(height: 8.h),
-                        Divider(color: Colors.grey[200]),
-                        ..._reasons.map((e) => _buildReasonItem(e)),
-                      ],
+                          SizedBox(height: 8.h),
+                          Divider(color: Colors.grey[200]),
+                          ..._reasons.map((e) => _buildReasonItem(e)),
+                        ],
+                      ),
                     ),
-                  ),
           ),
           _buildBottomButton(),
         ],
@@ -328,14 +337,13 @@ class _CancelReasonPageState extends State<CancelReasonPage> {
             Expanded(
               child: Text(
                 reason.reasonChinese ?? '',
-                style: TextStyle(
-                  fontSize: 14.sp,
-                  color: Colors.black87,
-                ),
+                style: TextStyle(fontSize: 14.sp, color: Colors.black87),
               ),
             ),
             Icon(
-              isSelected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
+              isSelected
+                  ? Icons.radio_button_checked
+                  : Icons.radio_button_unchecked,
               color: isSelected ? const Color(0xFFFF5722) : Colors.grey,
               size: 20.sp,
             ),

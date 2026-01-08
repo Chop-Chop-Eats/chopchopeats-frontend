@@ -1,5 +1,6 @@
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:chop_user/src/core/utils/pop/toast.dart';
+import 'package:chop_user/src/features/detail/providers/cart_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -32,7 +33,7 @@ class ProductDetailPage extends ConsumerStatefulWidget {
 }
 
 class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
-  String? _selectedSkuId;
+  final Set<String> _selectedSkuIds = {};
 
   @override
   void initState() {
@@ -139,7 +140,9 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
     _ensureDefaultSku(product);
     final cartState = ref.watch(cartStateProvider(widget.shopId));
     final diningDate = cartState.diningDate;
-    final selectedSku = _currentSku(product);
+    final selectedSkus = _currentSkus(product);
+    final quantity = _getQuantityInCart(cartState, product.id, selectedSkus);
+    final totalPrice = _calculateTotalPrice(product, selectedSkus, quantity);
 
     return Stack(
       children: [
@@ -162,10 +165,13 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildProductInfo(product, selectedSku, diningDate),
+                    _buildProductInfo(product, selectedSkus, diningDate),
                     CommonSpacing.medium,
                     if (product.skuSetting == 1 && product.skus.isNotEmpty)
                       _buildSkuInfo(product, l10n),
+                    // CommonSpacing.medium,
+                    // if (selectedSkus.isNotEmpty)
+                    //   _buildSelectedSkusDisplay(selectedSkus, totalPrice),
                   ],
                 ),
               ),
@@ -203,7 +209,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
                     ),
                     CommonSpacing.width(4.w),
                     Text(
-                      "\$${cartState.totals.subtotal.toStringAsFixed(2)}",
+                      "\$${totalPrice.toStringAsFixed(2)}",
                       style: TextStyle(
                         fontSize: 18.sp,
                         fontWeight: FontWeight.w900,
@@ -212,7 +218,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
                     ),
                   ],
                 ),
-                _buildCartButton(product, selectedSku, diningDate, l10n),
+                _buildCartButton(product, selectedSkus, diningDate, l10n),
               ],
             ),
           ),
@@ -223,7 +229,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
 
   Widget _buildCartButton(
     SaleProductModel product,
-    SaleProductSku? selectedSku,
+    List<SaleProductSku> selectedSkus,
     String diningDate,
     AppLocalizations l10n,
   ) {
@@ -231,25 +237,31 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
     final isBusy = cartState.isUpdating || cartState.isOperating;
 
     return GestureDetector(
-      onTap: isBusy
-          ? null
-          : () => _handleAddToCart(product, selectedSku, diningDate, l10n),
+      onTap:
+          isBusy
+              ? null
+              : () => _handleAddToCart(product, selectedSkus, diningDate, l10n),
       child: Container(
         decoration: BoxDecoration(
           color: isBusy ? Colors.grey[400] : AppTheme.primaryOrange,
           borderRadius: BorderRadius.circular(22.r),
         ),
         padding: EdgeInsets.symmetric(horizontal: 32.w, vertical: 12.h),
-        child: isBusy
-            ? CommonIndicator(strokeWidth: 2, color: Colors.white, size: 14.w)
-            : Text(
-                l10n.addToCart,
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.bold,
+        child:
+            isBusy
+                ? CommonIndicator(
+                  strokeWidth: 2,
                   color: Colors.white,
+                  size: 14.w,
+                )
+                : Text(
+                  l10n.addToCart,
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
-              ),
       ),
     );
   }
@@ -284,21 +296,22 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
         enlargeCenterPage: false,
         scrollDirection: Axis.horizontal,
       ),
-      items: images.map((image) {
-        return Builder(
-          builder: (BuildContext context) {
-            return Container(
-              color: Color(0xFFF4F4F4),
-              alignment: Alignment.center,
-              child: CommonImage(
-                imagePath: image.url!,
-                height: 120.h,
-                width: 120.w,
-              ),
+      items:
+          images.map((image) {
+            return Builder(
+              builder: (BuildContext context) {
+                return Container(
+                  color: Color(0xFFF4F4F4),
+                  alignment: Alignment.center,
+                  child: CommonImage(
+                    imagePath: image.url!,
+                    height: 120.h,
+                    width: 120.w,
+                  ),
+                );
+              },
             );
-          },
-        );
-      }).toList(),
+          }).toList(),
     );
   }
 
@@ -334,22 +347,26 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
 
   Widget _buildProductInfo(
     SaleProductModel product,
-    SaleProductSku? selectedSku,
+    List<SaleProductSku> selectedSkusList,
     String diningDate,
   ) {
     // 构建selectedSkus列表
     List<SelectedSkuVO>? selectedSkus;
-    if (selectedSku != null && selectedSku.id != null) {
-      selectedSkus = [
-        SelectedSkuVO(
-          id: selectedSku.id!,
-          skuName: selectedSku.skuName ?? '',
-          englishSkuName: selectedSku.englishSkuName,
-          skuPrice: selectedSku.price,
-          skuGroupId: selectedSku.skuGroupId,
-          skuGroupType: selectedSku.skuGroupType,
-        ),
-      ];
+    if (selectedSkusList.isNotEmpty) {
+      selectedSkus =
+          selectedSkusList
+              .where((sku) => sku.id != null)
+              .map(
+                (sku) => SelectedSkuVO(
+                  id: sku.id!,
+                  skuName: sku.skuName ?? '',
+                  englishSkuName: sku.englishSkuName,
+                  skuPrice: sku.price,
+                  skuGroupId: sku.skuGroupId,
+                  skuGroupType: sku.skuGroupType,
+                ),
+              )
+              .toList();
     }
 
     return Column(
@@ -408,6 +425,16 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
   }
 
   Widget _buildSkuInfo(SaleProductModel product, AppLocalizations l10n) {
+    // 按skuGroupType和skuGroupId分组
+    final Map<int, Map<int, List<SaleProductSku>>> groupedSkus = {};
+    for (final sku in product.skus) {
+      if (sku.id == null || sku.id!.isEmpty) continue;
+      final groupType = sku.skuGroupType ?? 1;
+      final groupId = sku.skuGroupId ?? 0;
+      groupedSkus.putIfAbsent(groupType, () => {});
+      groupedSkus[groupType]!.putIfAbsent(groupId, () => []).add(sku);
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -420,19 +447,163 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
           ),
         ),
         CommonSpacing.small,
-        Wrap(
-          spacing: 8.w,
-          runSpacing: 8.h,
-          children: product.skus.map((sku) {
-            final isSelected = sku.id == _selectedSkuId;
-            return _buildSkuItem(sku, isSelected);
-          }).toList(),
-        ),
+        // 先显示互斥类型(type=2)
+        if (groupedSkus.containsKey(2))
+          ...groupedSkus[2]!.entries.map((entry) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (groupedSkus[2]!.length > 1)
+                  Padding(
+                    padding: EdgeInsets.only(bottom: 4.h),
+                    child: Text(
+                      '分组 ${entry.key}（单选）',
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ),
+                Wrap(
+                  spacing: 8.w,
+                  runSpacing: 8.h,
+                  children:
+                      entry.value.map((sku) {
+                        final isSelected = _selectedSkuIds.contains(sku.id);
+                        return _buildSkuItem(sku, isSelected);
+                      }).toList(),
+                ),
+                CommonSpacing.small,
+              ],
+            );
+          }),
+        // 再显示可叠加类型(type=1)
+        if (groupedSkus.containsKey(1))
+          ...groupedSkus[1]!.entries.map((entry) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (groupedSkus[1]!.length > 1 || groupedSkus.containsKey(2))
+                  Padding(
+                    padding: EdgeInsets.only(bottom: 4.h),
+                    child: Text(
+                      '分组 ${entry.key}（多选）',
+                      style: TextStyle(
+                        fontSize: 12.sp,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ),
+                Wrap(
+                  spacing: 8.w,
+                  runSpacing: 8.h,
+                  children:
+                      entry.value.map((sku) {
+                        final isSelected = _selectedSkuIds.contains(sku.id);
+                        return _buildSkuItem(sku, isSelected);
+                      }).toList(),
+                ),
+                CommonSpacing.small,
+              ],
+            );
+          }),
       ],
     );
   }
 
+  Widget _buildSelectedSkusDisplay(
+    List<SaleProductSku> selectedSkus,
+    double totalPrice,
+  ) {
+    return Container(
+      padding: EdgeInsets.all(12.w),
+      decoration: BoxDecoration(
+        color: Colors.orange[50],
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(
+          color: AppTheme.primaryOrange.withOpacity(0.3),
+          width: 1.w,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '已选规格',
+                style: TextStyle(
+                  fontSize: 13.sp,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+              Text(
+                '总计: \$${totalPrice.toStringAsFixed(2)}',
+                style: TextStyle(
+                  fontSize: 14.sp,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.primaryOrange,
+                ),
+              ),
+            ],
+          ),
+          CommonSpacing.small,
+          Wrap(
+            spacing: 6.w,
+            runSpacing: 6.h,
+            children:
+                selectedSkus.map((sku) {
+                  return Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 10.w,
+                      vertical: 5.h,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12.r),
+                      border: Border.all(
+                        color: AppTheme.primaryOrange,
+                        width: 1.w,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          sku.localizedSkuName ?? sku.skuName ?? '',
+                          style: TextStyle(
+                            fontSize: 12.sp,
+                            color: AppTheme.primaryOrange,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        CommonSpacing.width(4.w),
+                        Text(
+                          '+\$${sku.price.toStringAsFixed(2)}',
+                          style: TextStyle(
+                            fontSize: 11.sp,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildSkuItem(SaleProductSku sku, bool isSelected) {
+    // Format price: remove decimals if .00
+    final priceStr =
+        sku.price.truncateToDouble() == sku.price
+            ? sku.price.toStringAsFixed(0)
+            : sku.price.toStringAsFixed(2);
+
     return GestureDetector(
       onTap: () {
         if (sku.id == null) {
@@ -440,62 +611,156 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
           return;
         }
         setState(() {
-          _selectedSkuId = sku.id;
+          final skuGroupType = sku.skuGroupType ?? 1;
+          final skuGroupId = sku.skuGroupId ?? 0;
+
+          if (skuGroupType == 2) {
+            // 互斥类型：取消同组其他SKU，选中当前SKU
+            _selectedSkuIds.removeWhere((id) {
+              // 查找同组的其他SKU并移除
+              final params = ProductDetailParams(
+                productId: widget.productId,
+                shopId: widget.shopId,
+              );
+              final product = ref.read(productDetailDataProvider(params));
+              if (product == null) return false;
+
+              final otherSku = product.skus.firstWhere(
+                (s) => s.id == id,
+                orElse:
+                    () => SaleProductSku(
+                      price: 0,
+                      status: 0,
+                      skuGroupId: -1,
+                      skuGroupType: -1,
+                    ),
+              );
+              return otherSku.skuGroupId == skuGroupId &&
+                  otherSku.skuGroupType == 2;
+            });
+            _selectedSkuIds.add(sku.id!);
+          } else {
+            // 可叠加类型：切换选中状态
+            if (isSelected) {
+              _selectedSkuIds.remove(sku.id);
+            } else {
+              _selectedSkuIds.add(sku.id!);
+            }
+          }
         });
-        Logger.info("ProductDetailPage", "点击规格: ${sku.skuName}");
+        Logger.info(
+          "ProductDetailPage",
+          "点击规格: ${sku.skuName}, 当前选中: $_selectedSkuIds",
+        );
       },
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
+        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
         decoration: BoxDecoration(
-          color: isSelected ? AppTheme.primaryOrange : Colors.white,
-          borderRadius: BorderRadius.circular(20.r),
+          color: isSelected ? AppTheme.primaryOrange : const Color(0xFFF5F6F7),
+          borderRadius: BorderRadius.circular(12.r),
           border: Border.all(
-            color: isSelected ? AppTheme.primaryOrange : Colors.grey[300]!,
+            color: isSelected ? AppTheme.primaryOrange : Colors.transparent,
             width: 1.w,
           ),
         ),
-        child: Text(
-          sku.skuName ?? '',
-          style: TextStyle(
-            fontSize: 14.sp,
-            color: isSelected ? Colors.white : Colors.black,
-            fontWeight: FontWeight.w500,
-          ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              sku.skuName ?? '',
+              style: TextStyle(
+                fontSize: 14.sp,
+                color: isSelected ? Colors.white : const Color(0xFF333333),
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+              ),
+            ),
+            Container(
+              margin: EdgeInsets.symmetric(horizontal: 10.w),
+              width: 1.w,
+              height: 14.h,
+              color:
+                  isSelected
+                      ? Colors.white.withOpacity(0.5)
+                      : const Color(0xFFD8D8D8),
+            ),
+            Text(
+              '\$$priceStr',
+              style: TextStyle(
+                fontSize: 14.sp,
+                color: isSelected ? Colors.white : const Color(0xFF333333),
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
   void _ensureDefaultSku(SaleProductModel product) {
-    if (_selectedSkuId != null) return;
-    if (product.skus.isEmpty) return;
-    final candidate = product.skus.firstWhere(
-      (sku) => (sku.id ?? '').isNotEmpty,
-      orElse: () => product.skus.first,
-    );
-    if (candidate.id == null || candidate.id!.isEmpty) return;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || _selectedSkuId != null) return;
-      setState(() {
-        _selectedSkuId = candidate.id;
-      });
-    });
+    // 默认不选择任何SKU，由用户手动选择
   }
 
-  SaleProductSku? _currentSku(SaleProductModel product) {
-    if (_selectedSkuId == null) {
-      return product.skus.isNotEmpty ? product.skus.first : null;
+  List<SaleProductSku> _currentSkus(SaleProductModel product) {
+    if (_selectedSkuIds.isEmpty) {
+      return [];
     }
-    try {
-      return product.skus.firstWhere((sku) => sku.id == _selectedSkuId);
-    } catch (_) {
-      return product.skus.isNotEmpty ? product.skus.first : null;
+    return product.skus
+        .where((sku) => _selectedSkuIds.contains(sku.id))
+        .toList();
+  }
+
+  double _calculateTotalPrice(
+    SaleProductModel product,
+    List<SaleProductSku> selectedSkus,
+    int quantity,
+  ) {
+    // (商品基础价 + 所有选中SKU的附加价) × 数量
+    final basePrice = product.productPrice ?? 0.0;
+    final skusPrice = selectedSkus.fold<double>(
+      0.0,
+      (sum, sku) => sum + sku.price,
+    );
+    return (basePrice + skusPrice) * quantity;
+  }
+
+  int _getQuantityInCart(
+    CartState cartState,
+    String productId,
+    List<SaleProductSku> selectedSkus,
+  ) {
+    // 查找匹配的购物车条目
+    CartItemModel? matchedItem;
+    for (final item in cartState.items) {
+      if (item.productId == productId) {
+        // 检查 selectedSkus 是否匹配
+        if (selectedSkus.isNotEmpty) {
+          // 需要匹配所有的 SKU ID
+          final targetSkuIds = selectedSkus.map((s) => s.id).toSet();
+          final itemSkuIds =
+              (item.selectedSkus?.map((s) => s.id).toSet()) ?? {};
+
+          if (targetSkuIds.length == itemSkuIds.length &&
+              targetSkuIds.every((id) => itemSkuIds.contains(id))) {
+            matchedItem = item;
+            break;
+          }
+        } else if (item.selectedSkus == null || item.selectedSkus!.isEmpty) {
+          // 没有SKU的商品
+          matchedItem = item;
+          break;
+        }
+      }
     }
+
+    final cartQuantity = matchedItem?.quantity ?? 0;
+    // 详情页显示数量至少为1
+    return cartQuantity >= 1 ? cartQuantity : 1;
   }
 
   Future<void> _handleAddToCart(
     SaleProductModel product,
-    SaleProductSku? selectedSku,
+    List<SaleProductSku> selectedSkusList,
     String diningDate,
     AppLocalizations l10n,
   ) async {
@@ -512,23 +777,45 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
       }
 
       if (product.skuSetting == 1) {
-        if (selectedSku == null || selectedSku.id == null) {
+        // 检查是否所有互斥组都已选择
+        final mutualExclusiveGroups = <int>{};
+        for (final sku in product.skus) {
+          if (sku.skuGroupType == 2) {
+            mutualExclusiveGroups.add(sku.skuGroupId ?? 0);
+          }
+        }
+
+        for (final groupId in mutualExclusiveGroups) {
+          final hasSelection = selectedSkusList.any(
+            (sku) => sku.skuGroupType == 2 && sku.skuGroupId == groupId,
+          );
+          if (!hasSelection) {
+            toast.warn('请选择所有必选规格');
+            return;
+          }
+        }
+
+        if (selectedSkusList.isEmpty) {
           toast.warn('请选择规格');
           return;
         }
-        
-        // 构建selectedSkus列表
-        final selectedSkus = [
-          SelectedSkuVO(
-            id: selectedSku.id!,
-            skuName: selectedSku.skuName ?? '',
-            englishSkuName: selectedSku.englishSkuName,
-            skuPrice: selectedSku.price,
-            skuGroupId: selectedSku.skuGroupId,
-            skuGroupType: selectedSku.skuGroupType,
-          ),
-        ];
-        
+
+        // 构建selectedSkus列表（传递所有选中的SKU）
+        final selectedSkus =
+            selectedSkusList
+                .where((sku) => sku.id != null)
+                .map(
+                  (sku) => SelectedSkuVO(
+                    id: sku.id!,
+                    skuName: sku.skuName ?? '',
+                    englishSkuName: sku.englishSkuName,
+                    skuPrice: sku.price,
+                    skuGroupId: sku.skuGroupId,
+                    skuGroupType: sku.skuGroupType,
+                  ),
+                )
+                .toList();
+
         await notifier.increment(
           shopId: widget.shopId,
           diningDate: diningDate,
@@ -559,7 +846,6 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
   }
 }
 
-
 /// 详情页专用的SKU计数器（最小数量为1）
 class _DetailPageSkuCounter extends ConsumerWidget {
   const _DetailPageSkuCounter({
@@ -578,12 +864,13 @@ class _DetailPageSkuCounter extends ConsumerWidget {
   final List<SelectedSkuVO>? selectedSkus;
   final String? diningDate;
 
-  String get _productSpecId => selectedSkus?.isNotEmpty == true ? selectedSkus!.first.id : '';
+  String get _productSpecId =>
+      selectedSkus?.isNotEmpty == true ? selectedSkus!.first.id : '';
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final cartState = ref.watch(cartStateProvider(shopId));
-    
+
     // 查找匹配的购物车条目
     CartItemModel? matchedItem;
     for (final item in cartState.items) {
@@ -592,9 +879,10 @@ class _DetailPageSkuCounter extends ConsumerWidget {
         if (selectedSkus != null && selectedSkus!.isNotEmpty) {
           // 需要匹配所有的 SKU ID
           final targetSkuIds = selectedSkus!.map((s) => s.id).toSet();
-          final itemSkuIds = (item.selectedSkus?.map((s) => s.id).toSet()) ?? {};
-          
-          if (targetSkuIds.length == itemSkuIds.length && 
+          final itemSkuIds =
+              (item.selectedSkus?.map((s) => s.id).toSet()) ?? {};
+
+          if (targetSkuIds.length == itemSkuIds.length &&
               targetSkuIds.every((id) => itemSkuIds.contains(id))) {
             matchedItem = item;
             break;
@@ -606,9 +894,9 @@ class _DetailPageSkuCounter extends ConsumerWidget {
         }
       }
     }
-    
+
     final cartQuantity = matchedItem?.quantity ?? 0;
-    
+
     // 详情页显示数量：购物车数量 >= 1 ? 购物车数量 : 1
     final displayQuantity = cartQuantity >= 1 ? cartQuantity : 1;
 
@@ -616,10 +904,7 @@ class _DetailPageSkuCounter extends ConsumerWidget {
       padding: EdgeInsets.symmetric(vertical: 2.h, horizontal: 2.w),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(
-          color: AppTheme.primaryOrange,
-          width: 1.w,
-        ),
+        border: Border.all(color: AppTheme.primaryOrange, width: 1.w),
         color: Colors.white,
       ),
       child: Row(
@@ -696,10 +981,7 @@ class _DetailPageSkuCounter extends ConsumerWidget {
 
   double? _getProductPrice(WidgetRef ref) {
     try {
-      final params = ProductDetailParams(
-        productId: productId,
-        shopId: shopId,
-      );
+      final params = ProductDetailParams(productId: productId, shopId: shopId);
       final product = ref.read(productDetailDataProvider(params));
       return product?.productPrice;
     } catch (_) {

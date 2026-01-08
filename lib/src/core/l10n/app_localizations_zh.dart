@@ -538,4 +538,68 @@ class AppLocalizationsZh implements AppLocalizations {
   String get loadingFailedWithError => '加载失败';
   @override
   String loadingFailedMessage(String error) => '加载失败: $error';
+
+  // ============== 订单列表和详情 ==============
+  @override
+  String get orderNoOrders => '暂无订单';
+  @override
+  String get orderNoOrdersDesc => '去找找家的味道';
+  @override
+  String get orderExpired => '已过期';
+  @override
+  String orderExpiresIn(int minutes, int seconds) =>
+      '剩余 $minutes 分 $seconds 秒过期';
+  @override
+  String get orderTotalItems => '共';
+  @override
+  String orderTotalQuantity(int quantity) => '共 $quantity 件';
+  @override
+  String get orderPayNow => '立即支付';
+  @override
+  String get orderCancelOrder => '取消订单';
+  @override
+  String get orderRequestRefund => '申请退款';
+  @override
+  String get orderWriteReview => '写评价';
+  @override
+  String get orderReorder => '再来一单';
+  @override
+  String get orderDeleteOrder => '删除订单';
+  @override
+  String get orderDeliveryAddress => '配送地址';
+  @override
+  String get orderChef => '私厨';
+  @override
+  String get orderOrderDetails => '订单详情';
+  @override
+  String get orderSubtotal => '小计';
+  @override
+  String get orderTaxAndServiceFee => '税费&服务费';
+  @override
+  String get orderDeliveryFee => '配送费';
+  @override
+  String get orderCouponDiscount => '优惠券折扣';
+  @override
+  String get orderActualPayment => '实付款';
+  @override
+  String orderActualPaymentWithTip(String tip) => '(含小费\$$tip)';
+  @override
+  String get orderOrderInfo => '订单信息';
+  @override
+  String get orderOrderNo => '订单编号';
+  @override
+  String get orderOrderTime => '下单时间';
+  @override
+  String get orderPaymentMethod => '支付方式';
+  @override
+  String orderDistance(double distance) => '距离${distance}km';
+  @override
+  String orderDeliveryTime(String time) => '计划 $time 开始配送';
+  @override
+  String orderCountdownTime(int minutes, int seconds) =>
+      '${minutes}分${seconds.toString().padLeft(2, '0')}秒';
+  @override
+  String get orderCountdownSuffix => ' 后失效';
+  @override
+  String get orderStatusDescDefault => '私厨已接单，待骑手接单';
 }

@@ -11,7 +11,8 @@ class OrderPage extends ConsumerStatefulWidget {
   ConsumerState<OrderPage> createState() => _OrderPageState();
 }
 
-class _OrderPageState extends ConsumerState<OrderPage> with SingleTickerProviderStateMixin {
+class _OrderPageState extends ConsumerState<OrderPage>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   static const int _tabCount = 5;
 
@@ -42,12 +43,12 @@ class _OrderPageState extends ConsumerState<OrderPage> with SingleTickerProvider
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
         title: Text(
-          l10n.tabOrder, 
+          l10n.tabOrder,
           style: TextStyle(
-            color: Colors.black, 
-            fontSize: 20.sp, 
-            fontWeight: FontWeight.bold
-          )
+            color: Colors.black,
+            fontSize: 20.sp,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         centerTitle: false,
         backgroundColor: Colors.white,

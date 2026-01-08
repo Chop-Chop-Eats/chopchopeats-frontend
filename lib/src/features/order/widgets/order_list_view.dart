@@ -1,3 +1,4 @@
+import 'package:chop_user/src/core/l10n/app_localizations.dart';
 import 'package:chop_user/src/core/routing/routes.dart';
 import 'package:chop_user/src/core/widgets/common_image.dart';
 import 'package:chop_user/src/features/order/pages/cancel_order_page.dart';
@@ -20,7 +21,8 @@ class OrderListView extends ConsumerStatefulWidget {
   ConsumerState<OrderListView> createState() => _OrderListViewState();
 }
 
-class _OrderListViewState extends ConsumerState<OrderListView> with AutomaticKeepAliveClientMixin {
+class _OrderListViewState extends ConsumerState<OrderListView>
+    with AutomaticKeepAliveClientMixin {
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -43,7 +45,8 @@ class _OrderListViewState extends ConsumerState<OrderListView> with AutomaticKee
   }
 
   void _onScroll() {
-    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
       ref.read(orderListProvider(widget.statusGroup).notifier).loadMore();
     }
   }
@@ -52,6 +55,7 @@ class _OrderListViewState extends ConsumerState<OrderListView> with AutomaticKee
   Widget build(BuildContext context) {
     super.build(context);
     final state = ref.watch(orderListProvider(widget.statusGroup));
+    final l10n = AppLocalizations.of(context)!;
 
     if (state.isLoading && state.list.isEmpty) {
       return const Center(child: CircularProgressIndicator());
@@ -62,14 +66,18 @@ class _OrderListViewState extends ConsumerState<OrderListView> with AutomaticKee
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CommonImage(imagePath: "assets/images/no_order.png", width: 300.w, height: 300.h),
+            CommonImage(
+              imagePath: "assets/images/no_order.png",
+              width: 300.w,
+              height: 300.h,
+            ),
             Text(
-              "暂无美食订单",
+              l10n.orderNoOrders,
               style: TextStyle(fontSize: 16.sp, color: Colors.grey),
             ),
             SizedBox(height: 8.h),
             Text(
-              "快去寻找家的味道吧",
+              l10n.orderNoOrdersDesc,
               style: TextStyle(fontSize: 12.sp, color: Colors.grey[400]),
             ),
           ],
@@ -79,7 +87,9 @@ class _OrderListViewState extends ConsumerState<OrderListView> with AutomaticKee
 
     return RefreshIndicator(
       onRefresh: () async {
-        await ref.read(orderListProvider(widget.statusGroup).notifier).refresh();
+        await ref
+            .read(orderListProvider(widget.statusGroup).notifier)
+            .refresh();
       },
       child: ListView.builder(
         controller: _scrollController,
@@ -87,10 +97,12 @@ class _OrderListViewState extends ConsumerState<OrderListView> with AutomaticKee
         itemCount: state.list.length + (state.hasMore ? 1 : 0),
         itemBuilder: (context, index) {
           if (index == state.list.length) {
-            return const Center(child: Padding(
-              padding: EdgeInsets.all(8.0),
-              child: CircularProgressIndicator(),
-            ));
+            return const Center(
+              child: Padding(
+                padding: EdgeInsets.all(8.0),
+                child: CircularProgressIndicator(),
+              ),
+            );
           }
           final order = state.list[index];
           return Column(
@@ -101,53 +113,72 @@ class _OrderListViewState extends ConsumerState<OrderListView> with AutomaticKee
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      order.statusGroupName ?? order.statusName ?? '',
-                      style: TextStyle(
-                        fontSize: 20.sp, // Increased from 18
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
+                    Builder(
+                      builder: (context) {
+                        // Always use localized status name for consistency
+                        return Text(
+                          order.getLocalizedStatusName(context),
+                          style: TextStyle(
+                            fontSize: 20.sp, // Increased from 18
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
+                        );
+                      },
                     ),
                     SizedBox(height: 6.h), // Increased from 4
                     if (order.status == 100) ...[
                       // Pending Payment - Real countdown
                       Builder(
                         builder: (context) {
-                          if (order.createTime == null || order.orderPeriod == null) return const SizedBox();
-                          final createTime = DateTime.tryParse(order.createTime!);
+                          final l10n = AppLocalizations.of(context)!;
+                          if (order.createTime == null ||
+                              order.orderPeriod == null)
+                            return const SizedBox();
+                          final createTime = DateTime.tryParse(
+                            order.createTime!,
+                          );
                           if (createTime == null) return const SizedBox();
-                          
-                          final expireTime = createTime.add(Duration(minutes: order.orderPeriod!));
+
+                          final expireTime = createTime.add(
+                            Duration(minutes: order.orderPeriod!),
+                          );
                           final now = DateTime.now();
                           final diff = expireTime.difference(now);
-                          
+
                           if (diff.isNegative) {
-                             return Text(
-                              "已失效",
-                              style: TextStyle(fontSize: 14.sp, color: Colors.grey),
+                            return Text(
+                              l10n.orderExpired,
+                              style: TextStyle(
+                                fontSize: 14.sp,
+                                color: Colors.grey,
+                              ),
                             );
                           }
-                          
+
                           final minutes = diff.inMinutes;
                           final seconds = diff.inSeconds % 60;
-                          
+
                           return Text(
-                            "$minutes分 $seconds秒 后失效",
+                            l10n.orderExpiresIn(minutes, seconds),
                             style: TextStyle(
                               fontSize: 14.sp, // Increased from 12
                               color: const Color(0xFFFF5722),
                             ),
                           );
-                        }
+                        },
                       ),
                     ] else ...[
-                      Text(
-                        order.statusDesc ?? '',
-                        style: TextStyle(
-                          fontSize: 12.sp,
-                          color: Colors.grey,
-                        ),
+                      Builder(
+                        builder: (context) {
+                          return Text(
+                            order.getLocalizedStatusDesc(context),
+                            style: TextStyle(
+                              fontSize: 12.sp,
+                              color: Colors.grey,
+                            ),
+                          );
+                        },
                       ),
                     ],
                   ],
@@ -156,13 +187,19 @@ class _OrderListViewState extends ConsumerState<OrderListView> with AutomaticKee
               OrderCard(
                 order: order,
                 onTap: () {
-                  Navigator.pushNamed(context, Routes.orderDetail, arguments: order.orderNo);
+                  Navigator.pushNamed(
+                    context,
+                    Routes.orderDetail,
+                    arguments: order.orderNo,
+                  );
                 },
                 onPay: () {
                   OrderPaymentHandler.processPayment(
                     orderNo: order.orderNo ?? '',
                     onSuccess: () {
-                      ref.read(orderListProvider(widget.statusGroup).notifier).refresh();
+                      ref
+                          .read(orderListProvider(widget.statusGroup).notifier)
+                          .refresh();
                     },
                     onError: (error) {
                       // Error already handled by OrderPaymentHandler
@@ -173,18 +210,27 @@ class _OrderListViewState extends ConsumerState<OrderListView> with AutomaticKee
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => CancelOrderPage(
-                        orderNo: order.orderNo ?? '',
-                        isRefund: true,
-                        onSuccess: () {
-                          ref.read(orderListProvider(widget.statusGroup).notifier).refresh();
-                        },
-                      ),
+                      builder:
+                          (context) => CancelOrderPage(
+                            orderNo: order.orderNo ?? '',
+                            isRefund: true,
+                            onSuccess: () {
+                              ref
+                                  .read(
+                                    orderListProvider(
+                                      widget.statusGroup,
+                                    ).notifier,
+                                  )
+                                  .refresh();
+                            },
+                          ),
                     ),
                   );
                 },
                 onCancel: () {
-                  ref.read(orderListProvider(widget.statusGroup).notifier).refresh();
+                  ref
+                      .read(orderListProvider(widget.statusGroup).notifier)
+                      .refresh();
                 },
                 onReorder: () => _handleReorder(context, order, ref),
               ),
@@ -196,20 +242,25 @@ class _OrderListViewState extends ConsumerState<OrderListView> with AutomaticKee
   }
 
   /// 处理重新下单逻辑
-  Future<void> _handleReorder(BuildContext context, AppTradeOrderPageRespVO order, WidgetRef ref) async {
+  Future<void> _handleReorder(
+    BuildContext context,
+    AppTradeOrderPageRespVO order,
+    WidgetRef ref,
+  ) async {
     if (order.shopId == null || order.shopId!.isEmpty) {
       showDialog(
         context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('提示'),
-          content: const Text('无法获取店铺信息'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('确定'),
+        builder:
+            (context) => AlertDialog(
+              title: const Text('Notice'),
+              content: const Text('Unable to get shop info'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('OK'),
+                ),
+              ],
             ),
-          ],
-        ),
       );
       return;
     }
@@ -221,9 +272,7 @@ class _OrderListViewState extends ConsumerState<OrderListView> with AutomaticKee
     // 直接导航到店铺详情页，让用户重新选择商品
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => DetailPage(id: order.shopId!),
-      ),
+      MaterialPageRoute(builder: (context) => DetailPage(id: order.shopId!)),
     );
   }
 }

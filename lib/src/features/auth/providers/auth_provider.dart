@@ -5,6 +5,7 @@ import '../../../core/config/environment_config.dart';
 import '../../../core/constants/app_constant.dart';
 import '../../../core/enums/auth_enums.dart';
 import '../../../core/network/api_exception.dart';
+import '../../../core/push/push_service.dart';
 import '../../../core/utils/logger/logger.dart';
 import '../models/auth_models.dart';
 import '../services/auth_services.dart';
@@ -173,6 +174,11 @@ class AuthNotifier extends StateNotifier<AuthState> {
       
       Logger.info('AuthNotifier', '手机验证码登录成功: userId=${loginResponse.userId}；token=${loginResponse.accessToken};过期时间=${loginResponse.expiresTime}');
 
+      // 登录成功后上报 FCM Token
+      PushService().uploadTokenWhenLoggedIn().catchError((e) {
+        Logger.warn('AuthNotifier', '上报 FCM Token 失败: $e');
+      });
+
       return true;
     } catch (e) {
       Logger.error('AuthNotifier', '手机验证码登录异常', error: e);
@@ -250,6 +256,11 @@ class AuthNotifier extends StateNotifier<AuthState> {
       );
       
       Logger.info('AuthNotifier', '手机号密码登录成功: userId=${loginResponse.userId}；token=${loginResponse.accessToken};过期时间=${loginResponse.expiresTime}');
+
+      // 登录成功后上报 FCM Token
+      PushService().uploadTokenWhenLoggedIn().catchError((e) {
+        Logger.warn('AuthNotifier', '上报 FCM Token 失败: $e');
+      });
 
       return true;
     } catch (e) {

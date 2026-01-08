@@ -1,4 +1,5 @@
 import 'package:chop_user/src/core/utils/json_utils.dart';
+import 'package:flutter/material.dart';
 
 class AppTradeOrderPageRespVO {
   final String? orderNo;
@@ -12,6 +13,8 @@ class AppTradeOrderPageRespVO {
   final int? status;
   final String? statusName;
   final String? statusDesc;
+  final String? statusEnglishName;
+  final String? statusEnglishDesc;
   final int? statusGroup;
   final String? statusGroupName;
   final double? payAmount;
@@ -49,6 +52,8 @@ class AppTradeOrderPageRespVO {
     this.status,
     this.statusName,
     this.statusDesc,
+    this.statusEnglishName,
+    this.statusEnglishDesc,
     this.statusGroup,
     this.statusGroupName,
     this.payAmount,
@@ -88,6 +93,8 @@ class AppTradeOrderPageRespVO {
       status: JsonUtils.parseInt(json, 'status'),
       statusName: JsonUtils.parseString(json, 'statusName'),
       statusDesc: JsonUtils.parseString(json, 'statusDesc'),
+      statusEnglishName: JsonUtils.parseString(json, 'statusEnglishName'),
+      statusEnglishDesc: JsonUtils.parseString(json, 'statusEnglishDesc'),
       statusGroup: JsonUtils.parseInt(json, 'statusGroup'),
       statusGroupName: JsonUtils.parseString(json, 'statusGroupName'),
       payAmount: JsonUtils.parseDouble(json, 'payAmount'),
@@ -111,8 +118,52 @@ class AppTradeOrderPageRespVO {
       responseRefundTime: JsonUtils.parseString(json, 'responseRefundTime'),
       finishRefundTime: JsonUtils.parseString(json, 'finishRefundTime'),
       driverMobile: JsonUtils.parseString(json, 'driverMobile'),
-      items: JsonUtils.parseList(json, 'items', (e) => OrderItemPageRespVO.fromJson(e)),
+      items: JsonUtils.parseList(
+        json,
+        'items',
+        (e) => OrderItemPageRespVO.fromJson(e),
+      ),
     );
+  }
+
+  /// 根据当前语言设置返回合适的店铺名称
+  String getLocalizedShopName(BuildContext context) {
+    final locale = Localizations.localeOf(context);
+    if (locale.languageCode == 'zh') {
+      return shopName ?? englishShopName ?? '';
+    } else {
+      return englishShopName ?? shopName ?? '';
+    }
+  }
+
+  /// 根据当前语言设置返回合适的分类名称
+  String getLocalizedCategoryName(BuildContext context) {
+    final locale = Localizations.localeOf(context);
+    if (locale.languageCode == 'zh') {
+      return categoryName ?? englishCategoryName ?? '';
+    } else {
+      return englishCategoryName ?? categoryName ?? '';
+    }
+  }
+
+  /// 根据当前语言设置返回合适的订单状态名称
+  String getLocalizedStatusName(BuildContext context) {
+    final locale = Localizations.localeOf(context);
+    if (locale.languageCode == 'zh') {
+      return statusName ?? statusEnglishName ?? '';
+    } else {
+      return statusEnglishName ?? statusName ?? '';
+    }
+  }
+
+  /// 根据当前语言设置返回合适的订单状态描述
+  String getLocalizedStatusDesc(BuildContext context) {
+    final locale = Localizations.localeOf(context);
+    if (locale.languageCode == 'zh') {
+      return statusDesc ?? statusEnglishDesc ?? '';
+    } else {
+      return statusEnglishDesc ?? statusDesc ?? '';
+    }
   }
 }
 
@@ -145,14 +196,29 @@ class OrderItemPageRespVO {
       productName: JsonUtils.parseString(json, 'productName'),
       englishProductName: JsonUtils.parseString(json, 'englishProductName'),
       imageThumbnail: JsonUtils.parseString(json, 'imageThumbnail'),
-      detailImages: json['detailImages'] is List
-          ? (json['detailImages'] as List).whereType<String>().toList()
-          : null,
+      detailImages:
+          json['detailImages'] is List
+              ? (json['detailImages'] as List).whereType<String>().toList()
+              : null,
       quantity: JsonUtils.parseInt(json, 'quantity'),
       productPrice: JsonUtils.parseDouble(json, 'productPrice'),
       price: JsonUtils.parseDouble(json, 'price'),
-      selectedSkus: JsonUtils.parseList(json, 'selectedSkus', (e) => SelectedSkuRespVO.fromJson(e)),
+      selectedSkus: JsonUtils.parseList(
+        json,
+        'selectedSkus',
+        (e) => SelectedSkuRespVO.fromJson(e),
+      ),
     );
+  }
+
+  /// 根据当前语言设置返回合适的产品名称
+  String getLocalizedProductName(BuildContext context) {
+    final locale = Localizations.localeOf(context);
+    if (locale.languageCode == 'zh') {
+      return productName ?? englishProductName ?? '';
+    } else {
+      return englishProductName ?? productName ?? '';
+    }
   }
 }
 
@@ -183,6 +249,16 @@ class SelectedSkuRespVO {
       skuGroupType: JsonUtils.parseInt(json, 'skuGroupType'),
     );
   }
+
+  /// 根据当前语言设置返回合适的SKU名称
+  String getLocalizedSkuName(BuildContext context) {
+    final locale = Localizations.localeOf(context);
+    if (locale.languageCode == 'zh') {
+      return skuName ?? englishSkuName ?? '';
+    } else {
+      return englishSkuName ?? skuName ?? '';
+    }
+  }
 }
 
 class AppTradeOrderDetailRespVO {
@@ -206,6 +282,8 @@ class AppTradeOrderDetailRespVO {
   final int? status;
   final String? statusName;
   final String? statusDesc;
+  final String? statusEnglishName;
+  final String? statusEnglishDesc;
   final int? statusGroup;
   final String? statusGroupName;
   final double? mealSubtotal;
@@ -262,6 +340,8 @@ class AppTradeOrderDetailRespVO {
     this.status,
     this.statusName,
     this.statusDesc,
+    this.statusEnglishName,
+    this.statusEnglishDesc,
     this.statusGroup,
     this.statusGroupName,
     this.mealSubtotal,
@@ -320,6 +400,8 @@ class AppTradeOrderDetailRespVO {
       status: JsonUtils.parseInt(json, 'status'),
       statusName: JsonUtils.parseString(json, 'statusName'),
       statusDesc: JsonUtils.parseString(json, 'statusDesc'),
+      statusEnglishName: JsonUtils.parseString(json, 'statusEnglishName'),
+      statusEnglishDesc: JsonUtils.parseString(json, 'statusEnglishDesc'),
       statusGroup: JsonUtils.parseInt(json, 'statusGroup'),
       statusGroupName: JsonUtils.parseString(json, 'statusGroupName'),
       mealSubtotal: JsonUtils.parseDouble(json, 'mealSubtotal'),
@@ -351,14 +433,62 @@ class AppTradeOrderDetailRespVO {
       responseRefundTime: JsonUtils.parseString(json, 'responseRefundTime'),
       finishRefundTime: JsonUtils.parseString(json, 'finishRefundTime'),
       cancelReason: JsonUtils.parseString(json, 'cancelReason'),
-      deliveredConfirmInfo: json['deliveredConfirmInfo'] != null
-          ? DeliveredConfirmInfoVO.fromJson(json['deliveredConfirmInfo'])
-          : null,
-      stripePaymentMethodInfo: json['stripePaymentMethodInfo'] != null
-          ? StripePaymentMethodInfoVO.fromJson(json['stripePaymentMethodInfo'])
-          : null,
-      items: JsonUtils.parseList(json, 'items', (e) => OrderItemDetailVO.fromJson(e)),
+      deliveredConfirmInfo:
+          json['deliveredConfirmInfo'] != null
+              ? DeliveredConfirmInfoVO.fromJson(json['deliveredConfirmInfo'])
+              : null,
+      stripePaymentMethodInfo:
+          json['stripePaymentMethodInfo'] != null
+              ? StripePaymentMethodInfoVO.fromJson(
+                json['stripePaymentMethodInfo'],
+              )
+              : null,
+      items: JsonUtils.parseList(
+        json,
+        'items',
+        (e) => OrderItemDetailVO.fromJson(e),
+      ),
     );
+  }
+
+  /// 根据当前语言设置返回合适的店铺名称
+  String getLocalizedShopName(BuildContext context) {
+    final locale = Localizations.localeOf(context);
+    if (locale.languageCode == 'zh') {
+      return shopName ?? englishShopName ?? '';
+    } else {
+      return englishShopName ?? shopName ?? '';
+    }
+  }
+
+  /// 根据当前语言设置返回合适的分类名称
+  String getLocalizedCategoryName(BuildContext context) {
+    final locale = Localizations.localeOf(context);
+    if (locale.languageCode == 'zh') {
+      return categoryName ?? englishCategoryName ?? '';
+    } else {
+      return englishCategoryName ?? categoryName ?? '';
+    }
+  }
+
+  /// 根据当前语言设置返回合适的订单状态名称
+  String getLocalizedStatusName(BuildContext context) {
+    final locale = Localizations.localeOf(context);
+    if (locale.languageCode == 'zh') {
+      return statusName ?? statusEnglishName ?? '';
+    } else {
+      return statusEnglishName ?? statusName ?? '';
+    }
+  }
+
+  /// 根据当前语言设置返回合适的订单状态描述
+  String getLocalizedStatusDesc(BuildContext context) {
+    final locale = Localizations.localeOf(context);
+    if (locale.languageCode == 'zh') {
+      return statusDesc ?? statusEnglishDesc ?? '';
+    } else {
+      return statusEnglishDesc ?? statusDesc ?? '';
+    }
   }
 }
 
@@ -366,15 +496,15 @@ class DeliveredConfirmInfoVO {
   final String? deliveryTime;
   final String? deliveryConfirmedImage;
 
-  DeliveredConfirmInfoVO({
-    this.deliveryTime,
-    this.deliveryConfirmedImage,
-  });
+  DeliveredConfirmInfoVO({this.deliveryTime, this.deliveryConfirmedImage});
 
   factory DeliveredConfirmInfoVO.fromJson(Map<String, dynamic> json) {
     return DeliveredConfirmInfoVO(
       deliveryTime: JsonUtils.parseString(json, 'deliveryTime'),
-      deliveryConfirmedImage: JsonUtils.parseString(json, 'deliveryConfirmedImage'),
+      deliveryConfirmedImage: JsonUtils.parseString(
+        json,
+        'deliveryConfirmedImage',
+      ),
     );
   }
 }
@@ -399,7 +529,10 @@ class StripePaymentMethodInfoVO {
   factory StripePaymentMethodInfoVO.fromJson(Map<String, dynamic> json) {
     return StripePaymentMethodInfoVO(
       paymentMethodId: JsonUtils.parseString(json, 'paymentMethodId'),
-      stripePaymentMethodId: JsonUtils.parseString(json, 'stripePaymentMethodId'),
+      stripePaymentMethodId: JsonUtils.parseString(
+        json,
+        'stripePaymentMethodId',
+      ),
       cardBrand: JsonUtils.parseString(json, 'cardBrand'),
       cardLast4: JsonUtils.parseString(json, 'cardLast4'),
       cardExpMonth: JsonUtils.parseInt(json, 'cardExpMonth'),
@@ -445,18 +578,33 @@ class OrderItemDetailVO {
       productName: JsonUtils.parseString(json, 'productName'),
       englishProductName: JsonUtils.parseString(json, 'englishProductName'),
       imageThumbnail: JsonUtils.parseString(json, 'imageThumbnail'),
-      detailImages: json['detailImages'] is List
-          ? (json['detailImages'] as List).whereType<String>().toList()
-          : null,
+      detailImages:
+          json['detailImages'] is List
+              ? (json['detailImages'] as List).whereType<String>().toList()
+              : null,
       quantity: JsonUtils.parseInt(json, 'quantity'),
       productPrice: JsonUtils.parseDouble(json, 'productPrice'),
       price: JsonUtils.parseDouble(json, 'price'),
       subTotalPrice: JsonUtils.parseDouble(json, 'subTotalPrice'),
       hotMark: JsonUtils.parseBool(json, 'hotMark'),
       newMark: JsonUtils.parseBool(json, 'newMark'),
-      selectedSkus: JsonUtils.parseList(json, 'selectedSkus', (e) => SelectedSkuRespVO.fromJson(e)),
+      selectedSkus: JsonUtils.parseList(
+        json,
+        'selectedSkus',
+        (e) => SelectedSkuRespVO.fromJson(e),
+      ),
       picUrl: JsonUtils.parseString(json, 'picUrl'),
     );
+  }
+
+  /// 根据当前语言设置返回合适的产品名称
+  String getLocalizedProductName(BuildContext context) {
+    final locale = Localizations.localeOf(context);
+    if (locale.languageCode == 'zh') {
+      return productName ?? englishProductName ?? '';
+    } else {
+      return englishProductName ?? productName ?? '';
+    }
   }
 }
 

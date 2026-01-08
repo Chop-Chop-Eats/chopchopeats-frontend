@@ -305,6 +305,38 @@ abstract class AppLocalizations {
   // ============== 通用文案 ==============
   String get loadingFailedWithError;
   String loadingFailedMessage(String error);
+
+  // ============== 订单列表和详情 ==============
+  String get orderNoOrders; // 暂无订单
+  String get orderNoOrdersDesc; // 去找找家的味道
+  String get orderExpired; // 已过期
+  String orderExpiresIn(int minutes, int seconds); // 剩余XX分XX秒过期
+  String get orderTotalItems; // 总共X件商品
+  String orderTotalQuantity(int quantity); // 总共X件
+  String get orderPayNow; // 立即支付
+  String get orderCancelOrder; // 取消订单
+  String get orderRequestRefund; // 申请退款
+  String get orderWriteReview; // 写评价
+  String get orderReorder; // 再来一单
+  String get orderDeleteOrder; // 删除订单
+  String get orderDeliveryAddress; // 配送地址
+  String get orderChef; // 私厨
+  String get orderOrderDetails; // 订单详情
+  String get orderSubtotal; // 小计
+  String get orderTaxAndServiceFee; // 税费&服务费
+  String get orderDeliveryFee; // 配送费
+  String get orderCouponDiscount; // 优惠券折扣
+  String get orderActualPayment; // 实付款
+  String orderActualPaymentWithTip(String tip); // 实付款(含小费)
+  String get orderOrderInfo; // 订单信息
+  String get orderOrderNo; // 订单编号
+  String get orderOrderTime; // 下单时间
+  String get orderPaymentMethod; // 支付方式
+  String orderDistance(double distance); // 距离X km
+  String orderDeliveryTime(String time); // 计划 XX 开始配送
+  String orderCountdownTime(int minutes, int seconds); // 倒计时时间
+  String get orderCountdownSuffix; // 后失效
+  String get orderStatusDescDefault; // 默认状态描述
 }
 
 // Delegate 类，Flutter 会用它来加载对应的语言类

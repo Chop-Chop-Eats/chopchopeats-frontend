@@ -120,6 +120,7 @@ class ApiPaths {
   static const String clearCartApi = "/app-api/trade/cart/clear";
 
   // 删除购物车商品
+  // @deprecated 现在应该使用 updateCartQuantityApi 并传递 quantity=0 来删除商品
   static const String deleteCartItemApi = "/app-api/trade/cart/delete";
 
   // 更新购物车商品数量

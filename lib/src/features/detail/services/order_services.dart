@@ -34,7 +34,11 @@ class OrderServices {
     Logger.info('OrderServices', '获取购物车列表: ${response.data}');
     if (response.data is List) {
       final List<dynamic> dataList = response.data as List<dynamic>;
-      return dataList.map((e) => CartItemModel.fromJson(e as Map<String, dynamic>)).toList();
+      final allItems = dataList.map((e) => CartItemModel.fromJson(e as Map<String, dynamic>)).toList();
+      // 过滤掉数量为0的商品（后端删除可能有延迟）
+      final validItems = allItems.where((item) => (item.quantity ?? 0) > 0).toList();
+      Logger.info('OrderServices', '过滤前: ${allItems.length} 件商品，过滤后: ${validItems.length} 件商品');
+      return validItems;
     } else {
       throw Exception('API 返回的数据格式不正确，期望 List 类型');
     }
@@ -57,6 +61,8 @@ class OrderServices {
   }
 
   /// 删除购物车商品
+  /// @deprecated 现在应该使用 updateCartQuantity 并传递 quantity=0 来删除商品
+  /// 后端会自动删除数量为0的商品，无需单独调用删除接口
   Future<void> deleteCartItem(String cartId) async {
     final response = await ApiClient().delete(
       ApiPaths.deleteCartItemApi,

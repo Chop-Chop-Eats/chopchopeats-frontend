@@ -1,9 +1,8 @@
+import 'package:chop_user/src/core/l10n/app_localizations.dart';
 import 'package:chop_user/src/core/widgets/common_image.dart';
 import 'package:chop_user/src/features/order/models/order_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-
-
 
 import 'package:chop_user/src/features/order/pages/cancel_order_page.dart';
 import 'package:chop_user/src/features/comment/pages/write_review_page.dart';
@@ -29,7 +28,7 @@ class OrderCard extends StatelessWidget {
     this.onDelete,
     this.onReorder,
   });
-// ... (existing code)
+  // ... (existing code)
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -63,28 +62,29 @@ class OrderCard extends StatelessWidget {
   }
 
   Widget _buildHeader() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          order.shopName ?? '',
-          style: TextStyle(
-            fontSize: 16.sp,
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
-          ),
-        ),
-        SizedBox(height: 4.h),
-        Text(
-          '${order.categoryName ?? ''} • ${order.englishCategoryName ?? ''}',
-          style: TextStyle(
-            fontSize: 12.sp,
-            color: Colors.grey,
-          ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-      ],
+    return Builder(
+      builder: (context) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              order.getLocalizedShopName(context),
+              style: TextStyle(
+                fontSize: 16.sp,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+            ),
+            SizedBox(height: 4.h),
+            Text(
+              order.getLocalizedCategoryName(context),
+              style: TextStyle(fontSize: 12.sp, color: Colors.grey),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -96,7 +96,10 @@ class OrderCard extends StatelessWidget {
             height: 60.w,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
-              itemCount: (order.items?.length ?? 0) > 3 ? 3 : (order.items?.length ?? 0),
+              itemCount:
+                  (order.items?.length ?? 0) > 3
+                      ? 3
+                      : (order.items?.length ?? 0),
               separatorBuilder: (context, index) => SizedBox(width: 8.w),
               itemBuilder: (context, index) {
                 final item = order.items![index];
@@ -107,7 +110,9 @@ class OrderCard extends StatelessWidget {
                     height: 60.w,
                     color: Colors.grey[100],
                     child: CommonImage(
-                      imagePath: item.imageThumbnail ?? 'assets/images/restaurant1.png',
+                      imagePath:
+                          item.imageThumbnail ??
+                          'assets/images/restaurant1.png',
                       width: 60.w,
                       height: 60.w,
                       fit: BoxFit.cover,
@@ -119,32 +124,35 @@ class OrderCard extends StatelessWidget {
           ),
         ),
         SizedBox(width: 16.w),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Text(
-              '\$${order.payAmount?.toStringAsFixed(2) ?? '0.00'}',
-              style: TextStyle(
-                fontSize: 16.sp,
-                fontWeight: FontWeight.bold,
-                color: Colors.black,
-              ),
-            ),
-            SizedBox(height: 4.h),
-            Text(
-              '共${order.totalQuantity ?? 0}件',
-              style: TextStyle(
-                fontSize: 12.sp,
-                color: Colors.grey,
-              ),
-            ),
-          ],
+        Builder(
+          builder: (context) {
+            final l10n = AppLocalizations.of(context)!;
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  '\$${order.payAmount?.toStringAsFixed(2) ?? '0.00'}',
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+                SizedBox(height: 4.h),
+                Text(
+                  l10n.orderTotalQuantity(order.totalQuantity ?? 0),
+                  style: TextStyle(fontSize: 12.sp, color: Colors.grey),
+                ),
+              ],
+            );
+          },
         ),
       ],
     );
   }
 
   Widget _buildFooter(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Row(
       children: [
         if (_hasMoreOptions())
@@ -155,36 +163,41 @@ class OrderCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(8.r),
             ),
             offset: const Offset(0, -40), // Adjust position to appear above
-            itemBuilder: (context) => [
-              if (order.status == 100) // Pending Payment
-                PopupMenuItem(
-                  value: 'cancel',
-                  onTap: () {
-                    // Use Future.delayed to wait for popup to close before navigating
-                    Future.delayed(const Duration(milliseconds: 100), () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => CancelOrderPage(
-                            orderNo: order.orderNo ?? '',
-                            onSuccess: () {
-                              onCancel?.call();
-                            },
+            itemBuilder:
+                (context) => [
+                  if (order.status == 100) // Pending Payment
+                    PopupMenuItem(
+                      value: 'cancel',
+                      onTap: () {
+                        // Use Future.delayed to wait for popup to close before navigating
+                        Future.delayed(const Duration(milliseconds: 100), () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder:
+                                  (context) => CancelOrderPage(
+                                    orderNo: order.orderNo ?? '',
+                                    onSuccess: () {
+                                      onCancel?.call();
+                                    },
+                                  ),
+                            ),
+                          );
+                        });
+                      },
+                      height: 32.h,
+                      child: Center(
+                        child: Text(
+                          l10n.orderCancelOrder,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 12.sp,
                           ),
                         ),
-                      );
-                    });
-                  },
-                  height: 32.h,
-                  child: Center(
-                    child: Text(
-                      '取消订单',
-                      style: TextStyle(color: Colors.white, fontSize: 12.sp),
+                      ),
                     ),
-                  ),
-                ),
-              // Add other options if needed
-            ],
+                  // Add other options if needed
+                ],
             onSelected: (value) {
               // Handled in onTap for specific items if needed, or here
             },
@@ -201,54 +214,96 @@ class OrderCard extends StatelessWidget {
   }
 
   List<Widget> _buildActionButtons(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     List<Widget> buttons = [];
     final status = order.status;
 
     // 100=待支付
     if (status == 100) {
-      buttons.add(_buildButton("立即支付", Colors.white, const Color(0xFFFF5722), onPay, isPrimary: true));
+      buttons.add(
+        _buildButton(
+          l10n.orderPayNow,
+          Colors.white,
+          const Color(0xFFFF5722),
+          onPay,
+          isPrimary: true,
+        ),
+      );
     }
     // 200-260=进行中
     else if (status != null && status >= 200 && status < 300) {
-      buttons.add(_buildButton("申请退款", Colors.white, Colors.black, onRefund));
+      buttons.add(
+        _buildButton(
+          l10n.orderRequestRefund,
+          Colors.white,
+          Colors.black,
+          onRefund,
+        ),
+      );
     }
     // 300=已完成
     else if (status == 300) {
-      buttons.add(_buildButton("申请退款", Colors.white, Colors.black, onRefund));
+      buttons.add(
+        _buildButton(
+          l10n.orderRequestRefund,
+          Colors.white,
+          Colors.black,
+          onRefund,
+        ),
+      );
       buttons.add(SizedBox(width: 8.w));
-      buttons.add(_buildButton("写评价", Colors.white, Colors.black, () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => WriteReviewPage(order: order),
-          ),
-        ).then((value) {
-          if (value == true) {
-            onReview?.call();
-          }
-        });
-      }));
+      buttons.add(
+        _buildButton(l10n.orderWriteReview, Colors.white, Colors.black, () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => WriteReviewPage(order: order),
+            ),
+          ).then((value) {
+            if (value == true) {
+              onReview?.call();
+            }
+          });
+        }),
+      );
     }
     // 901, 902=Cancelled
     else if (status == 901 || status == 902) {
-      buttons.add(_buildButton("重新下单", Colors.white, Colors.black, onReorder));
+      buttons.add(
+        _buildButton(l10n.orderReorder, Colors.white, Colors.black, onReorder),
+      );
     }
     // 440=Refunded
     else if (status == 440) {
-      buttons.add(_buildButton("删除订单", Colors.white, Colors.black, onDelete));
+      buttons.add(
+        _buildButton(
+          l10n.orderDeleteOrder,
+          Colors.white,
+          Colors.black,
+          onDelete,
+        ),
+      );
     }
 
     return buttons;
   }
 
-  Widget _buildButton(String text, Color bgColor, Color textColor, VoidCallback? onPressed, {bool isPrimary = false}) {
+  Widget _buildButton(
+    String text,
+    Color bgColor,
+    Color textColor,
+    VoidCallback? onPressed, {
+    bool isPrimary = false,
+  }) {
     return GestureDetector(
       onTap: onPressed,
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
         decoration: BoxDecoration(
           color: bgColor,
-          border: Border.all(color: isPrimary ? textColor : const Color(0xFFE0E0E0)),
+          border: Border.all(
+            color: isPrimary ? textColor : const Color(0xFFE0E0E0),
+          ),
           borderRadius: BorderRadius.circular(20.r),
         ),
         child: Text(

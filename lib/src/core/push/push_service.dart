@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:chop_user/src/core/constants/app_constant.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -18,9 +19,29 @@ import '../utils/logger/logger.dart';
 @pragma('vm:entry-point')
 Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
+  Logger.info("PushService", "========================================");
   Logger.info("PushService", "🔔 后台消息收到: ${message.messageId}");
-  Logger.info("PushService", "消息通知字段: title=${message.notification?.title}, body=${message.notification?.body}");
-  Logger.info("PushService", "消息数据字段: ${message.data}");
+  Logger.info("PushService", "收到时间: ${DateTime.now()}");
+  
+  // 检查 notification 字段
+  if (message.notification != null) {
+    Logger.info("PushService", "✅ 包含 notification 字段:");
+    Logger.info("PushService", "   - title: ${message.notification!.title}");
+    Logger.info("PushService", "   - body: ${message.notification!.body}");
+    Logger.info("PushService", "   - android: ${message.notification!.android}");
+    Logger.info("PushService", "   - apple: ${message.notification!.apple}");
+  } else {
+    Logger.warn("PushService", "❌ 缺少 notification 字段！这会导致后台/终止状态下不显示通知");
+  }
+  
+  // 检查 data 字段
+  if (message.data.isNotEmpty) {
+    Logger.info("PushService", "✅ 包含 data 字段: ${message.data}");
+  } else {
+    Logger.warn("PushService", "⚠️ 没有 data 字段");
+  }
+  
+  Logger.info("PushService", "========================================");
   // 注意：此处无法直接更新 UI，但可以保存数据到本地存储
   // 系统会自动显示通知（如果包含 notification 字段）
 }
@@ -33,6 +54,9 @@ class PushService {
   FirebaseMessaging? _fcm;
   final FlutterLocalNotificationsPlugin _localNotifications =
       FlutterLocalNotificationsPlugin();
+  
+  // 缓存 FCM Token，等待用户登录后上报
+  String? _cachedFcmToken;
 
   // 初始化
   Future<void> init() async {
@@ -84,6 +108,7 @@ class PushService {
 
       if (settings.authorizationStatus == AuthorizationStatus.authorized) {
         Logger.info("PushService", '用户已授权通知');
+        Logger.info("PushService", '通知权限详情: alert=${settings.alert}, badge=${settings.badge}, sound=${settings.sound}');
 
         // 4. iOS 前台通知配置
         await _fcm!.setForegroundNotificationPresentationOptions(
@@ -91,6 +116,7 @@ class PushService {
           badge: true,
           sound: true,
         );
+        Logger.info("PushService", 'iOS 前台通知配置完成');
 
         // 5. 获取 Token 并上传给后端（添加超时保护）
         String? token;
@@ -109,7 +135,9 @@ class PushService {
         
         if (token != null) {
           Logger.info("PushService", "FCM Token: $token");
-          _uploadTokenToBackend(token);
+          _cachedFcmToken = token;
+          // 尝试上报 Token（如果用户已登录）
+          _uploadTokenIfLoggedIn(token);
         } else {
           Logger.warn("PushService", "未能获取 FCM Token，推送功能可能不可用");
         }
@@ -117,14 +145,44 @@ class PushService {
         // 6. 监听 Token 刷新（防止 Token 过期）
         _fcm!.onTokenRefresh.listen((newToken) {
           Logger.info("PushService", "FCM Token已刷新: $newToken");
-          _uploadTokenToBackend(newToken);
+          _cachedFcmToken = newToken;
+          _uploadTokenIfLoggedIn(newToken);
         });
 
         // 7. 监听前台消息
-        FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
+        Logger.info("PushService", '正在注册前台消息监听器...');
+        FirebaseMessaging.onMessage.listen(
+          (RemoteMessage message) {
+            Logger.info("PushService", '✅✅✅ 监听器被触发！收到消息: ${message.messageId}');
+            _handleForegroundMessage(message);
+          },
+          onError: (error) {
+            Logger.error("PushService", '❌ 前台消息监听器错误: $error', error: error);
+          },
+          onDone: () {
+            Logger.warn("PushService", '⚠️ 前台消息监听器已关闭');
+          },
+          cancelOnError: false,
+        );
+        Logger.info("PushService", '✅ 前台消息监听器已注册');
 
         // 8. 处理点击通知打开 App (从后台或关闭状态)
         _setupInteractedMessage();
+        Logger.info("PushService", '✅ 消息点击处理已设置');
+        
+        Logger.info("PushService", '========================================');
+        Logger.info("PushService", '🎉 推送服务初始化完成！');
+        Logger.info("PushService", '📱 当前 Token: $_cachedFcmToken');
+        Logger.info("PushService", '🔔 前台消息监听: 已启用');
+        Logger.info("PushService", '🔔 后台消息监听: 已启用（通过 firebaseMessagingBackgroundHandler）');
+        Logger.info("PushService", '🔔 点击通知跳转: 已启用');
+        Logger.info("PushService", '⚠️ 请确保后端使用此 Token 发送消息！');
+        Logger.info("PushService", '========================================');
+        
+        // 自动打印调试信息
+        Future.delayed(const Duration(seconds: 1), () {
+          printDebugInfo();
+        });
       } else if (settings.authorizationStatus ==
           AuthorizationStatus.provisional) {
         Logger.info("PushService", '用户授予了临时通知权限');
@@ -186,9 +244,29 @@ class PushService {
 
   // 处理前台消息
   void _handleForegroundMessage(RemoteMessage message) {
+    Logger.info("PushService", '========================================');
     Logger.info("PushService", '🔔 前台收到消息: ${message.messageId}');
-    Logger.info("PushService", "消息通知字段: title=${message.notification?.title}, body=${message.notification?.body}");
-    Logger.info("PushService", "消息数据字段: ${message.data}");
+    Logger.info("PushService", '收到时间: ${DateTime.now()}');
+    
+    // 检查 notification 字段
+    if (message.notification != null) {
+      Logger.info("PushService", "✅ 包含 notification 字段:");
+      Logger.info("PushService", "   - title: ${message.notification!.title}");
+      Logger.info("PushService", "   - body: ${message.notification!.body}");
+      Logger.info("PushService", "   - android: ${message.notification!.android}");
+      Logger.info("PushService", "   - apple: ${message.notification!.apple}");
+    } else {
+      Logger.warn("PushService", "❌ 缺少 notification 字段！");
+    }
+    
+    // 检查 data 字段
+    if (message.data.isNotEmpty) {
+      Logger.info("PushService", "✅ 包含 data 字段: ${message.data}");
+    } else {
+      Logger.warn("PushService", "⚠️ 没有 data 字段");
+    }
+    
+    Logger.info("PushService", '========================================');
 
     // 显示本地通知
     final title = message.notification?.title ?? message.data['title'] ?? '新消息';
@@ -353,25 +431,97 @@ class PushService {
     }
   }
 
+  /// 供外部调用：用户登录后主动上报 Token
+  /// 应该在用户登录成功后调用此方法
+  Future<void> uploadTokenWhenLoggedIn() async {
+    if (_cachedFcmToken == null) {
+      Logger.warn("PushService", "没有缓存的 FCM Token，跳过上报");
+      return;
+    }
+    
+    Logger.info("PushService", "用户已登录，开始上报缓存的 FCM Token");
+    await _uploadTokenToBackend(_cachedFcmToken!);
+  }
+  
+  /// 调试方法：打印当前推送服务状态
+  Future<void> printDebugInfo() async {
+    Logger.info("PushService", "========== 推送服务调试信息 ==========");
+    Logger.info("PushService", "1. Firebase 初始化状态: ${_fcm != null ? '✅ 已初始化' : '❌ 未初始化'}");
+    Logger.info("PushService", "2. 缓存的 FCM Token: ${_cachedFcmToken ?? '❌ 无'}");
+    
+    if (_fcm != null) {
+      try {
+        final settings = await _fcm!.getNotificationSettings();
+        Logger.info("PushService", "3. 通知权限状态: ${settings.authorizationStatus}");
+        Logger.info("PushService", "   - Alert: ${settings.alert}");
+        Logger.info("PushService", "   - Badge: ${settings.badge}");
+        Logger.info("PushService", "   - Sound: ${settings.sound}");
+      } catch (e) {
+        Logger.warn("PushService", "无法获取通知权限状态: $e");
+      }
+      
+      try {
+        final token = await _fcm!.getToken();
+        Logger.info("PushService", "4. 当前 FCM Token: $token");
+      } catch (e) {
+        Logger.warn("PushService", "无法获取 Token: $e");
+      }
+    }
+    
+    final accessToken = await AppServices.cache.get<String>(AppConstants.accessToken);
+    Logger.info("PushService", "5. 用户登录状态: ${accessToken != null && accessToken.isNotEmpty ? '✅ 已登录' : '❌ 未登录'}");
+    
+    Logger.info("PushService", "6. 平台: ${Platform.operatingSystem}");
+    Logger.info("PushService", "=====================================");
+  }
+  
+  // 检查登录状态后再上报 Token
+  Future<void> _uploadTokenIfLoggedIn(String token) async {
+    // 检查用户是否已登录（通过检查是否有 accessToken）
+    final accessToken = await AppServices.cache.get<String>(AppConstants.accessToken);
+    
+    if (accessToken != null && accessToken.isNotEmpty) {
+      Logger.info("PushService", "用户已登录，开始上报 Token");
+      await _uploadTokenToBackend(token);
+    } else {
+      Logger.info("PushService", "用户未登录，Token 已缓存，等待登录后上报");
+      Logger.info("PushService", "提示：请在用户登录成功后调用 PushService().uploadTokenWhenLoggedIn()");
+    }
+  }
+
   // 调用接口：注册推送 Token
-  void _uploadTokenToBackend(String token) async {
+  Future<void> _uploadTokenToBackend(String token) async {
     try {
       Logger.info("PushService", "开始上报 Token 到后端...");
       final deviceInfo = AppServices.deviceInfo;
-      Logger.info("PushService", "设备信息: deviceId=${deviceInfo.deviceId}, platform=${deviceInfo.platform}");
-      await MessageServices.registerPushToken(
-        RegisterPushTokenParams(
-          token: token,
-          deviceId: deviceInfo.deviceId,
-          deviceModel: deviceInfo.deviceModel,
-          platform: deviceInfo.platform,
-          appVersion: deviceInfo.appVersion,
-        ),
+      
+      final params = RegisterPushTokenParams(
+        token: token,
+        deviceId: deviceInfo.deviceId,
+        deviceModel: deviceInfo.deviceModel,
+        platform: deviceInfo.platform,
+        appVersion: deviceInfo.appVersion,
       );
+      
+      Logger.info("PushService", "完整请求参数: ${params.toJson()}");
+      Logger.info("PushService", "设备信息明细:");
+      Logger.info("PushService", "  - deviceId: ${deviceInfo.deviceId}");
+      Logger.info("PushService", "  - platform: ${deviceInfo.platform}");
+      Logger.info("PushService", "  - deviceModel: ${deviceInfo.deviceModel}");
+      Logger.info("PushService", "  - appVersion: ${deviceInfo.appVersion}");
+      Logger.info("PushService", "  - token: $token");
+      
+      await MessageServices.registerPushToken(params);
       Logger.info("PushService", "✅ Token 上报成功");
-    } catch (e, stackTrace) {
+      Logger.info("PushService", "📌 提示：现在可以从其他设备或 Firebase Console 发送测试消息了");
+      Logger.info("PushService", "📌 使用此 Token 进行测试: $token");
+    } catch (e) {
       Logger.error("PushService", "❌ Token 上报失败: $e", error: e);
-      Logger.error("PushService", "堆栈信息: $stackTrace");
+      Logger.warn("PushService", "可能的原因:");
+      Logger.warn("PushService", "  1. 后端接口验证失败（检查参数格式）");
+      Logger.warn("PushService", "  2. 用户未登录或 Token 已过期");
+      Logger.warn("PushService", "  3. 后端数据库连接问题");
+      Logger.warn("PushService", "  4. deviceId 格式不符合后端要求（应为36位UUID）");
     }
   }
 }

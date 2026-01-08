@@ -24,18 +24,24 @@ class OrderService {
       'pageSize': pageSize,
       if (statusGroup != null) 'statusGroup': statusGroup,
     };
-    final response = await _client.get(ApiPaths.getOrderListApi, queryParameters: params);
-    
+    final response = await _client.get(
+      ApiPaths.getOrderListApi,
+      queryParameters: params,
+    );
+
     // API 拦截器已经提取了 data 字段，所以 response.data 就是实际数据
     final data = response.data as Map<String, dynamic>;
-    
+
     Logger.info('OrderService', '开始解析订单列表数据');
     final total = JsonUtils.parseInt(data, 'total') ?? 0;
     Logger.info('OrderService', 'total: $total');
-    
+
     final rawList = data['list'];
-    Logger.info('OrderService', 'rawList类型: ${rawList.runtimeType}, 长度: ${rawList is List ? rawList.length : 'N/A'}');
-    
+    Logger.info(
+      'OrderService',
+      'rawList类型: ${rawList.runtimeType}, 长度: ${rawList is List ? rawList.length : 'N/A'}',
+    );
+
     List<AppTradeOrderPageRespVO>? parsedList;
     try {
       parsedList = JsonUtils.parseList(data, 'list', (e) {
@@ -48,45 +54,46 @@ class OrderService {
       Logger.error('OrderService', '堆栈: $stack');
       rethrow;
     }
-    
-    return OrderPageResult(
-      total: total,
-      list: parsedList ?? [],
-    );
+
+    return OrderPageResult(total: total, list: parsedList ?? []);
   }
 
   Future<AppTradeOrderDetailRespVO> getOrderDetail(String orderNo) async {
-    final response = await _client.get(ApiPaths.getOrderDetailApi, queryParameters: {'orderNo': orderNo});
-    return AppTradeOrderDetailRespVO.fromJson(response.data as Map<String, dynamic>);
+    final response = await _client.get(
+      ApiPaths.getOrderDetailApi,
+      queryParameters: {'orderNo': orderNo},
+    );
+    return AppTradeOrderDetailRespVO.fromJson(
+      response.data as Map<String, dynamic>,
+    );
   }
 
   Future<void> cancelOrder(String orderNo, String cancelReason) async {
-    final data = {
-      'orderNo': orderNo,
-      'cancelReason': cancelReason,
-    };
+    final data = {'orderNo': orderNo, 'cancelReason': cancelReason};
     final response = await _client.put(ApiPaths.cancelOrderApi, data: data);
     Logger.info('OrderService', '取消订单: ${response.data}');
   }
 
   Future<void> applyRefund(String orderNo, String refundReason) async {
-    final data = {
-      'orderNo': orderNo,
-      'refundReason': refundReason,
-    };
+    final data = {'orderNo': orderNo, 'refundReason': refundReason};
     final response = await _client.post(ApiPaths.applyRefundApi, data: data);
     Logger.info('OrderService', '申请退款: ${response.data}');
   }
 
-  Future<List<AppTradeRefundReasonRespVO>> getRefundReasonListByCategory(int reasonCategory) async {
+  Future<List<AppTradeRefundReasonRespVO>> getRefundReasonListByCategory(
+    int reasonCategory,
+  ) async {
     final response = await _client.get(
       ApiPaths.getRefundReasonListByCategoryApi,
       queryParameters: {'reasonCategory': reasonCategory},
     );
-    
+
     if (response.data is List) {
       return (response.data as List)
-          .map((e) => AppTradeRefundReasonRespVO.fromJson(e as Map<String, dynamic>))
+          .map(
+            (e) =>
+                AppTradeRefundReasonRespVO.fromJson(e as Map<String, dynamic>),
+          )
           .toList();
     }
     return [];

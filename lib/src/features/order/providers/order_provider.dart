@@ -61,7 +61,10 @@ class OrderListNotifier extends StateNotifier<OrderListState> {
 
   Future<void> _loadData() async {
     try {
-      Logger.info('OrderListNotifier', '加载订单数据 pageNo=${state.pageNo}, statusGroup=$_statusGroup');
+      Logger.info(
+        'OrderListNotifier',
+        '加载订单数据 pageNo=${state.pageNo}, statusGroup=$_statusGroup',
+      );
       final result = await _service.getOrderPage(
         pageNo: state.pageNo,
         pageSize: state.pageSize,
@@ -74,8 +77,11 @@ class OrderListNotifier extends StateNotifier<OrderListState> {
       }
       newList.addAll(result.list);
 
-      Logger.info('OrderListNotifier', '加载成功，共 ${result.total} 条，本次 ${result.list.length} 条');
-      
+      Logger.info(
+        'OrderListNotifier',
+        '加载成功，共 ${result.total} 条，本次 ${result.list.length} 条',
+      );
+
       state = state.copyWith(
         isLoading: false,
         list: newList,
@@ -90,21 +96,29 @@ class OrderListNotifier extends StateNotifier<OrderListState> {
   }
 }
 
-final orderListProvider = StateNotifierProvider.family<OrderListNotifier, OrderListState, int?>((ref, statusGroup) {
-  return OrderListNotifier(ref.watch(orderServiceProvider), statusGroup);
-});
+final orderListProvider =
+    StateNotifierProvider.family<OrderListNotifier, OrderListState, int?>((
+      ref,
+      statusGroup,
+    ) {
+      return OrderListNotifier(ref.watch(orderServiceProvider), statusGroup);
+    });
 
-final orderDetailProvider = FutureProvider.family<AppTradeOrderDetailRespVO, String>((ref, orderNo) async {
-  final service = ref.watch(orderServiceProvider);
-  return service.getOrderDetail(orderNo);
-});
+final orderDetailProvider =
+    FutureProvider.family<AppTradeOrderDetailRespVO, String>((
+      ref,
+      orderNo,
+    ) async {
+      final service = ref.watch(orderServiceProvider);
+      return service.getOrderDetail(orderNo);
+    });
 
 /// 刷新所有订单列表（用于支付成功后）
 void refreshAllOrderLists(WidgetRef ref) {
   // 刷新所有相关的订单列表
-  ref.read(orderListProvider(null).notifier).refresh();  // 全部
-  ref.read(orderListProvider(1).notifier).refresh();     // 待支付
-  ref.read(orderListProvider(2).notifier).refresh();     // 进行中
-  ref.read(orderListProvider(3).notifier).refresh();     // 已完成
-  ref.read(orderListProvider(4).notifier).refresh();     // 取消/退款
+  ref.read(orderListProvider(null).notifier).refresh(); // 全部
+  ref.read(orderListProvider(1).notifier).refresh(); // 待支付
+  ref.read(orderListProvider(2).notifier).refresh(); // 进行中
+  ref.read(orderListProvider(3).notifier).refresh(); // 已完成
+  ref.read(orderListProvider(4).notifier).refresh(); // 取消/退款
 }

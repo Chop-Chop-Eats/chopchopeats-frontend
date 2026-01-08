@@ -78,57 +78,64 @@ class _ShopCartState extends ConsumerState<ShopCart> {
       edgeGap: 80.h,
       boxShadow: [],
       childBuilder:
-          (dismiss) => Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          (dismiss) => Consumer(
+            builder: (context, ref, child) {
+              // 实时监听购物车状态变化
+              final currentCartState = ref.watch(cartStateProvider(widget.shopId));
+              
+              return Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    '${l10n.cartTitle} (${cartState.totalQuantity})',
-                    style: TextStyle(
-                      fontSize: 14.sp,
-                      color: Colors.black,
-                      fontWeight: FontWeight.w500,
-                    ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        '${l10n.cartTitle} (${currentCartState.totalQuantity})',
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          color: Colors.black,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () async {
+                          final res = await confirm(
+                            l10n.clearCartConfirmMessage,
+                            confirmText: l10n.btnConfirm,
+                            cancelText: l10n.btnCancel,
+                          );
+                          if (res != null && res == true) {
+                            _clearCart(currentCartState, dismiss);
+                          }
+                        },
+                        icon: Icon(
+                          Icons.delete,
+                          color: Colors.black,
+                          size: 16.sp,
+                        ),
+                      ),
+                    ],
                   ),
-                  IconButton(
-                    onPressed: () async {
-                      final res = await confirm(
-                        l10n.clearCartConfirmMessage,
-                        confirmText: l10n.btnConfirm,
-                        cancelText: l10n.btnCancel,
-                      );
-                      if (res != null && res == true) {
-                        _clearCart(cartState, dismiss);
-                      }
-                    },
-                    icon: Icon(
-                      Icons.delete,
-                      color: Colors.black,
-                      size: 16.sp,
+                  CommonSpacing.medium,
+                  if (currentCartState.items.isEmpty)
+                    Padding(
+                      padding: EdgeInsets.symmetric(vertical: 24.h),
+                      child: Text(
+                        l10n.cartEmpty,
+                        style: TextStyle(fontSize: 12.sp, color: Colors.grey[500]),
+                      ),
+                    )
+                  else
+                    Expanded(
+                      child: CartItemList(
+                        shopId: widget.shopId,
+                        items: currentCartState.items,
+                        diningDate: currentCartState.diningDate,
+                      ),
                     ),
-                  ),
                 ],
-              ),
-              CommonSpacing.medium,
-              if (cartState.items.isEmpty)
-                Padding(
-                  padding: EdgeInsets.symmetric(vertical: 24.h),
-                  child: Text(
-                    l10n.cartEmpty,
-                    style: TextStyle(fontSize: 12.sp, color: Colors.grey[500]),
-                  ),
-                )
-              else
-                Expanded(
-                  child: CartItemList(
-                    shopId: widget.shopId,
-                    items: cartState.items,
-                    diningDate: cartState.diningDate,
-                  ),
-                ),
-            ],
+              );
+            },
           ),
     );
   }

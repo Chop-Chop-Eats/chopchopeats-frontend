@@ -12,7 +12,7 @@ import 'package:unified_popups/unified_popups.dart';
 /// 订单支付处理工具类
 class OrderPaymentHandler {
   /// 处理订单支付
-  /// 
+  ///
   /// [orderNo] 订单编号
   /// [paymentMethod] 支付方式（可选，如果为null则使用默认支付方式）
   /// [onSuccess] 支付成功回调
@@ -151,7 +151,7 @@ class OrderPaymentHandler {
 
           // 必填：商户名称（显示在支付弹窗顶部）
           merchantDisplayName: '订单 ${res.orderNo}',
-          
+
           // UI 外观定制（可选）
           appearance: const PaymentSheetAppearance(
             colors: PaymentSheetAppearanceColors(primary: Colors.blue),
@@ -178,7 +178,7 @@ class OrderPaymentHandler {
         'Stripe Error: ${e.error.localizedMessage}',
       );
       Pop.hideLoading();
-      
+
       if (e.error.code == FailureCode.Canceled) {
         Toast.show('取消支付');
         onError?.call('用户取消支付');

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:chop_user/src/core/l10n/app_localizations.dart';
 import 'package:chop_user/src/features/order/models/order_model.dart';
 import 'package:chop_user/src/features/order/providers/order_provider.dart';
 import 'package:chop_user/src/features/order/utils/order_payment_handler.dart';
@@ -11,8 +12,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'cancel_order_page.dart';
 import '../../detail/pages/detail_page.dart';
 import '../../../core/utils/logger/logger.dart';
-
-
 
 class OrderDetailPage extends ConsumerWidget {
   final String orderNo;
@@ -35,17 +34,25 @@ class OrderDetailPage extends ConsumerWidget {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, stack) => Center(child: Text('Error: $err')),
       ),
-      bottomNavigationBar: orderAsync.hasValue ? _buildBottomBar(context, orderAsync.value!, ref) : null,
+      bottomNavigationBar:
+          orderAsync.hasValue
+              ? _buildBottomBar(context, orderAsync.value!, ref)
+              : null,
     );
   }
 
-  Widget _buildBody(BuildContext context, AppTradeOrderDetailRespVO order, WidgetRef ref) {
+  Widget _buildBody(
+    BuildContext context,
+    AppTradeOrderDetailRespVO order,
+    WidgetRef ref,
+  ) {
+    final l10n = AppLocalizations.of(context)!;
     return SingleChildScrollView(
       // padding: EdgeInsets.all(16.w),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildStatusHeader(order, ref),
+          _buildStatusHeader(context, order, ref),
           SizedBox(height: 24.h),
           Container(
             decoration: BoxDecoration(
@@ -60,47 +67,69 @@ class OrderDetailPage extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildSectionTitle("配送地址"),
+                  _buildSectionTitle(l10n.orderDeliveryAddress),
                   SizedBox(height: 12.h),
                   _buildAddressCard(order),
                   SizedBox(height: 24.h),
-                  _buildSectionTitle("下单私厨"),
+                  _buildSectionTitle(l10n.orderChef),
                   SizedBox(height: 12.h),
                   _buildShopCard(order),
                   SizedBox(height: 24.h),
-                  _buildSectionTitle("餐品详情"),
+                  _buildSectionTitle(l10n.orderOrderDetails),
                   SizedBox(height: 12.h),
                   _buildItemsAndPriceCard(order),
                   SizedBox(height: 24.h),
-          
-                  _buildPriceRow("餐品小计", order.mealSubtotal),
-                  _buildPriceRow("税费&服务费", (order.taxAmount ?? 0) + (order.serviceFee ?? 0)),
-                  _buildPriceRow("配送费", order.deliveryFee),
-                  _buildPriceRow("优惠券抵扣", -(order.couponAmount ?? 0), isDiscount: true),
+
+                  _buildPriceRow(l10n.orderSubtotal, order.mealSubtotal),
+                  _buildPriceRow(
+                    l10n.orderTaxAndServiceFee,
+                    (order.taxAmount ?? 0) + (order.serviceFee ?? 0),
+                  ),
+                  _buildPriceRow(l10n.orderDeliveryFee, order.deliveryFee),
+                  _buildPriceRow(
+                    l10n.orderCouponDiscount,
+                    -(order.couponAmount ?? 0),
+                    isDiscount: true,
+                  ),
                   SizedBox(height: 12.h),
                   const Divider(height: 1, color: Color(0xFFEEEEEE)),
-                  SizedBox(height: 12.h),                                     
+                  SizedBox(height: 12.h),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Row(
                         children: [
-                          Text("实付款", style: TextStyle(fontSize: 16.sp, color: const Color(0xFF333333))),
+                          Text(
+                            l10n.orderActualPayment,
+                            style: TextStyle(
+                              fontSize: 16.sp,
+                              color: const Color(0xFF333333),
+                            ),
+                          ),
                           if ((order.deliveryTip ?? 0) > 0)
                             Text(
-                              "(含小费\$${order.deliveryTip?.toStringAsFixed(2)})",
-                              style: TextStyle(fontSize: 12.sp, color: const Color(0xFF999999)),
+                              l10n.orderActualPaymentWithTip(
+                                order.deliveryTip?.toStringAsFixed(2) ?? '0',
+                              ),
+                              style: TextStyle(
+                                fontSize: 12.sp,
+                                color: const Color(0xFF999999),
+                              ),
                             ),
                         ],
                       ),
                       Text(
                         "\$${order.payAmount?.toStringAsFixed(2)}",
-                        style: TextStyle(fontSize: 20.sp, fontWeight: FontWeight.bold, color: const Color(0xFF333333)),
+                        style: TextStyle(
+                          fontSize: 20.sp,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF333333),
+                        ),
                       ),
                     ],
                   ),
                   SizedBox(height: 24.h),
-                  _buildSectionTitle("订单信息"),
+                  _buildSectionTitle(l10n.orderOrderInfo),
                   SizedBox(height: 12.h),
                   _buildOrderInfoCard(order),
                   SizedBox(height: 80.h),
@@ -124,14 +153,19 @@ class OrderDetailPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildStatusHeader(AppTradeOrderDetailRespVO order, WidgetRef ref) {
+  Widget _buildStatusHeader(
+    BuildContext context,
+    AppTradeOrderDetailRespVO order,
+    WidgetRef ref,
+  ) {
+    final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 16.w),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            order.statusName ?? '',
+            order.getLocalizedStatusName(context),
             style: TextStyle(
               fontSize: 32.sp,
               fontWeight: FontWeight.bold,
@@ -139,7 +173,9 @@ class OrderDetailPage extends ConsumerWidget {
             ),
           ),
           SizedBox(height: 8.h),
-          if (order.status == 100 && order.createTime != null && order.orderPeriod != null) ...[
+          if (order.status == 100 &&
+              order.createTime != null &&
+              order.orderPeriod != null) ...[
             _OrderCountdown(
               createTime: order.createTime!,
               orderPeriod: order.orderPeriod!,
@@ -149,11 +185,10 @@ class OrderDetailPage extends ConsumerWidget {
             ),
           ] else
             Text(
-              order.statusDesc ?? '私厨已接单，待骑手接单',
-              style: TextStyle(
-                fontSize: 14.sp,
-                color: const Color(0xFF999999),
-              ),
+              order.getLocalizedStatusDesc(context).isNotEmpty
+                  ? order.getLocalizedStatusDesc(context)
+                  : l10n.orderStatusDescDefault,
+              style: TextStyle(fontSize: 14.sp, color: const Color(0xFF999999)),
             ),
         ],
       ),
@@ -177,13 +212,22 @@ class OrderDetailPage extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  order.deliveryAddress ?? "${order.address ?? ''} ${order.detailAddress ?? ''}".trim(),
-                  style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold, color: const Color(0xFF333333)),
+                  order.deliveryAddress ??
+                      "${order.address ?? ''} ${order.detailAddress ?? ''}"
+                          .trim(),
+                  style: TextStyle(
+                    fontSize: 18.sp,
+                    fontWeight: FontWeight.bold,
+                    color: const Color(0xFF333333),
+                  ),
                 ),
                 SizedBox(height: 6.h),
                 Text(
                   "${order.nickname ?? ''} ${order.contactPhone ?? ''}",
-                  style: TextStyle(fontSize: 14.sp, color: const Color(0xFF999999)),
+                  style: TextStyle(
+                    fontSize: 14.sp,
+                    color: const Color(0xFF999999),
+                  ),
                 ),
               ],
             ),
@@ -194,37 +238,56 @@ class OrderDetailPage extends ConsumerWidget {
   }
 
   Widget _buildShopCard(AppTradeOrderDetailRespVO order) {
-    return Container(
-      padding: EdgeInsets.all(20.w),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24.r),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            order.shopName ?? '',
-            style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold, color: const Color(0xFF333333)),
+    return Builder(
+      builder: (context) {
+        final l10n = AppLocalizations.of(context)!;
+        return Container(
+          padding: EdgeInsets.all(20.w),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24.r),
           ),
-          SizedBox(height: 8.h),
-          Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                "距离${order.distance ?? 0}km",
-                style: TextStyle(fontSize: 12.sp, color: const Color(0xFF999999)),
+                order.getLocalizedShopName(context),
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.bold,
+                  color: const Color(0xFF333333),
+                ),
               ),
-              SizedBox(width: 8.w),
-              Icon(Icons.delivery_dining, size: 14.sp, color: const Color(0xFF999999)),
-              SizedBox(width: 4.w),
-              Text(
-                "计划 ${order.deliveryTime ?? ''} 开始配送",
-                style: TextStyle(fontSize: 12.sp, color: const Color(0xFF999999)),
+              SizedBox(height: 8.h),
+              Row(
+                children: [
+                  Text(
+                    l10n.orderDistance(order.distance ?? 0),
+                    style: TextStyle(
+                      fontSize: 12.sp,
+                      color: const Color(0xFF999999),
+                    ),
+                  ),
+                  SizedBox(width: 8.w),
+                  Icon(
+                    Icons.delivery_dining,
+                    size: 14.sp,
+                    color: const Color(0xFF999999),
+                  ),
+                  SizedBox(width: 4.w),
+                  Text(
+                    l10n.orderDeliveryTime(order.deliveryTime ?? ''),
+                    style: TextStyle(
+                      fontSize: 12.sp,
+                      color: const Color(0xFF999999),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -254,17 +317,19 @@ class OrderDetailPage extends ConsumerWidget {
                       color: Colors.grey[100],
                       borderRadius: BorderRadius.circular(12.r),
                     ),
-                    child: (item.imageThumbnail != null && item.imageThumbnail!.isNotEmpty)
-                        ? ClipRRect(
-                            borderRadius: BorderRadius.circular(12.r),
-                            child: CommonImage(
-                              imagePath: item.imageThumbnail!,
-                              width: 64.w,
-                              height: 64.w,
-                              fit: BoxFit.cover,
-                            ),
-                          )
-                        : const Icon(Icons.fastfood, color: Colors.grey),
+                    child:
+                        (item.imageThumbnail != null &&
+                                item.imageThumbnail!.isNotEmpty)
+                            ? ClipRRect(
+                              borderRadius: BorderRadius.circular(12.r),
+                              child: CommonImage(
+                                imagePath: item.imageThumbnail!,
+                                width: 64.w,
+                                height: 64.w,
+                                fit: BoxFit.cover,
+                              ),
+                            )
+                            : const Icon(Icons.fastfood, color: Colors.grey),
                   ),
                   SizedBox(width: 12.w),
                   Expanded(
@@ -275,8 +340,12 @@ class OrderDetailPage extends ConsumerWidget {
                           children: [
                             Flexible(
                               child: Text(
-                                item.productName ?? '',
-                                style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold, color: const Color(0xFF333333)),
+                                item.getLocalizedProductName(context),
+                                style: TextStyle(
+                                  fontSize: 16.sp,
+                                  fontWeight: FontWeight.bold,
+                                  color: const Color(0xFF333333),
+                                ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -284,31 +353,59 @@ class OrderDetailPage extends ConsumerWidget {
                             if (item.hotMark == true)
                               Container(
                                 margin: EdgeInsets.only(left: 6.w),
-                                padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 2.h),
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 4.w,
+                                  vertical: 2.h,
+                                ),
                                 decoration: BoxDecoration(
                                   color: const Color(0xFFFF5722),
                                   borderRadius: BorderRadius.circular(4.r),
                                 ),
-                                child: Text("HOT", style: TextStyle(fontSize: 10.sp, color: Colors.white, fontWeight: FontWeight.bold)),
+                                child: Text(
+                                  "HOT",
+                                  style: TextStyle(
+                                    fontSize: 10.sp,
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                               ),
                             if (item.newMark == true)
                               Container(
                                 margin: EdgeInsets.only(left: 6.w),
-                                padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 2.h),
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 4.w,
+                                  vertical: 2.h,
+                                ),
                                 decoration: BoxDecoration(
                                   color: const Color(0xFFFFB800),
                                   borderRadius: BorderRadius.circular(4.r),
                                 ),
-                                child: Text("NEW", style: TextStyle(fontSize: 10.sp, color: Colors.white, fontWeight: FontWeight.bold)),
+                                child: Text(
+                                  "NEW",
+                                  style: TextStyle(
+                                    fontSize: 10.sp,
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                               ),
                           ],
                         ),
                         SizedBox(height: 4.h),
-                        // Mock options if not available, or use description if exists
-                        Text(
-                          "单人份, 不辣", // Placeholder as per image, replace with actual options if available
-                          style: TextStyle(fontSize: 12.sp, color: const Color(0xFF999999)),
-                        ),
+                        // Display selected SKUs if available
+                        if (item.selectedSkus != null &&
+                            item.selectedSkus!.isNotEmpty)
+                          Text(
+                            item.selectedSkus!
+                                .map((sku) => sku.getLocalizedSkuName(context))
+                                .where((name) => name.isNotEmpty)
+                                .join(', '),
+                            style: TextStyle(
+                              fontSize: 12.sp,
+                              color: const Color(0xFF999999),
+                            ),
+                          ),
                       ],
                     ),
                   ),
@@ -317,12 +414,19 @@ class OrderDetailPage extends ConsumerWidget {
                     children: [
                       Text(
                         "x${item.quantity}",
-                        style: TextStyle(fontSize: 14.sp, color: const Color(0xFF999999)),
+                        style: TextStyle(
+                          fontSize: 14.sp,
+                          color: const Color(0xFF999999),
+                        ),
                       ),
                       SizedBox(height: 4.h),
                       Text(
                         "\$${item.price?.toStringAsFixed(2)}",
-                        style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold, color: const Color(0xFF333333)),
+                        style: TextStyle(
+                          fontSize: 16.sp,
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF333333),
+                        ),
                       ),
                     ],
                   ),
@@ -330,13 +434,16 @@ class OrderDetailPage extends ConsumerWidget {
               );
             },
           ),
-          
         ],
       ),
     );
   }
 
-  Widget _buildPriceRow(String label, double? amount, {bool isDiscount = false}) {
+  Widget _buildPriceRow(
+    String label,
+    double? amount, {
+    bool isDiscount = false,
+  }) {
     return Padding(
       padding: EdgeInsets.only(bottom: 8.h),
       child: Row(
@@ -356,38 +463,51 @@ class OrderDetailPage extends ConsumerWidget {
   }
 
   Widget _buildOrderInfoCard(AppTradeOrderDetailRespVO order) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.w),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24.r),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildInfoRow("订单编号", order.orderNo),
-          _buildInfoRow("下单时间", order.createTime),
-          if (order.stripePaymentMethodInfo != null)
-            _buildInfoRow(
-              "支付方式",
-              "${order.stripePaymentMethodInfo!.cardBrand?.toUpperCase() ?? 'Card'} *${order.stripePaymentMethodInfo!.cardLast4 ?? ''}",
-              isPayment: true,
-              cardBrand: order.stripePaymentMethodInfo!.cardBrand,
-            )
-          else if (order.payTypeName != null)
-            _buildInfoRow("支付方式", order.payTypeName),
-        ],
-      ),
+    return Builder(
+      builder: (context) {
+        final l10n = AppLocalizations.of(context)!;
+        return Container(
+          padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.w),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24.r),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildInfoRow(l10n.orderOrderNo, order.orderNo),
+              _buildInfoRow(l10n.orderOrderTime, order.createTime),
+              if (order.stripePaymentMethodInfo != null)
+                _buildInfoRow(
+                  l10n.orderPaymentMethod,
+                  "${order.stripePaymentMethodInfo!.cardBrand?.toUpperCase() ?? 'Card'} *${order.stripePaymentMethodInfo!.cardLast4 ?? ''}",
+                  isPayment: true,
+                  cardBrand: order.stripePaymentMethodInfo!.cardBrand,
+                )
+              else if (order.payTypeName != null)
+                _buildInfoRow(l10n.orderPaymentMethod, order.payTypeName),
+            ],
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildInfoRow(String label, String? value, {bool isPayment = false, String? cardBrand}) {
+  Widget _buildInfoRow(
+    String label,
+    String? value, {
+    bool isPayment = false,
+    String? cardBrand,
+  }) {
     return Padding(
-      padding: EdgeInsets.only(bottom: 6.w,top: 6.w),
+      padding: EdgeInsets.only(bottom: 6.w, top: 6.w),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: TextStyle(fontSize: 14.sp, color: const Color(0xFF999999))),
+          Text(
+            label,
+            style: TextStyle(fontSize: 14.sp, color: const Color(0xFF999999)),
+          ),
           Row(
             children: [
               if (isPayment && cardBrand != null) ...[
@@ -400,22 +520,41 @@ class OrderDetailPage extends ConsumerWidget {
                   ),
                   child: Text(
                     cardBrand.toUpperCase(),
-                    style: TextStyle(fontSize: 10.sp, color: Colors.white, fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontSize: 10.sp,
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
                 SizedBox(width: 4.w),
               ],
-              Text(value ?? '', style: TextStyle(fontSize: 12.sp, color: const Color(0xFF333333))),
+              Text(
+                value ?? '',
+                style: TextStyle(
+                  fontSize: 12.sp,
+                  color: const Color(0xFF333333),
+                ),
+              ),
               if (label == "订单编号")
                 Padding(
                   padding: EdgeInsets.only(left: 8.w),
                   child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 6.w, vertical: 2.h),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 6.w,
+                      vertical: 2.h,
+                    ),
                     decoration: BoxDecoration(
                       border: Border.all(color: const Color(0xFFDDDDDD)),
                       borderRadius: BorderRadius.circular(4.r),
                     ),
-                    child: Text("复制", style: TextStyle(fontSize: 10.sp, color: const Color(0xFF666666))),
+                    child: Text(
+                      "复制",
+                      style: TextStyle(
+                        fontSize: 10.sp,
+                        color: const Color(0xFF666666),
+                      ),
+                    ),
                   ),
                 ),
             ],
@@ -425,7 +564,11 @@ class OrderDetailPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildBottomBar(BuildContext context, AppTradeOrderDetailRespVO order, WidgetRef ref) {
+  Widget _buildBottomBar(
+    BuildContext context,
+    AppTradeOrderDetailRespVO order,
+    WidgetRef ref,
+  ) {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
       decoration: BoxDecoration(
@@ -442,13 +585,16 @@ class OrderDetailPage extends ConsumerWidget {
           ),
         ],
       ),
-      child: SafeArea(
-        child: _buildBottomContent(context, order, ref),
-      ),
+      child: SafeArea(child: _buildBottomContent(context, order, ref)),
     );
   }
 
-  Widget _buildBottomContent(BuildContext context, AppTradeOrderDetailRespVO order, WidgetRef ref) {
+  Widget _buildBottomContent(
+    BuildContext context,
+    AppTradeOrderDetailRespVO order,
+    WidgetRef ref,
+  ) {
+    final l10n = AppLocalizations.of(context)!;
     // Status Group 1: Pending Payment
     if (order.statusGroup == 1 || order.status == 100) {
       return Row(
@@ -456,7 +602,7 @@ class OrderDetailPage extends ConsumerWidget {
         children: [
           _buildMoreOptions(context, order, ref),
           _buildActionButton(
-            "立即支付",
+            l10n.orderPayNow,
             Colors.white,
             const Color(0xFFFF5722),
             () {
@@ -477,22 +623,24 @@ class OrderDetailPage extends ConsumerWidget {
     }
 
     // Status Group 2: In Progress
-    if (order.statusGroup == 2 || (order.status != null && order.status! > 100 && order.status! < 175)) {
+    if (order.statusGroup == 2 ||
+        (order.status != null && order.status! > 100 && order.status! < 175)) {
       return _buildFullWidthButton(
-        "申请退款",
+        l10n.orderRequestRefund,
         const Color(0xFF333333),
         Colors.white,
         () {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => CancelOrderPage(
-                orderNo: order.orderNo ?? '',
-                isRefund: true,
-                onSuccess: () {
-                  ref.invalidate(orderDetailProvider(orderNo));
-                },
-              ),
+              builder:
+                  (context) => CancelOrderPage(
+                    orderNo: order.orderNo ?? '',
+                    isRefund: true,
+                    onSuccess: () {
+                      ref.invalidate(orderDetailProvider(orderNo));
+                    },
+                  ),
             ),
           );
         },
@@ -507,7 +655,7 @@ class OrderDetailPage extends ConsumerWidget {
         children: [
           _buildMoreOptions(context, order, ref),
           _buildActionButton(
-            "留下评价",
+            l10n.orderWriteReview,
             Colors.white,
             const Color(0xFFFF5722),
             () {
@@ -524,7 +672,7 @@ class OrderDetailPage extends ConsumerWidget {
       // If status is 180, it is explicitly Cancelled -> Delete Order
       if (order.status == 180) {
         return _buildFullWidthButton(
-          "删除订单",
+          l10n.orderDeleteOrder,
           Colors.red,
           Colors.white,
           () {
@@ -533,14 +681,14 @@ class OrderDetailPage extends ConsumerWidget {
           hasBorder: true,
         );
       }
-      
+
       // Otherwise, assume Refunded -> Reorder
       return Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           _buildMoreOptions(context, order, ref),
           _buildActionButton(
-            "重新下单",
+            l10n.orderReorder,
             const Color(0xFF333333),
             Colors.white,
             () => _handleReorder(context, order, ref),
@@ -553,7 +701,11 @@ class OrderDetailPage extends ConsumerWidget {
     return const SizedBox.shrink();
   }
 
-  Widget _buildMoreOptions(BuildContext context, AppTradeOrderDetailRespVO order, WidgetRef ref) {
+  Widget _buildMoreOptions(
+    BuildContext context,
+    AppTradeOrderDetailRespVO order,
+    WidgetRef ref,
+  ) {
     return PopupMenuButton<String>(
       icon: Icon(Icons.more_horiz, color: Colors.grey, size: 24.sp),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
@@ -562,24 +714,29 @@ class OrderDetailPage extends ConsumerWidget {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => CancelOrderPage(
-                orderNo: order.orderNo ?? '',
-                onSuccess: () {
-                  ref.invalidate(orderDetailProvider(orderNo));
-                },
-              ),
+              builder:
+                  (context) => CancelOrderPage(
+                    orderNo: order.orderNo ?? '',
+                    onSuccess: () {
+                      ref.invalidate(orderDetailProvider(orderNo));
+                    },
+                  ),
             ),
           );
         }
       },
       itemBuilder: (BuildContext context) {
+        final l10n = AppLocalizations.of(context)!;
         final List<PopupMenuItem<String>> items = [];
         // Only show Cancel Order for Pending Payment
         if (order.statusGroup == 1 || order.status == 100) {
           items.add(
             PopupMenuItem<String>(
               value: 'cancel',
-              child: Text('取消订单', style: TextStyle(fontSize: 14.sp)),
+              child: Text(
+                l10n.orderCancelOrder,
+                style: TextStyle(fontSize: 14.sp),
+              ),
             ),
           );
         }
@@ -589,7 +746,13 @@ class OrderDetailPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildActionButton(String text, Color textColor, Color bgColor, VoidCallback onPressed, {bool isPrimary = false}) {
+  Widget _buildActionButton(
+    String text,
+    Color textColor,
+    Color bgColor,
+    VoidCallback onPressed, {
+    bool isPrimary = false,
+  }) {
     return GestureDetector(
       onTap: onPressed,
       child: Container(
@@ -611,12 +774,18 @@ class OrderDetailPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildFullWidthButton(String text, Color textColor, Color bgColor, VoidCallback onPressed, {bool hasBorder = false}) {
+  Widget _buildFullWidthButton(
+    String text,
+    Color textColor,
+    Color bgColor,
+    VoidCallback onPressed, {
+    bool hasBorder = false,
+  }) {
     return GestureDetector(
       onTap: onPressed,
       child: Container(
         width: double.infinity,
-        height:54.w,
+        height: 54.w,
         padding: EdgeInsets.symmetric(vertical: 14.h),
         decoration: BoxDecoration(
           color: bgColor,
@@ -637,20 +806,25 @@ class OrderDetailPage extends ConsumerWidget {
   }
 
   /// 处理重新下单逻辑
-  Future<void> _handleReorder(BuildContext context, AppTradeOrderDetailRespVO order, WidgetRef ref) async {
+  Future<void> _handleReorder(
+    BuildContext context,
+    AppTradeOrderDetailRespVO order,
+    WidgetRef ref,
+  ) async {
     if (order.shopId == null || order.shopId!.isEmpty) {
       showDialog(
         context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('提示'),
-          content: const Text('无法获取店铺信息'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('确定'),
+        builder:
+            (context) => AlertDialog(
+              title: const Text('提示'),
+              content: const Text('无法获取店铺信息'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('确定'),
+                ),
+              ],
             ),
-          ],
-        ),
       );
       return;
     }
@@ -662,13 +836,9 @@ class OrderDetailPage extends ConsumerWidget {
     // 直接导航到店铺详情页，让用户重新选择商品
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => DetailPage(id: order.shopId!),
-      ),
+      MaterialPageRoute(builder: (context) => DetailPage(id: order.shopId!)),
     );
   }
-
-
 }
 
 class _OrderCountdown extends StatefulWidget {
@@ -710,10 +880,11 @@ class _OrderCountdownState extends State<_OrderCountdown> {
       // 2. Try parsing as ISO-8601 string
       // If the time string doesn't have timezone info (no 'Z' or offset),
       // we assume it is UTC to avoid timezone offset issues (e.g. server sending UTC but parsed as local).
-      if (!widget.createTime.endsWith('Z') && !widget.createTime.contains('+')) {
-         create = DateTime.tryParse("${widget.createTime}Z")?.toLocal();
+      if (!widget.createTime.endsWith('Z') &&
+          !widget.createTime.contains('+')) {
+        create = DateTime.tryParse("${widget.createTime}Z")?.toLocal();
       } else {
-         create = DateTime.tryParse(widget.createTime);
+        create = DateTime.tryParse(widget.createTime);
       }
     }
 
@@ -723,14 +894,14 @@ class _OrderCountdownState extends State<_OrderCountdown> {
     // We strictly treat it as minutes.
     final duration = Duration(minutes: widget.orderPeriod);
 
-    final end = create.add(duration); 
+    final end = create.add(duration);
     final now = DateTime.now();
     final diff = end.difference(now);
 
     if (diff.isNegative) {
       _timer.cancel();
       if (_remaining != Duration.zero) {
-         widget.onExpired();
+        widget.onExpired();
       }
       setState(() {
         _remaining = Duration.zero;
@@ -750,13 +921,14 @@ class _OrderCountdownState extends State<_OrderCountdown> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final minutes = _remaining.inMinutes;
     final seconds = _remaining.inSeconds % 60;
     return RichText(
       text: TextSpan(
         children: [
           TextSpan(
-            text: "${minutes}分${seconds.toString().padLeft(2, '0')}秒",
+            text: l10n.orderCountdownTime(minutes, seconds),
             style: TextStyle(
               fontSize: 14.sp,
               color: const Color(0xFFFF5722),
@@ -764,11 +936,8 @@ class _OrderCountdownState extends State<_OrderCountdown> {
             ),
           ),
           TextSpan(
-            text: " 后失效",
-            style: TextStyle(
-              fontSize: 14.sp,
-              color: const Color(0xFF333333),
-            ),
+            text: l10n.orderCountdownSuffix,
+            style: TextStyle(fontSize: 14.sp, color: const Color(0xFF333333)),
           ),
         ],
       ),

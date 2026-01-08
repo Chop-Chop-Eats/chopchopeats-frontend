@@ -12,10 +12,7 @@ import 'add_card_page.dart';
 class PaymentSelectionSheet extends ConsumerWidget {
   final bool hideWallet;
 
-  const PaymentSelectionSheet({
-    super.key,
-    this.hideWallet = false,
-  });
+  const PaymentSelectionSheet({super.key, this.hideWallet = false});
 
   static Future<PaymentSelectionWrapper?> show(
     BuildContext context,
@@ -23,10 +20,10 @@ class PaymentSelectionSheet extends ConsumerWidget {
     bool hideWallet = false,
   }) async {
     Logger.info('PaymentSelectionSheet', '打开支付方式选择弹窗');
-    
+
     // 先预加载支付方式列表
     final preloadFuture = ref.read(paymentMethodsListProvider.future);
-    
+
     // 立即显示弹窗，内部会根据加载状态显示loading或内容
     return showModalBottomSheet<PaymentSelectionWrapper>(
       context: context,
@@ -61,9 +58,11 @@ class PaymentSelectionSheet extends ConsumerWidget {
                 Expanded(
                   child: Center(
                     child: Text(
-                      '选择支付方式',
+                      'Select Payment Method',
                       style: TextStyle(
-                          fontSize: 18.sp, fontWeight: FontWeight.bold),
+                        fontSize: 18.sp,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
@@ -77,19 +76,25 @@ class PaymentSelectionSheet extends ConsumerWidget {
           Expanded(
             child: paymentMethodsAsync.when(
               data: (methods) {
-                final filteredMethods = hideWallet
-                    ? methods
-                        .where((m) => m.type != AppPaymentMethodType.wallet)
-                        .toList()
-                    : methods;
+                final filteredMethods =
+                    hideWallet
+                        ? methods
+                            .where((m) => m.type != AppPaymentMethodType.wallet)
+                            .toList()
+                        : methods;
                 return ListView(
                   padding: EdgeInsets.all(24.w),
                   children: [
-                    ...filteredMethods.map((method) => _buildPaymentItem(
-                        context, ref, method,
+                    ...filteredMethods.map(
+                      (method) => _buildPaymentItem(
+                        context,
+                        ref,
+                        method,
                         isSelected:
                             selectedMethod?.displayName == method.displayName &&
-                                selectedMethod?.type == method.type)),
+                            selectedMethod?.type == method.type,
+                      ),
+                    ),
                     SizedBox(height: 20.h),
                     // 添加新卡按钮
                     GestureDetector(
@@ -97,7 +102,8 @@ class PaymentSelectionSheet extends ConsumerWidget {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (_) => const AddCardPage()),
+                            builder: (_) => const AddCardPage(),
+                          ),
                         );
                       },
                       child: Container(
@@ -108,7 +114,7 @@ class PaymentSelectionSheet extends ConsumerWidget {
                         ),
                         alignment: Alignment.center,
                         child: Text(
-                          '添加新卡',
+                          'Add New Card',
                           style: TextStyle(
                             color: AppTheme.primaryOrange,
                             fontSize: 16.sp,
@@ -121,7 +127,8 @@ class PaymentSelectionSheet extends ConsumerWidget {
                 );
               },
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (err, stack) => Center(child: Text('加载失败: $err')),
+              error:
+                  (err, stack) => Center(child: Text('Failed to load: $err')),
             ),
           ),
 
@@ -140,11 +147,12 @@ class PaymentSelectionSheet extends ConsumerWidget {
                   ),
                 ),
                 child: Text(
-                  '确定',
+                  'Confirm',
                   style: TextStyle(
-                      fontSize: 16.sp,
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold),
+                    fontSize: 16.sp,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),
@@ -156,8 +164,11 @@ class PaymentSelectionSheet extends ConsumerWidget {
   }
 
   Widget _buildPaymentItem(
-      BuildContext context, WidgetRef ref, PaymentSelectionWrapper method,
-      {required bool isSelected}) {
+    BuildContext context,
+    WidgetRef ref,
+    PaymentSelectionWrapper method, {
+    required bool isSelected,
+  }) {
     if (method.type == AppPaymentMethodType.wallet) {
       Logger.info(
         'PaymentSelectionSheet',
@@ -183,7 +194,7 @@ class PaymentSelectionSheet extends ConsumerWidget {
               color: Colors.black.withOpacity(0.05),
               blurRadius: 10,
               offset: const Offset(0, 4),
-            )
+            ),
           ],
         ),
         child: Row(
@@ -215,7 +226,9 @@ class PaymentSelectionSheet extends ConsumerWidget {
                         SizedBox(width: 8.w),
                         Container(
                           padding: EdgeInsets.symmetric(
-                              horizontal: 6.w, vertical: 2.h),
+                            horizontal: 6.w,
+                            vertical: 2.h,
+                          ),
                           decoration: BoxDecoration(
                             color: const Color(0xFFFFE4D6),
                             borderRadius: BorderRadius.circular(4.r),
@@ -223,10 +236,12 @@ class PaymentSelectionSheet extends ConsumerWidget {
                           child: Text(
                             '默认',
                             style: TextStyle(
-                                fontSize: 10.sp, color: AppTheme.primaryOrange),
+                              fontSize: 10.sp,
+                              color: AppTheme.primaryOrange,
+                            ),
                           ),
-                        )
-                      ]
+                        ),
+                      ],
                     ],
                   ),
                   if (method.type == AppPaymentMethodType.wallet)
