@@ -210,7 +210,7 @@ class OrderCard extends StatelessWidget {
 
   bool _hasMoreOptions() {
     // Show for Pending Payment (100) and Completed (300) as per image
-    return order.status == 100 || order.status == 300;
+    return order.status == 100;
   }
 
   List<Widget> _buildActionButtons(BuildContext context) {

@@ -318,6 +318,7 @@ class AppTradeOrderDetailRespVO {
   final String? responseRefundTime;
   final String? finishRefundTime;
   final String? cancelReason;
+  final bool? commentMark;
   final DeliveredConfirmInfoVO? deliveredConfirmInfo;
   final StripePaymentMethodInfoVO? stripePaymentMethodInfo;
   final List<OrderItemDetailVO>? items;
@@ -376,6 +377,7 @@ class AppTradeOrderDetailRespVO {
     this.responseRefundTime,
     this.finishRefundTime,
     this.cancelReason,
+    this.commentMark,
     this.deliveredConfirmInfo,
     this.stripePaymentMethodInfo,
     this.items,
@@ -436,6 +438,7 @@ class AppTradeOrderDetailRespVO {
       responseRefundTime: JsonUtils.parseString(json, 'responseRefundTime'),
       finishRefundTime: JsonUtils.parseString(json, 'finishRefundTime'),
       cancelReason: JsonUtils.parseString(json, 'cancelReason'),
+      commentMark: JsonUtils.parseBool(json, 'commentMark'),
       deliveredConfirmInfo:
           json['deliveredConfirmInfo'] != null
               ? DeliveredConfirmInfoVO.fromJson(json['deliveredConfirmInfo'])

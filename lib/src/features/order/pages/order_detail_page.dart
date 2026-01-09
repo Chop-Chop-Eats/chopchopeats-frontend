@@ -650,18 +650,20 @@ class OrderDetailPage extends ConsumerWidget {
 
     // Status Group 3: Completed
     if (order.statusGroup == 3 || order.status == 175) {
+      final hasCommented = order.commentMark == true;
       return Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           _buildMoreOptions(context, order, ref),
           _buildActionButton(
             l10n.orderWriteReview,
-            Colors.white,
-            const Color(0xFFFF5722),
-            () {
+            hasCommented ? const Color(0xFF999999) : Colors.white,
+            hasCommented ? const Color(0xFFE0E0E0) : const Color(0xFFFF5722),
+            hasCommented ? null : () {
               // Review action
             },
             isPrimary: true,
+            isDisabled: hasCommented,
           ),
         ],
       );
@@ -750,11 +752,12 @@ class OrderDetailPage extends ConsumerWidget {
     String text,
     Color textColor,
     Color bgColor,
-    VoidCallback onPressed, {
+    VoidCallback? onPressed, {
     bool isPrimary = false,
+    bool isDisabled = false,
   }) {
     return GestureDetector(
-      onTap: onPressed,
+      onTap: isDisabled ? null : onPressed,
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 32.w, vertical: 12.h),
         decoration: BoxDecoration(
