@@ -34,4 +34,19 @@ class CommentService {
       return null;
     }
   }
+  static Future<AppMerchantShopCommentPageRespVO> getShopCommentPage({
+    required String shopId,
+    required int pageNo,
+    required int pageSize,
+  }) async {
+    final response = await ApiClient().get(
+      ApiPaths.shopCommentPageApi,
+      queryParameters: {
+        'shopId': shopId,
+        'pageNo': pageNo,
+        'pageSize': pageSize,
+      },
+    );
+    return AppMerchantShopCommentPageRespVO.fromJson(response.data);
+  }
 }

@@ -5,6 +5,7 @@ import '../../../core/utils/logger/logger.dart';
 import '../../../core/widgets/common_spacing.dart';
 import '../models/detail_model.dart';
 import '../providers/detail_provider.dart';
+import 'package:chop_user/src/features/comment/widgets/shop_comment_section.dart';
 import 'daily_menu.dart';
 import 'product_list.dart';
 import 'shop_info_card.dart';
@@ -101,6 +102,11 @@ class _ProductDetailState extends ConsumerState<ProductDetail> {
               saleWeekDay: currentWeekday,
             ),
           ),
+
+          CommonSpacing.medium,
+
+          // 评价部分
+          ShopCommentSection(shopId: widget.shop.id),
 
           // 底部留出购物车的空间，避免内容被遮挡
           SizedBox(height: 80.h),

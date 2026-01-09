@@ -7,7 +7,8 @@ import 'common_image.dart';
 import 'common_spacing.dart';
 
 class CommonEmpty extends StatelessWidget {
-  const CommonEmpty({super.key});
+  final String? message;
+  const CommonEmpty({super.key, this.message});
 
   @override
   Widget build(BuildContext context) {
@@ -18,7 +19,7 @@ class CommonEmpty extends StatelessWidget {
         children: [
           CommonImage(imagePath: 'assets/images/empty_heart.png' , height: 140.h),
           CommonSpacing.medium,
-          Text(l10n.noDataText, style: AppValues.labelTitle,),
+          Text(message ?? l10n.noDataText, style: AppValues.labelTitle,),
         ],
       ),
     );

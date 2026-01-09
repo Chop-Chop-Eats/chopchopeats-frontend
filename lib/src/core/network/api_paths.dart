@@ -202,6 +202,9 @@ class ApiPaths {
   // 创建店铺评论
   static const String shopCommentCreateApi = "/app-api/merchant/shop-comment/create";
 
+  // 分页查询店铺评论
+  static const String shopCommentPageApi = "/app-api/merchant/shop-comment/page";
+
   // [支付配置模块]
   // 获取 Stripe Publishable Key
   static const String getStripePublicKeyApi = "/app-api/trade/stripe-config/public-key";
