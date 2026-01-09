@@ -294,6 +294,8 @@ abstract class AppLocalizations {
   String get walletTitle; // 钱包
   String get walletBalance; // 钱包余额
   String get walletRecharge; // 钱包充值
+  String get myWallet; // 我的钱包（支付方式显示）
+  String get availableBalance; // 可用余额（支付方式显示）
   String get selectOrEnterRechargeAmount; // 选择或输入充值金额
   String get enterRechargeAmount; // 请输入充值金额
   String get balanceDetail; // 余额明细

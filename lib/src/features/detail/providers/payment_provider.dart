@@ -82,7 +82,7 @@ final paymentMethodsListProvider = FutureProvider.autoDispose<List<PaymentSelect
     
     list.add(PaymentSelectionWrapper(
       type: AppPaymentMethodType.wallet,
-      displayName: '我的钱包',
+      displayName: '', 
       iconPath: 'assets/images/wallet.png',
       walletBalance: walletBalance,
     ));

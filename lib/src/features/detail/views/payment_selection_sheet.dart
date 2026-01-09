@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../../core/l10n/app_localizations.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/logger/logger.dart';
 import '../../../core/widgets/common_image.dart';
@@ -215,7 +216,10 @@ class PaymentSelectionSheet extends ConsumerWidget {
                   Row(
                     children: [
                       Text(
-                        method.displayName,
+                        // 如果是钱包方式，使用国际化文案；否则使用 displayName
+                        method.type == AppPaymentMethodType.wallet
+                            ? AppLocalizations.of(context)!.myWallet
+                            : method.displayName,
                         style: TextStyle(
                           fontSize: 16.sp,
                           fontWeight: FontWeight.w500,
@@ -246,7 +250,7 @@ class PaymentSelectionSheet extends ConsumerWidget {
                   ),
                   if (method.type == AppPaymentMethodType.wallet)
                     Text(
-                      '可用余额 \$${(method.walletBalance ?? 0.0).toStringAsFixed(2)}',
+                      '${AppLocalizations.of(context)!.availableBalance} \$${(method.walletBalance ?? 0.0).toStringAsFixed(2)}',
                       style: TextStyle(fontSize: 12.sp, color: Colors.grey),
                     ),
                 ],

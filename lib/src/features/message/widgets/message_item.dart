@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:intl/intl.dart';
 import '../../../core/l10n/app_localizations.dart';
+import '../../../core/l10n/locale_service.dart';
 import '../../../core/widgets/common_spacing.dart';
 import '../../../core/widgets/common_image.dart';
 import '../models/message_models.dart' as models;
@@ -122,11 +123,13 @@ class MessageItemWidget extends StatelessWidget {
 
     // 如果是一周内
     if (difference.inDays < 7) {
-      return DateFormat('EEEE HH:mm', 'zh_CN').format(sentTime);
+      final locale = LocaleService.isZh ? 'zh_CN' : 'en_US';
+      return DateFormat('EEEE HH:mm', locale).format(sentTime);
     }
 
     // 其他情况显示完整日期时间
-    return DateFormat('MMM dd, yyyy HH:mm', 'en_US').format(sentTime);
+    final locale = LocaleService.isZh ? 'zh_CN' : 'en_US';
+    return DateFormat('MMM dd, yyyy HH:mm', locale).format(sentTime);
   }
 
   /// 根据消息类型获取图标路径

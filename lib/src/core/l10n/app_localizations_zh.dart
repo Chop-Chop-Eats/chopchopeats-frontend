@@ -519,6 +519,10 @@ class AppLocalizationsZh implements AppLocalizations {
   @override
   String get walletRecharge => '钱包充值';
   @override
+  String get myWallet => '我的钱包';
+  @override
+  String get availableBalance => '可用余额';
+  @override
   String get selectOrEnterRechargeAmount => '选择或输入充值金额';
   @override
   String get enterRechargeAmount => '请输入充值金额';

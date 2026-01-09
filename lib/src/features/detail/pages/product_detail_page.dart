@@ -795,11 +795,6 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
           }
         }
 
-        if (selectedSkusList.isEmpty) {
-          toast.warn('请选择规格');
-          return;
-        }
-
         // 构建selectedSkus列表（传递所有选中的SKU）
         final selectedSkus =
             selectedSkusList

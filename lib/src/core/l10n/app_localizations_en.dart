@@ -530,8 +530,9 @@ class AppLocalizationsEn implements AppLocalizations {
   String get walletBalance => 'Wallet Balance';
   @override
   String get walletRecharge => 'Wallet Recharge';
-  @override
-  String get selectOrEnterRechargeAmount => 'Select or Enter Recharge Amount';
+  @override  String get myWallet => 'My Wallet';
+  @override  String get availableBalance => 'Available Balance';
+  @override  String get selectOrEnterRechargeAmount => 'Select or Enter Recharge Amount';
   @override
   String get enterRechargeAmount => 'Enter Recharge Amount';
   @override
