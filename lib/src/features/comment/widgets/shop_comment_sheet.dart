@@ -7,6 +7,7 @@ import 'package:chop_user/src/core/widgets/common_indicator.dart';
 import 'package:chop_user/src/core/widgets/custom_refresh_footer.dart';
 import 'package:chop_user/src/features/comment/providers/shop_comment_provider.dart';
 import 'package:chop_user/src/features/comment/widgets/shop_comment_item.dart';
+import 'package:chop_user/src/core/l10n/app_localizations.dart';
 
 class ShopCommentSheet extends ConsumerStatefulWidget {
   final String shopId;
@@ -27,7 +28,9 @@ class _ShopCommentSheetState extends ConsumerState<ShopCommentSheet> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final state = ref.read(shopCommentProvider(widget.shopId));
       if (state.list.isEmpty && !state.isLoading) {
-        ref.read(shopCommentProvider(widget.shopId).notifier).loadComments(refresh: true);
+        ref
+            .read(shopCommentProvider(widget.shopId).notifier)
+            .loadComments(refresh: true);
       }
     });
   }
@@ -51,6 +54,7 @@ class _ShopCommentSheetState extends ConsumerState<ShopCommentSheet> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(shopCommentProvider(widget.shopId));
+    final l10n = AppLocalizations.of(context)!;
 
     return Container(
       height: 0.8.sh,
@@ -60,43 +64,46 @@ class _ShopCommentSheetState extends ConsumerState<ShopCommentSheet> {
       ),
       child: Column(
         children: [
-          _buildHeader(state.total, state.averageRate),
+          _buildHeader(state.total, state.averageRate, l10n),
           Expanded(
-            child: state.isLoading && state.list.isEmpty
-                ? const Center(child: CommonIndicator())
-                : state.list.isEmpty
-                    ? const CommonEmpty(message: '暂无评价')
+            child:
+                state.isLoading && state.list.isEmpty
+                    ? const Center(child: CommonIndicator())
+                    : state.list.isEmpty
+                    ? CommonEmpty(message: l10n.commentNoReviews)
                     : SmartRefresher(
-                        controller: _refreshController,
-                        enablePullDown: false,
-                        enablePullUp: true,
-                        onLoading: _onLoading,
-                        footer: CustomFooter(
-                          builder: (context, mode) {
-                            if (mode == LoadStatus.loading) {
-                              return const CustomRefreshFooter();
-                            } else if (mode == LoadStatus.noMore) {
-                              return const CustomNoMoreIndicator();
-                            }
-                            return const SizedBox();
-                          },
-                        ),
-                        child: ListView.separated(
-                          padding: EdgeInsets.zero,
-                          itemCount: state.list.length,
-                          separatorBuilder: (_, __) => Divider(height: 1, color: Colors.grey[200]),
-                          itemBuilder: (context, index) {
-                            return ShopCommentItem(comment: state.list[index]);
-                          },
-                        ),
+                      controller: _refreshController,
+                      enablePullDown: false,
+                      enablePullUp: true,
+                      onLoading: _onLoading,
+                      footer: CustomFooter(
+                        builder: (context, mode) {
+                          if (mode == LoadStatus.loading) {
+                            return const CustomRefreshFooter();
+                          } else if (mode == LoadStatus.noMore) {
+                            return const CustomNoMoreIndicator();
+                          }
+                          return const SizedBox();
+                        },
                       ),
+                      child: ListView.separated(
+                        padding: EdgeInsets.zero,
+                        itemCount: state.list.length,
+                        separatorBuilder:
+                            (_, __) =>
+                                Divider(height: 1, color: Colors.grey[200]),
+                        itemBuilder: (context, index) {
+                          return ShopCommentItem(comment: state.list[index]);
+                        },
+                      ),
+                    ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildHeader(int total, double averageRate) {
+  Widget _buildHeader(int total, double averageRate, AppLocalizations l10n) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
       child: Row(
@@ -104,10 +111,14 @@ class _ShopCommentSheetState extends ConsumerState<ShopCommentSheet> {
         children: [
           Row(
             children: [
-              Icon(Icons.star_rounded, color: const Color(0xFFFFB800), size: 24.w),
+              Icon(
+                Icons.star_rounded,
+                color: const Color(0xFFFFB800),
+                size: 24.w,
+              ),
               SizedBox(width: 4.w),
               Text(
-                '$averageRate分',
+                '$averageRate${l10n.commentRatingSuffix}',
                 style: TextStyle(
                   fontSize: 18.sp,
                   fontWeight: FontWeight.bold,
@@ -116,7 +127,7 @@ class _ShopCommentSheetState extends ConsumerState<ShopCommentSheet> {
               ),
               SizedBox(width: 8.w),
               Text(
-                '· $total条评价',
+                '· $total${l10n.commentCount}',
                 style: TextStyle(
                   fontSize: 14.sp,
                   color: const Color(0xFF666666),
@@ -126,7 +137,11 @@ class _ShopCommentSheetState extends ConsumerState<ShopCommentSheet> {
           ),
           GestureDetector(
             onTap: () => Navigator.pop(context),
-            child: Icon(Icons.close, size: 24.w, color: const Color(0xFF999999)),
+            child: Icon(
+              Icons.close,
+              size: 24.w,
+              color: const Color(0xFF999999),
+            ),
           ),
         ],
       ),

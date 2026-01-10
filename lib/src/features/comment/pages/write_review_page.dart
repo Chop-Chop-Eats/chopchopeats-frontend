@@ -1,6 +1,5 @@
 import 'dart:io';
 
-
 import 'package:chop_user/src/core/network/api_exception.dart';
 import 'package:chop_user/src/core/utils/logger/logger.dart';
 import 'package:chop_user/src/core/utils/pop/toast.dart';
@@ -11,6 +10,7 @@ import 'package:chop_user/src/features/order/models/order_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:chop_user/src/core/l10n/app_localizations.dart';
 
 class WriteReviewPage extends StatefulWidget {
   final AppTradeOrderPageRespVO order;
@@ -34,8 +34,9 @@ class _WriteReviewPageState extends State<WriteReviewPage> {
   }
 
   Future<void> _pickImage() async {
+    final l10n = AppLocalizations.of(context)!;
     if (_selectedImages.length >= 4) {
-      Toast.show("最多上传4张图片");
+      Toast.show(l10n.commentMaxImages);
       return;
     }
 
@@ -62,9 +63,10 @@ class _WriteReviewPageState extends State<WriteReviewPage> {
 
   Future<void> _submitReview() async {
     if (_isSubmitting) return;
+    final l10n = AppLocalizations.of(context)!;
 
     if (_rating == 0) {
-      Toast.show("请选择评分");
+      Toast.show(l10n.commentSelectRating);
       return;
     }
 
@@ -92,9 +94,9 @@ class _WriteReviewPageState extends State<WriteReviewPage> {
       );
 
       await CommentService.createComment(req);
-      
+
       if (mounted) {
-        Toast.show("评价成功");
+        Toast.show(l10n.commentSuccess);
         Navigator.pop(context, true); // Return true to indicate success
       }
     } catch (e) {
@@ -103,7 +105,7 @@ class _WriteReviewPageState extends State<WriteReviewPage> {
         if (e is ApiException) {
           Toast.show(e.message);
         } else {
-          Toast.show("评价失败，请重试");
+          Toast.show(l10n.commentFailed);
         }
       }
     } finally {
@@ -117,11 +119,12 @@ class _WriteReviewPageState extends State<WriteReviewPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(
-          '评价',
+          l10n.commentTitle,
           style: TextStyle(
             color: Colors.black,
             fontSize: 18.sp,
@@ -142,7 +145,7 @@ class _WriteReviewPageState extends State<WriteReviewPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '您的此次用餐体验如何？',
+              l10n.commentExperienceTitle,
               style: TextStyle(
                 fontSize: 20.sp,
                 fontWeight: FontWeight.bold,
@@ -151,20 +154,17 @@ class _WriteReviewPageState extends State<WriteReviewPage> {
             ),
             SizedBox(height: 8.h),
             Text(
-              '喜欢你的食物吗？给私厨商家评分，您的意见很重要。',
-              style: TextStyle(
-                fontSize: 14.sp,
-                color: Colors.grey,
-              ),
+              l10n.commentExperienceSubtitle,
+              style: TextStyle(fontSize: 14.sp, color: Colors.grey),
             ),
             SizedBox(height: 24.h),
             _buildShopCard(),
             SizedBox(height: 32.h),
             _buildRatingBar(),
             SizedBox(height: 32.h),
-            _buildCommentArea(),
+            _buildCommentArea(l10n),
             SizedBox(height: 32.h),
-            _buildSubmitButton(),
+            _buildSubmitButton(l10n),
           ],
         ),
       ),
@@ -199,10 +199,7 @@ class _WriteReviewPageState extends State<WriteReviewPage> {
           SizedBox(height: 4.h),
           Text(
             '${widget.order.categoryName ?? ''} • ${widget.order.englishCategoryName ?? ''}',
-            style: TextStyle(
-              fontSize: 12.sp,
-              color: Colors.grey,
-            ),
+            style: TextStyle(fontSize: 12.sp, color: Colors.grey),
           ),
           SizedBox(height: 16.h),
           SizedBox(
@@ -258,7 +255,7 @@ class _WriteReviewPageState extends State<WriteReviewPage> {
     );
   }
 
-  Widget _buildCommentArea() {
+  Widget _buildCommentArea(AppLocalizations l10n) {
     return Container(
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
@@ -272,18 +269,12 @@ class _WriteReviewPageState extends State<WriteReviewPage> {
             controller: _commentController,
             maxLines: 4,
             decoration: InputDecoration(
-              hintText: '分享多方面的用餐体验，可以帮助更多用户哦',
-              hintStyle: TextStyle(
-                fontSize: 14.sp,
-                color: Colors.grey[400],
-              ),
+              hintText: l10n.commentShareExperienceHint,
+              hintStyle: TextStyle(fontSize: 14.sp, color: Colors.grey[400]),
               border: InputBorder.none,
               contentPadding: EdgeInsets.zero,
             ),
-            style: TextStyle(
-              fontSize: 14.sp,
-              color: Colors.black,
-            ),
+            style: TextStyle(fontSize: 14.sp, color: Colors.black),
           ),
           SizedBox(height: 16.h),
           Wrap(
@@ -340,15 +331,16 @@ class _WriteReviewPageState extends State<WriteReviewPage> {
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.camera_alt, color: Colors.black, size: 24.sp),
+                        Icon(
+                          Icons.camera_alt,
+                          color: Colors.black,
+                          size: 24.sp,
+                        ),
                         SizedBox(height: 4.h),
                         Text(
-                          '上传图片\n(最多4张)',
+                          l10n.commentUploadImages,
                           textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 10.sp,
-                            color: Colors.grey,
-                          ),
+                          style: TextStyle(fontSize: 10.sp, color: Colors.grey),
                         ),
                       ],
                     ),
@@ -361,7 +353,7 @@ class _WriteReviewPageState extends State<WriteReviewPage> {
     );
   }
 
-  Widget _buildSubmitButton() {
+  Widget _buildSubmitButton(AppLocalizations l10n) {
     return SizedBox(
       width: double.infinity,
       height: 48.h,
@@ -374,23 +366,24 @@ class _WriteReviewPageState extends State<WriteReviewPage> {
           ),
           elevation: 0,
         ),
-        child: _isSubmitting
-            ? SizedBox(
-                width: 20.w,
-                height: 20.w,
-                child: const CircularProgressIndicator(
-                  color: Colors.white,
-                  strokeWidth: 2,
+        child:
+            _isSubmitting
+                ? SizedBox(
+                  width: 20.w,
+                  height: 20.w,
+                  child: const CircularProgressIndicator(
+                    color: Colors.white,
+                    strokeWidth: 2,
+                  ),
+                )
+                : Text(
+                  l10n.commentSubmit,
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              )
-            : Text(
-                '提交',
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
       ),
     );
   }

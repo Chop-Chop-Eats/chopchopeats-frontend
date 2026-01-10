@@ -632,4 +632,38 @@ class AppLocalizationsZh implements AppLocalizations {
   String get messageRetry => '重试';
   @override
   String get messageYesterday => '昨天';
+
+  // ============== 评论模块 ==============
+  @override
+  String get commentMerchantReply => '商家回复';
+  @override
+  String get commentRatingSuffix => '分';
+  @override
+  String get commentCount => '条评价';
+  @override
+  String get commentViewAll => '显示所有评价';
+  @override
+  String get commentNoReviews => '暂无评价';
+  @override
+  String get commentMaxImages => '最多上传4张图片';
+  @override
+  String get commentSelectRating => '请选择评分';
+  @override
+  String get commentSuccess => '评价成功';
+  @override
+  String get commentFailed => '评价失败，请重试';
+  @override
+  String get commentTitle => '评价';
+  @override
+  String get commentExperienceTitle => '您的此次用餐体验如何？';
+  @override
+  String get commentExperienceSubtitle => '喜欢你的食物吗？给私厨商家评分，您的意见很重要。';
+  @override
+  String get commentShareExperienceHint => '分享多方面的用餐体验，可以帮助更多用户哦';
+  @override
+  String get commentUploadImages => '上传图片\n(最多4张)';
+  @override
+  String get commentSubmit => '提交';
+  @override
+  String commentDaysAgo(int days) => '${days}天前';
 }

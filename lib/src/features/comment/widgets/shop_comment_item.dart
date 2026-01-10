@@ -5,6 +5,7 @@ import 'package:chop_user/src/core/widgets/common_spacing.dart';
 import 'package:chop_user/src/features/comment/models/comment_model.dart';
 import 'package:intl/intl.dart';
 import 'package:chop_user/src/core/widgets/image_preview_page.dart';
+import 'package:chop_user/src/core/l10n/app_localizations.dart';
 
 class ShopCommentItem extends StatelessWidget {
   final AppMerchantShopCommentRespVO comment;
@@ -18,28 +19,30 @@ class ShopCommentItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       width: isPreview ? 300.w : double.infinity,
       padding: EdgeInsets.all(16.w),
-      decoration: isPreview
-          ? BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12.r),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            )
-          : null,
+      decoration:
+          isPreview
+              ? BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12.r),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              )
+              : null,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildHeader(),
           CommonSpacing.small,
-          _buildRatingAndDate(),
+          _buildRatingAndDate(l10n),
           CommonSpacing.small,
           Text(
             comment.comment,
@@ -57,7 +60,7 @@ class ShopCommentItem extends StatelessWidget {
           ],
           if (comment.reply != null && !isPreview) ...[
             CommonSpacing.medium,
-            _buildReply(),
+            _buildReply(l10n),
           ],
         ],
       ),
@@ -96,17 +99,14 @@ class ShopCommentItem extends StatelessWidget {
     );
   }
 
-  Widget _buildRatingAndDate() {
+  Widget _buildRatingAndDate(AppLocalizations l10n) {
     return Row(
       children: [
         _buildStars(comment.rate),
         SizedBox(width: 8.w),
         Text(
-          _formatDate(comment.createTime),
-          style: TextStyle(
-            fontSize: 12.sp,
-            color: const Color(0xFF999999),
-          ),
+          _formatDate(comment.createTime, l10n),
+          style: TextStyle(fontSize: 12.sp, color: const Color(0xFF999999)),
         ),
       ],
     );
@@ -127,10 +127,11 @@ class ShopCommentItem extends StatelessWidget {
 
   Widget _buildImages(BuildContext context) {
     if (comment.image.isEmpty) return const SizedBox();
-    
+
     // For preview, maybe show fewer images or smaller
     final imageCount = comment.image.length;
-    final displayCount = isPreview ? (imageCount > 4 ? 4 : imageCount) : imageCount;
+    final displayCount =
+        isPreview ? (imageCount > 4 ? 4 : imageCount) : imageCount;
 
     return SizedBox(
       height: 80.w,
@@ -144,10 +145,11 @@ class ShopCommentItem extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => ImagePreviewPage(
-                    images: comment.image,
-                    initialIndex: index,
-                  ),
+                  builder:
+                      (context) => ImagePreviewPage(
+                        images: comment.image,
+                        initialIndex: index,
+                      ),
                 ),
               );
             },
@@ -166,7 +168,7 @@ class ShopCommentItem extends StatelessWidget {
     );
   }
 
-  Widget _buildReply() {
+  Widget _buildReply(AppLocalizations l10n) {
     final reply = comment.reply!;
     return Container(
       padding: EdgeInsets.all(12.w),
@@ -181,7 +183,7 @@ class ShopCommentItem extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '商家回复',
+                l10n.commentMerchantReply,
                 style: TextStyle(
                   fontSize: 12.sp,
                   fontWeight: FontWeight.bold,
@@ -189,7 +191,7 @@ class ShopCommentItem extends StatelessWidget {
                 ),
               ),
               Text(
-                _formatDate(reply.replyTime),
+                _formatDate(reply.replyTime, l10n),
                 style: TextStyle(
                   fontSize: 10.sp,
                   color: const Color(0xFF999999),
@@ -211,19 +213,27 @@ class ShopCommentItem extends StatelessWidget {
     );
   }
 
-  String _formatDate(String dateStr) {
+  String _formatDate(String dateStr, AppLocalizations l10n) {
     if (dateStr.isEmpty) return '';
     try {
-      final date = DateTime.parse(dateStr);
+      DateTime date;
+      // Check if the string is numeric (timestamp)
+      if (RegExp(r'^\d+$').hasMatch(dateStr)) {
+        final timestamp = int.parse(dateStr);
+        date = DateTime.fromMillisecondsSinceEpoch(timestamp);
+      } else {
+        date = DateTime.parse(dateStr);
+      }
+
       final now = DateTime.now();
       final difference = now.difference(date);
 
       if (difference.inDays < 1) {
-        return '今天';
+        return l10n.today;
       } else if (difference.inDays < 2) {
-        return '昨天';
+        return l10n.messageYesterday;
       } else if (difference.inDays < 7) {
-        return '${difference.inDays}天前';
+        return l10n.commentDaysAgo(difference.inDays);
       } else {
         return DateFormat('yyyy-MM-dd').format(date);
       }

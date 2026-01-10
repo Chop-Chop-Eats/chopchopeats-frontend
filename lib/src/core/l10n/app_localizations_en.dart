@@ -530,9 +530,12 @@ class AppLocalizationsEn implements AppLocalizations {
   String get walletBalance => 'Wallet Balance';
   @override
   String get walletRecharge => 'Wallet Recharge';
-  @override  String get myWallet => 'My Wallet';
-  @override  String get availableBalance => 'Available Balance';
-  @override  String get selectOrEnterRechargeAmount => 'Select or Enter Recharge Amount';
+  @override
+  String get myWallet => 'My Wallet';
+  @override
+  String get availableBalance => 'Available Balance';
+  @override
+  String get selectOrEnterRechargeAmount => 'Select or Enter Recharge Amount';
   @override
   String get enterRechargeAmount => 'Enter Recharge Amount';
   @override
@@ -628,7 +631,8 @@ class AppLocalizationsEn implements AppLocalizations {
   @override
   String get messageClearConfirmTitle => 'Confirm Clear';
   @override
-  String get messageClearConfirmContent => 'Are you sure you want to clear all messages? This action cannot be undone.';
+  String get messageClearConfirmContent =>
+      'Are you sure you want to clear all messages? This action cannot be undone.';
   @override
   String get messageClearConfirmBtn => 'Confirm';
   @override
@@ -641,4 +645,40 @@ class AppLocalizationsEn implements AppLocalizations {
   String get messageRetry => 'Retry';
   @override
   String get messageYesterday => 'Yesterday';
+
+  // ============== Comment Module ==============
+  @override
+  String get commentMerchantReply => 'Merchant Reply';
+  @override
+  String get commentRatingSuffix => '';
+  @override
+  String get commentCount => 'reviews';
+  @override
+  String get commentViewAll => 'View All Reviews';
+  @override
+  String get commentNoReviews => 'No reviews yet';
+  @override
+  String get commentMaxImages => 'Maximum 4 images';
+  @override
+  String get commentSelectRating => 'Please select a rating';
+  @override
+  String get commentSuccess => 'Review submitted successfully';
+  @override
+  String get commentFailed => 'Review failed, please try again';
+  @override
+  String get commentTitle => 'Review';
+  @override
+  String get commentExperienceTitle => 'How was your dining experience?';
+  @override
+  String get commentExperienceSubtitle =>
+      'Did you enjoy your food? Rate the chef, your feedback matters.';
+  @override
+  String get commentShareExperienceHint =>
+      'Share your dining experience to help other users';
+  @override
+  String get commentUploadImages => 'Upload Images\n(Max 4)';
+  @override
+  String get commentSubmit => 'Submit';
+  @override
+  String commentDaysAgo(int days) => '${days}d ago';
 }

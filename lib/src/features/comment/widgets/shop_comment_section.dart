@@ -5,6 +5,7 @@ import 'package:chop_user/src/core/widgets/common_spacing.dart';
 import 'package:chop_user/src/features/comment/providers/shop_comment_provider.dart';
 import 'package:chop_user/src/features/comment/widgets/shop_comment_item.dart';
 import 'package:chop_user/src/features/comment/widgets/shop_comment_sheet.dart';
+import 'package:chop_user/src/core/l10n/app_localizations.dart';
 
 class ShopCommentSection extends ConsumerStatefulWidget {
   final String shopId;
@@ -21,7 +22,9 @@ class _ShopCommentSectionState extends ConsumerState<ShopCommentSection> {
     super.initState();
     // Load comments when the section is initialized
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(shopCommentProvider(widget.shopId).notifier).loadComments(refresh: true);
+      ref
+          .read(shopCommentProvider(widget.shopId).notifier)
+          .loadComments(refresh: true);
     });
   }
 
@@ -37,6 +40,7 @@ class _ShopCommentSectionState extends ConsumerState<ShopCommentSection> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(shopCommentProvider(widget.shopId));
+    final l10n = AppLocalizations.of(context)!;
 
     if (state.list.isEmpty && !state.isLoading) {
       return const SizedBox(); // Hide if no comments
@@ -51,10 +55,14 @@ class _ShopCommentSectionState extends ConsumerState<ShopCommentSection> {
             padding: EdgeInsets.symmetric(horizontal: 16.w),
             child: Row(
               children: [
-                Icon(Icons.star_rounded, color: const Color(0xFF333333), size: 20.w),
+                Icon(
+                  Icons.star_rounded,
+                  color: const Color(0xFF333333),
+                  size: 20.w,
+                ),
                 SizedBox(width: 4.w),
                 Text(
-                  '${state.averageRate}分',
+                  '${state.averageRate}${l10n.commentRatingSuffix}',
                   style: TextStyle(
                     fontSize: 16.sp,
                     fontWeight: FontWeight.bold,
@@ -63,7 +71,7 @@ class _ShopCommentSectionState extends ConsumerState<ShopCommentSection> {
                 ),
                 SizedBox(width: 4.w),
                 Text(
-                  '· ${state.total}条评价',
+                  '· ${state.total}${l10n.commentCount}',
                   style: TextStyle(
                     fontSize: 14.sp,
                     color: const Color(0xFF666666),
@@ -103,7 +111,7 @@ class _ShopCommentSectionState extends ConsumerState<ShopCommentSection> {
                 ),
                 alignment: Alignment.center,
                 child: Text(
-                  '显示所有评价',
+                  l10n.commentViewAll,
                   style: TextStyle(
                     fontSize: 14.sp,
                     color: const Color(0xFF333333),

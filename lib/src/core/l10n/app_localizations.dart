@@ -353,6 +353,24 @@ abstract class AppLocalizations {
   String get messageLoadFailed; // 加载失败
   String get messageRetry; // 重试
   String get messageYesterday; // 昨天
+
+  // ============== 评论模块 ==============
+  String get commentMerchantReply; // 商家回复
+  String get commentRatingSuffix; // 分（评分单位）
+  String get commentCount; // 条评价
+  String get commentViewAll; // 显示所有评价
+  String get commentNoReviews; // 暂无评价
+  String get commentMaxImages; // 最多上传4张图片
+  String get commentSelectRating; // 请选择评分
+  String get commentSuccess; // 评价成功
+  String get commentFailed; // 评价失败，请重试
+  String get commentTitle; // 评价
+  String get commentExperienceTitle; // 您的此次用餐体验如何？
+  String get commentExperienceSubtitle; // 喜欢你的食物吗？给私厨商家评分，您的意见很重要。
+  String get commentShareExperienceHint; // 分享多方面的用餐体验，可以帮助更多用户哦
+  String get commentUploadImages; // 上传图片\n(最多4张)
+  String get commentSubmit; // 提交
+  String commentDaysAgo(int days); // X天前
 }
 
 // Delegate 类，Flutter 会用它来加载对应的语言类
