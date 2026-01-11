@@ -443,26 +443,26 @@ class AppLocalizationsEn implements AppLocalizations {
 
   // ============== ShopEnter 商家入驻页面 ==============
   @override
-  String get shopEnterTitle => 'Shop Enter';
+  String get shopEnterTitle => 'Join us as a chef';
   @override
-  String get shopEnterProcess => 'Shop Enter Process';
+  String get shopEnterProcess => 'Onboarding Steps';
   @override
-  String get shopEnterDownloadApp => 'Download Shop App';
+  String get shopEnterDownloadApp => 'Download Chef App';
   @override
   String get shopEnterButtonDescription =>
-      'App Store/Google Play download ChopChop Cooks';
+      'Download ChopChop Cooks from App Store / Google Play';
   @override
-  String get shopEnterRegisterAccount => 'Register Account';
+  String get shopEnterRegisterAccount => 'Create Account';
   @override
   String get shopEnterRegisterAccountDescription =>
-      'Register with your phone number and fill in basic information';
+      'Sign up with your phone number and complete basic information';
   @override
-  String get shopEnterApplyExam => 'Apply for Exam';
+  String get shopEnterApplyExam => 'Certification & Application';
   @override
   String get shopEnterApplyExamDescription =>
-      'Apply for food handler\'s certificate, complete the application process after obtaining the certificate';
+      'Obtain required certification (Food Handler\'s Certificate) and submit your application in the app';
   @override
-  String get shopEnterDownloadButton => 'Download Chopchop Cooks';
+  String get shopEnterDownloadButton => 'Download ChopChop Cooks';
   // ============== 业务文案 - 个人资料页 ==============
   @override
   String get avatar => 'Avatar';

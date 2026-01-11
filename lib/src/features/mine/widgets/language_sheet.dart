@@ -19,7 +19,7 @@ class LanguageSheet extends StatelessWidget {
     return GestureDetector(
       onTap: () async {
         Pop.loading();
-        final success = await MineServices().updateLanguage(languageMode == LanguageMode.zh ? 1 : 2);
+        final success = await MineServices().updateLanguage(languageMode == LanguageMode.en ? 1 : 2);
         try {
           if (!success) {
             toast.success(l10n.updateLanguageFailed);
@@ -59,8 +59,8 @@ class LanguageSheet extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        _buildLanguageItem(l10n, LanguageMode.zh),
         _buildLanguageItem(l10n, LanguageMode.en),
+        _buildLanguageItem(l10n, LanguageMode.zh),
         // _buildLanguageItem(l10n, LanguageMode.system),
       ],
     );
