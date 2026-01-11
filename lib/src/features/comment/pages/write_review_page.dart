@@ -13,7 +13,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:chop_user/src/core/l10n/app_localizations.dart';
 
 class WriteReviewPage extends StatefulWidget {
-  final AppTradeOrderPageRespVO order;
+  final dynamic order; // Accept both AppTradeOrderPageRespVO and AppTradeOrderDetailRespVO
 
   const WriteReviewPage({super.key, required this.order});
 

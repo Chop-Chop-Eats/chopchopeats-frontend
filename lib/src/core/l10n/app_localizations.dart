@@ -193,6 +193,24 @@ abstract class AppLocalizations {
   String get confirmOrderSelectAddress; // 请选择地址
   String get confirmOrderSelectDeliveryTime; // 请选择配送时间
   String get confirmOrderTodayNotDelivery; // 今日不可配送
+  String get confirmOrderSyncCartFailed; // 同步购物车失败，请稍后重试
+  String get confirmOrderInvalidCartItemPrice; // 购物车存在无效商品（价格为空），请重新添加
+  String get confirmOrderInvalidCartItemId; // 购物车存在无效商品（商品ID为空），请重新添加
+  String confirmOrderCreateOrderFailed(String error); // 创建订单失败
+  String get confirmOrderConfirmPaymentTitle; // 确认支付
+  String confirmOrderConfirmPaymentContent(String orderId); // 确认支付订单？
+  String get confirmOrderPaymentSuccess; // 支付成功
+  String confirmOrderWalletPaymentFailed(String error); // 钱包支付失败
+  String
+  get confirmOrderPaymentIntentMissing; // 订单生成失败：缺少 clientSecret 或 publishableKey
+  String confirmOrderPaymentTitle(String orderNo); // 订单 X
+  String get confirmOrderPaymentCancelled; // 取消支付
+  String confirmOrderPaymentFailed(String error); // 支付失败
+  String confirmOrderPaymentError(String error); // 发生错误
+  String confirmOrderCreatePaymentFailed(String error); // 创建支付失败
+  String get confirmOrderInvalidPaymentMethodTitle; // 支付卡片无效
+  String get confirmOrderInvalidPaymentMethodMessage; // 支付卡片无效提示内容
+  String get confirmOrderInvalidPaymentMethodButton; // 返回修改
 
   // ============== Heart 收藏页 ==============
   String get noFavoriteText;

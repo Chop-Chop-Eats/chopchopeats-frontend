@@ -1,5 +1,6 @@
 import '../../../core/network/api_client.dart';
 import '../../../core/network/api_paths.dart';
+import '../../../core/utils/logger/logger.dart';
 import '../models/address_models.dart';
 
 class AddressServices {
@@ -19,11 +20,18 @@ class AddressServices {
   /// 获取用户配送地址列表
   static Future<List<AddressItem>> getUserAddressList() async {
     final response = await ApiClient().get(ApiPaths.getUserAddressListApi);
+    Logger.info('AddressServices', '获取用户配送地址列表: ${response.data}');
     if (response.data is List) {
       final List<dynamic> dataList = response.data as List<dynamic>;
-      return dataList
+      final addresses = dataList
           .map((e) => AddressItem.fromJson(e as Map<String, dynamic>))
           .toList();
+      Logger.info(
+        'AddressServices',
+        '解析到 ${addresses.length} 个地址，'
+        '含经纬度: ${addresses.where((a) => a.latitude != null && a.longitude != null).length} 个',
+      );
+      return addresses;
     } else {
       throw Exception('API 返回的数据格式不正确，期望 List 类型');
     }

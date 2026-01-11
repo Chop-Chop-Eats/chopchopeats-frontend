@@ -335,6 +335,58 @@ class AppLocalizationsEn implements AppLocalizations {
   String confirmOrderSettlementTip(String value) => 'Total after tip $value';
   @override
   String get confirmOrderSettlement => 'Settlement';
+  @override
+  String get confirmOrderSyncCartFailed =>
+      'Failed to sync cart, please try again later';
+  @override
+  String get confirmOrderInvalidCartItemPrice =>
+      'Cart contains invalid items (price is empty), please re-add';
+  @override
+  String get confirmOrderInvalidCartItemId =>
+      'Cart contains invalid items (product ID is empty), please re-add';
+  @override
+  String confirmOrderCreateOrderFailed(String error) =>
+      'Failed to create order: $error';
+  @override
+  String get confirmOrderConfirmPaymentTitle => 'Confirm Payment';
+  @override
+  String confirmOrderConfirmPaymentContent(String orderId) =>
+      'Confirm payment for order $orderId?';
+  @override
+  String get confirmOrderPaymentSuccess => 'Payment Successful';
+  @override
+  String confirmOrderWalletPaymentFailed(String error) =>
+      'Wallet payment failed: $error';
+  @override
+  String get confirmOrderPaymentIntentMissing =>
+      'Order creation failed: missing clientSecret or publishableKey';
+  @override
+  String confirmOrderPaymentTitle(String orderNo) => 'Order $orderNo';
+  @override
+  String get confirmOrderPaymentCancelled => 'Payment Cancelled';
+  @override
+  String confirmOrderPaymentFailed(String error) => 'Payment failed: $error';
+  @override
+  String confirmOrderPaymentError(String error) => 'An error occurred: $error';
+  @override
+  String confirmOrderCreatePaymentFailed(String error) =>
+      'Failed to create payment: $error';
+  @override
+  String get confirmOrderInvalidPaymentMethodTitle => 'Invalid Payment Card';
+  @override
+  String get confirmOrderInvalidPaymentMethodMessage =>
+      'The payment card you selected has expired or is unavailable.\n\n'
+      'Possible reasons:\n'
+      '• Card has expired\n'
+      '• Card information has changed\n'
+      '• Card has been frozen by the bank\n\n'
+      'We recommend:\n'
+      '1. Go to "Manage Payment Methods" to delete this card\n'
+      '2. Add a new bank card\n'
+      '3. Or use wallet balance for payment';
+  @override
+  String get confirmOrderInvalidPaymentMethodButton => 'Go Back to Modify';
+
   // ============== Heart 收藏页 ==============
   @override
   String get noFavoriteText => 'No favorite restaurants';

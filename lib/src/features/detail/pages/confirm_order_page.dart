@@ -168,7 +168,7 @@ class _ConfirmOrderPageState extends ConsumerState<ConfirmOrderPage> {
     } catch (e) {
       Logger.error('ConfirmOrderPage', '刷新购物车失败: $e');
       Pop.hideLoading();
-      toast('同步购物车失败，请稍后重试');
+      toast(l10n.confirmOrderSyncCartFailed);
       return;
     }
 
@@ -201,14 +201,14 @@ class _ConfirmOrderPageState extends ConsumerState<ConfirmOrderPage> {
       if (item.price == null || item.productPrice == null) {
         Logger.error('ConfirmOrderPage', '商品 [$i] price 或 productPrice 为空');
         Pop.hideLoading();
-        toast('购物车存在无效商品（价格为空），请重新添加');
+        toast(l10n.confirmOrderInvalidCartItemPrice);
         return;
       }
 
       if (item.productId == null || item.productId!.isEmpty) {
         Logger.error('ConfirmOrderPage', '商品 [$i] productId 为空');
         Pop.hideLoading();
-        toast('购物车存在无效商品（商品ID为空），请重新添加');
+        toast(l10n.confirmOrderInvalidCartItemId);
         return;
       }
 
@@ -364,10 +364,10 @@ class _ConfirmOrderPageState extends ConsumerState<ConfirmOrderPage> {
       Logger.info('ConfirmOrderPage', '订单创建成功: orderId=$orderId');
 
       await Pop.confirm(
-        title: '确认支付',
-        content: '确认支付订单 $orderId？',
-        confirmText: '确认',
-        cancelText: '取消',
+        title: l10n.confirmOrderConfirmPaymentTitle,
+        content: l10n.confirmOrderConfirmPaymentContent(orderId),
+        confirmText: l10n.btnConfirm,
+        cancelText: l10n.btnCancel,
         onConfirm: () async {
           // 根据支付方式类型处理不同的支付流程
           if (selectedPaymentMethod?.type == AppPaymentMethodType.wallet) {
@@ -385,13 +385,15 @@ class _ConfirmOrderPageState extends ConsumerState<ConfirmOrderPage> {
     } catch (e) {
       Logger.error('ConfirmOrderPage', '创建订单失败: $e');
       Pop.hideLoading();
-      toast('创建订单失败: $e');
+      toast(l10n.confirmOrderCreateOrderFailed(e.toString()));
       return;
     }
   }
 
   /// 处理钱包支付
   Future<void> _processWalletPayment(String orderNo) async {
+    final l10n = AppLocalizations.of(context)!;
+
     try {
       final response = await ApiClient().post(
         ApiPaths.payWalletApi,
@@ -403,7 +405,7 @@ class _ConfirmOrderPageState extends ConsumerState<ConfirmOrderPage> {
 
       if (!mounted) return;
 
-      toast('支付成功');
+      toast(l10n.confirmOrderPaymentSuccess);
 
       Logger.info('ConfirmOrderPage', '准备刷新订单列表...');
 
@@ -424,7 +426,7 @@ class _ConfirmOrderPageState extends ConsumerState<ConfirmOrderPage> {
     } catch (e) {
       Logger.error('ConfirmOrderPage', '钱包支付失败: $e');
       Pop.hideLoading();
-      toast('钱包支付失败: $e');
+      toast(l10n.confirmOrderWalletPaymentFailed(e.toString()));
     }
   }
 
@@ -433,6 +435,7 @@ class _ConfirmOrderPageState extends ConsumerState<ConfirmOrderPage> {
     String orderNo,
     PaymentSelectionWrapper? paymentMethod,
   ) async {
+    final l10n = AppLocalizations.of(context)!;
     SPIModel res;
 
     try {
@@ -456,7 +459,7 @@ class _ConfirmOrderPageState extends ConsumerState<ConfirmOrderPage> {
 
         if (!mounted) return;
 
-        toast('支付成功');
+        toast(l10n.confirmOrderPaymentSuccess);
 
         Logger.info('ConfirmOrderPage', '准备刷新订单列表...');
 
@@ -490,28 +493,18 @@ class _ConfirmOrderPageState extends ConsumerState<ConfirmOrderPage> {
           context: context,
           builder:
               (context) => AlertDialog(
-                title: const Text('支付卡片无效'),
-                content: const Text(
-                  '您选择的支付卡片已失效或不可用。\n\n'
-                  '可能的原因：\n'
-                  '• 卡片已过期\n'
-                  '• 卡片信息已变更\n'
-                  '• 卡片已被银行冻结\n\n'
-                  '建议您：\n'
-                  '1. 前往"管理支付方式"删除此卡片\n'
-                  '2. 重新添加新的银行卡\n'
-                  '3. 或使用钱包余额支付',
-                ),
+                title: Text(l10n.confirmOrderInvalidPaymentMethodTitle),
+                content: Text(l10n.confirmOrderInvalidPaymentMethodMessage),
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.pop(context),
-                    child: const Text('返回修改'),
+                    child: Text(l10n.confirmOrderInvalidPaymentMethodButton),
                   ),
                 ],
               ),
         );
       } else {
-        toast('创建支付失败: $e');
+        toast(l10n.confirmOrderCreatePaymentFailed(e.toString()));
       }
       return;
     }
@@ -519,7 +512,7 @@ class _ConfirmOrderPageState extends ConsumerState<ConfirmOrderPage> {
     try {
       // 安全检查：确保关键数据不为空
       if (res.clientSecret == null || res.publishableKey == null) {
-        throw Exception("订单生成失败：缺少 clientSecret 或 publishableKey");
+        throw Exception(l10n.confirmOrderPaymentIntentMissing);
       }
       Stripe.publishableKey = res.publishableKey!;
       await Stripe.instance.applySettings(); // 确保设置生效
@@ -531,7 +524,9 @@ class _ConfirmOrderPageState extends ConsumerState<ConfirmOrderPage> {
           paymentIntentClientSecret: res.clientSecret!,
 
           // 必填：商户名称（显示在支付弹窗顶部）
-          merchantDisplayName: '订单 ${res.orderNo}', // 也可以用 '订单 ${res.orderNo}'
+          merchantDisplayName: l10n.confirmOrderPaymentTitle(
+            res.orderNo ?? '',
+          ), // 也可以用 '订单 ${res.orderNo}'
           // UI 外观定制（可选）
           appearance: const PaymentSheetAppearance(
             colors: PaymentSheetAppearanceColors(primary: Colors.blue),
@@ -553,7 +548,7 @@ class _ConfirmOrderPageState extends ConsumerState<ConfirmOrderPage> {
 
       if (!mounted) return;
 
-      toast('支付成功');
+      toast(l10n.confirmOrderPaymentSuccess);
 
       Logger.info('ConfirmOrderPage', '准备刷新订单列表...');
 
@@ -579,14 +574,14 @@ class _ConfirmOrderPageState extends ConsumerState<ConfirmOrderPage> {
         'Stripe Error: ${e.error.localizedMessage}',
       );
       if (e.error.code == FailureCode.Canceled) {
-        toast("取消支付");
+        toast(l10n.confirmOrderPaymentCancelled);
       } else {
-        toast("支付失败: ${e.error.localizedMessage}");
+        toast(l10n.confirmOrderPaymentFailed(e.error.localizedMessage ?? ''));
       }
     } catch (e) {
       // 处理其他错误（如网络请求失败）
       Logger.error('ConfirmOrderPage', 'Unknown Error: $e');
-      toast("发生错误: $e");
+      toast(l10n.confirmOrderPaymentError(e.toString()));
     } finally {
       Pop.hideLoading();
     }

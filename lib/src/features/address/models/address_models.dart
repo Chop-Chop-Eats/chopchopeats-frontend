@@ -24,6 +24,15 @@ class AddressItem {
   ///邮政编码
   final String zipCode;
 
+  ///纬度
+  final double? latitude;
+
+  ///经度
+  final double? longitude;
+
+  ///格式化后的地址
+  final String? formattedAddress;
+
   AddressItem({
     required this.address,
     required this.defaultStatus,
@@ -33,18 +42,24 @@ class AddressItem {
     required this.name,
     required this.state,
     required this.zipCode,
+    this.latitude,
+    this.longitude,
+    this.formattedAddress,
   });
 
   factory AddressItem.fromJson(Map<String, dynamic> json) {
     return AddressItem(
-      address: json['address'],
-      defaultStatus: json['defaultStatus'],
+      address: json['address'] ?? '',
+      defaultStatus: json['defaultStatus'] ?? false,
       id: json['id'],
-      mobile: json['mobile'],
-      name: json['name'],
-      state: json['state'],
-      zipCode: json['zipCode'],
+      mobile: json['mobile'] ?? '',
+      name: json['name'] ?? '',
+      state: json['state'] ?? '',
+      zipCode: json['zipCode'] ?? '',
       detailAddress: json['detailAddress'],
+      latitude: json['latitude'] != null ? (json['latitude'] as num).toDouble() : null,
+      longitude: json['longitude'] != null ? (json['longitude'] as num).toDouble() : null,
+      formattedAddress: json['formattedAddress'],
     );
   }
 
@@ -58,6 +73,9 @@ class AddressItem {
       'name': name,
       'state': state,
       'zipCode': zipCode,
+      if (latitude != null) 'latitude': latitude,
+      if (longitude != null) 'longitude': longitude,
+      if (formattedAddress != null) 'formattedAddress': formattedAddress,
     };
   }
 }

@@ -138,6 +138,8 @@ class _AddAddressPageState extends ConsumerState<AddAddressPage> {
         name: name,
         state: state,
         zipCode: zipCode,
+        latitude: _streetLatLng?.latitude,
+        longitude: _streetLatLng?.longitude,
       );
 
       await _logic.submit(params: params);

@@ -328,6 +328,51 @@ class AppLocalizationsZh implements AppLocalizations {
   String confirmOrderSettlementTip(String value) => '含小费$value后的总价';
   @override
   String get confirmOrderSettlement => '结算';
+  @override
+  String get confirmOrderSyncCartFailed => '同步购物车失败，请稍后重试';
+  @override
+  String get confirmOrderInvalidCartItemPrice => '购物车存在无效商品（价格为空），请重新添加';
+  @override
+  String get confirmOrderInvalidCartItemId => '购物车存在无效商品（商品ID为空），请重新添加';
+  @override
+  String confirmOrderCreateOrderFailed(String error) => '创建订单失败: $error';
+  @override
+  String get confirmOrderConfirmPaymentTitle => '确认支付';
+  @override
+  String confirmOrderConfirmPaymentContent(String orderId) =>
+      '确认支付订单 $orderId？';
+  @override
+  String get confirmOrderPaymentSuccess => '支付成功';
+  @override
+  String confirmOrderWalletPaymentFailed(String error) => '钱包支付失败: $error';
+  @override
+  String get confirmOrderPaymentIntentMissing =>
+      '订单生成失败：缺少 clientSecret 或 publishableKey';
+  @override
+  String confirmOrderPaymentTitle(String orderNo) => '订单 $orderNo';
+  @override
+  String get confirmOrderPaymentCancelled => '取消支付';
+  @override
+  String confirmOrderPaymentFailed(String error) => '支付失败: $error';
+  @override
+  String confirmOrderPaymentError(String error) => '发生错误: $error';
+  @override
+  String confirmOrderCreatePaymentFailed(String error) => '创建支付失败: $error';
+  @override
+  String get confirmOrderInvalidPaymentMethodTitle => '支付卡片无效';
+  @override
+  String get confirmOrderInvalidPaymentMethodMessage =>
+      '您选择的支付卡片已失效或不可用。\n\n'
+      '可能的原因：\n'
+      '• 卡片已过期\n'
+      '• 卡片信息已变更\n'
+      '• 卡片已被银行冻结\n\n'
+      '建议您：\n'
+      '1. 前往"管理支付方式"删除此卡片\n'
+      '2. 重新添加新的银行卡\n'
+      '3. 或使用钱包余额支付';
+  @override
+  String get confirmOrderInvalidPaymentMethodButton => '返回修改';
 
   // ============== Heart 收藏页 ==============
   @override
@@ -605,7 +650,7 @@ class AppLocalizationsZh implements AppLocalizations {
   String orderDeliveryTime(String time) => '计划 $time 开始配送';
   @override
   String orderCountdownTime(int minutes, int seconds) =>
-      '${minutes}分${seconds.toString().padLeft(2, '0')}秒';
+      '$minutes分${seconds.toString().padLeft(2, '0')}秒';
   @override
   String get orderCountdownSuffix => ' 后失效';
   @override
@@ -669,5 +714,5 @@ class AppLocalizationsZh implements AppLocalizations {
   @override
   String get commentSubmit => '提交';
   @override
-  String commentDaysAgo(int days) => '${days}天前';
+  String commentDaysAgo(int days) => '$days天前';
 }

@@ -5,12 +5,14 @@ import 'package:chop_user/src/features/order/models/order_model.dart';
 import 'package:chop_user/src/features/order/providers/order_provider.dart';
 import 'package:chop_user/src/features/order/utils/order_payment_handler.dart';
 import 'package:chop_user/src/core/widgets/common_image.dart';
+import 'package:chop_user/src/features/detail/models/payment_models.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import 'cancel_order_page.dart';
 import '../../detail/pages/detail_page.dart';
+import '../../comment/pages/write_review_page.dart';
 import '../../../core/utils/logger/logger.dart';
 
 class OrderDetailPage extends ConsumerWidget {
@@ -606,8 +608,30 @@ class OrderDetailPage extends ConsumerWidget {
             Colors.white,
             const Color(0xFFFF5722),
             () {
+              // 从订单信息构造支付方式对象
+              PaymentSelectionWrapper? paymentMethod;
+              if (order.stripePaymentMethodInfo != null) {
+                final info = order.stripePaymentMethodInfo!;
+                paymentMethod = PaymentSelectionWrapper(
+                  type: AppPaymentMethodType.stripeCard,
+                  card: StripePaymentMethodModel(
+                    id: info.paymentMethodId ?? '',
+                    stripePaymentMethodId: info.stripePaymentMethodId ?? '',
+                    cardBrand: info.cardBrand ?? '',
+                    cardLast4: info.cardLast4 ?? '',
+                    cardExpMonth: info.cardExpMonth ?? 0,
+                    cardExpYear: info.cardExpYear ?? 0,
+                    isDefault: false,
+                  ),
+                  displayName:
+                      '${info.cardBrand ?? ''} •••• ${info.cardLast4 ?? ''}',
+                  iconPath: 'assets/icons/credit_card.png',
+                );
+              }
+
               OrderPaymentHandler.processPayment(
                 orderNo: order.orderNo ?? '',
+                paymentMethod: paymentMethod,
                 onSuccess: () {
                   ref.invalidate(orderDetailProvider(orderNo));
                 },
@@ -659,9 +683,20 @@ class OrderDetailPage extends ConsumerWidget {
             l10n.orderWriteReview,
             hasCommented ? const Color(0xFF999999) : Colors.white,
             hasCommented ? const Color(0xFFE0E0E0) : const Color(0xFFFF5722),
-            hasCommented ? null : () {
-              // Review action
-            },
+            hasCommented
+                ? null
+                : () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => WriteReviewPage(order: order),
+                    ),
+                  ).then((value) {
+                    if (value == true) {
+                      ref.invalidate(orderDetailProvider(orderNo));
+                    }
+                  });
+                },
             isPrimary: true,
             isDisabled: hasCommented,
           ),

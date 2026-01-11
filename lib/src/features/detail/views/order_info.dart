@@ -179,10 +179,46 @@ class _OrderInfoViewState extends ConsumerState<OrderInfoView> {
         if (result != null) {
           ref.read(selectedAddressProvider(widget.shopId).notifier).state =
               result;
+          
+          // 重新计算配送费
+          await _recalculateDeliveryFee(result);
         }
       },
       imagePath: "assets/images/location_b.png",
     );
+  }
+
+  /// 重新计算配送费
+  Future<void> _recalculateDeliveryFee(AddressItem address) async {
+    // 验证地址是否包含经纬度信息
+    if (address.latitude == null || address.longitude == null) {
+      Logger.error(
+        'OrderInfoView',
+        '地址缺少经纬度信息，无法计算配送费。地址ID: ${address.id}',
+      );
+      toast('该地址缺少位置信息，请重新编辑地址并从地图选择位置');
+      return;
+    }
+
+    try {
+      Logger.info(
+        'OrderInfoView',
+        '开始重新计算配送费: shopId=${widget.shopId}, '
+        'addressId=${address.id}, lat=${address.latitude}, lng=${address.longitude}',
+      );
+      
+      // 调用 CartNotifier 中的更新配送费方法
+      await ref.read(cartProvider.notifier).updateDeliveryFee(
+        shopId: widget.shopId,
+        latitude: address.latitude!,
+        longitude: address.longitude!,
+      );
+      
+      Logger.info('OrderInfoView', '配送费计算成功');
+    } catch (e) {
+      Logger.error('OrderInfoView', '计算配送费失败: $e');
+      toast('计算配送费失败，请重试');
+    }
   }
 
   String _formatAddressForDisplay(AddressItem address) {

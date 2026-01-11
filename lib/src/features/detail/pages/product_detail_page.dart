@@ -654,7 +654,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
         );
       },
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 10.h),
+        padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 6.w),
         decoration: BoxDecoration(
           color: isSelected ? AppTheme.primaryOrange : const Color(0xFFF5F6F7),
           borderRadius: BorderRadius.circular(12.r),
@@ -677,14 +677,14 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
             Container(
               margin: EdgeInsets.symmetric(horizontal: 10.w),
               width: 1.w,
-              height: 14.h,
+              height: 14.w,
               color:
                   isSelected
                       ? Colors.white.withOpacity(0.5)
                       : const Color(0xFFD8D8D8),
             ),
             Text(
-              '\$$priceStr',
+              '+\$$priceStr',
               style: TextStyle(
                 fontSize: 14.sp,
                 color: isSelected ? Colors.white : const Color(0xFF333333),
