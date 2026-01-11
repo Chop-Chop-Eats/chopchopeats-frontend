@@ -184,6 +184,8 @@ abstract class AppLocalizations {
   String get confirmOrderTotal; // 合计
   String get confirmOrderPaymentMethod; // 支付方式
   String get confirmOrderSelectPaymentMethod; // 选择支付方式
+  String get addNewCard; // 添加新卡
+  String get paymentMethodDefaultLabel; // 默认
   String get confirmOrderRemark; // 备注
   String confirmOrderSettlementTip(String value); // 结算小费
   String get confirmOrderSettlement; // 结算

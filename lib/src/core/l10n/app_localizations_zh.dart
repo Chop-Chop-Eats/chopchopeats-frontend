@@ -319,6 +319,10 @@ class AppLocalizationsZh implements AppLocalizations {
   @override
   String get confirmOrderSelectPaymentMethod => '选择支付方式';
   @override
+  String get addNewCard => '添加新卡';
+  @override
+  String get paymentMethodDefaultLabel => '默认';
+  @override
   String get confirmOrderRemark => '备注（选填）';
   @override
   String confirmOrderSettlementTip(String value) => '含小费$value后的总价';

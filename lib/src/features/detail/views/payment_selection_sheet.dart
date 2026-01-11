@@ -59,7 +59,7 @@ class PaymentSelectionSheet extends ConsumerWidget {
                 Expanded(
                   child: Center(
                     child: Text(
-                      'Select Payment Method',
+                      AppLocalizations.of(context)!.confirmOrderSelectPaymentMethod,
                       style: TextStyle(
                         fontSize: 18.sp,
                         fontWeight: FontWeight.bold,
@@ -115,7 +115,7 @@ class PaymentSelectionSheet extends ConsumerWidget {
                         ),
                         alignment: Alignment.center,
                         child: Text(
-                          'Add New Card',
+                          AppLocalizations.of(context)!.addNewCard,
                           style: TextStyle(
                             color: AppTheme.primaryOrange,
                             fontSize: 16.sp,
@@ -129,7 +129,13 @@ class PaymentSelectionSheet extends ConsumerWidget {
               },
               loading: () => const Center(child: CircularProgressIndicator()),
               error:
-                  (err, stack) => Center(child: Text('Failed to load: $err')),
+                  (err, stack) => Center(
+                    child: Text(
+                      AppLocalizations.of(context)!.loadingFailedMessage(
+                        err.toString(),
+                      ),
+                    ),
+                  ),
             ),
           ),
 
@@ -148,7 +154,7 @@ class PaymentSelectionSheet extends ConsumerWidget {
                   ),
                 ),
                 child: Text(
-                  'Confirm',
+                  AppLocalizations.of(context)!.btnConfirm,
                   style: TextStyle(
                     fontSize: 16.sp,
                     color: Colors.white,
@@ -238,7 +244,7 @@ class PaymentSelectionSheet extends ConsumerWidget {
                             borderRadius: BorderRadius.circular(4.r),
                           ),
                           child: Text(
-                            '默认',
+                            AppLocalizations.of(context)!.paymentMethodDefaultLabel,
                             style: TextStyle(
                               fontSize: 10.sp,
                               color: AppTheme.primaryOrange,

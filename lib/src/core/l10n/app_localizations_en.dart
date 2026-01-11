@@ -326,6 +326,10 @@ class AppLocalizationsEn implements AppLocalizations {
   @override
   String get confirmOrderSelectPaymentMethod => 'Select Payment Method';
   @override
+  String get addNewCard => 'Add New Card';
+  @override
+  String get paymentMethodDefaultLabel => 'Default';
+  @override
   String get confirmOrderRemark => 'Remark(Optional)';
   @override
   String confirmOrderSettlementTip(String value) => 'Total after tip $value';
