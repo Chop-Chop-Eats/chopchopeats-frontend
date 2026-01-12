@@ -14,16 +14,13 @@ import '../../../core/widgets/common_image.dart';
 import '../../../core/widgets/common_spacing.dart';
 import '../providers/cart_notifier.dart';
 import '../providers/cart_state.dart';
+import '../providers/confirm_order_provider.dart';
 import '../models/order_model.dart' show formatDiningDate;
 import 'bottom_arc_container.dart';
 import 'cart_item_list.dart';
 
 class ShopCart extends ConsumerStatefulWidget {
-  const ShopCart({
-    super.key,
-    required this.shopId,
-    required this.selectedDate,
-  });
+  const ShopCart({super.key, required this.shopId, required this.selectedDate});
 
   final String shopId;
   final DateTime selectedDate; // 当前选中的日期
@@ -53,8 +50,7 @@ class _ShopCartState extends ConsumerState<ShopCart> {
               quantity: cartState.totalQuantity,
               totals: cartState.totals,
             ),
-            
-            
+
             _buildOrder(l10n: l10n, cartState: cartState),
           ],
         ),
@@ -81,8 +77,10 @@ class _ShopCartState extends ConsumerState<ShopCart> {
           (dismiss) => Consumer(
             builder: (context, ref, child) {
               // 实时监听购物车状态变化
-              final currentCartState = ref.watch(cartStateProvider(widget.shopId));
-              
+              final currentCartState = ref.watch(
+                cartStateProvider(widget.shopId),
+              );
+
               return Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -122,7 +120,10 @@ class _ShopCartState extends ConsumerState<ShopCart> {
                       padding: EdgeInsets.symmetric(vertical: 24.h),
                       child: Text(
                         l10n.cartEmpty,
-                        style: TextStyle(fontSize: 12.sp, color: Colors.grey[500]),
+                        style: TextStyle(
+                          fontSize: 12.sp,
+                          color: Colors.grey[500],
+                        ),
                       ),
                     )
                   else
@@ -152,6 +153,9 @@ class _ShopCartState extends ConsumerState<ShopCart> {
         shopId: widget.shopId,
         diningDate: cartState.diningDate,
       );
+      // 清空购物车后也清除已选优惠券
+      ref.read(selectedCouponProvider(widget.shopId).notifier).state = null;
+      Logger.info('ShopCart', '已清空购物车并移除优惠券');
     } catch (e) {
       _toast('清空失败，请稍后重试');
     }
@@ -240,36 +244,44 @@ class _ShopCartState extends ConsumerState<ShopCart> {
   }) {
     final isBusy = cartState.isSyncing || cartState.isUpdating;
     final isDisabled = cartState.isEmpty || isBusy;
-    
+
     return GestureDetector(
-      onTap: isDisabled ? null : () async {
-        Logger.info('ShopCart', '点击下单 shopId=${widget.shopId}');
-        // 使用传入的选中日期
-        final diningDateStr = formatDiningDate(widget.selectedDate);
-        final result = await Navigate.push(
-          context,
-          Routes.confirmOrder,
-          arguments: {
-            "shopId": widget.shopId,
-            "initialDiningDate": diningDateStr,
-          },
-        );
-        
-        // 支付成功后清空购物车
-        if (result == true || (result is Map && result['success'] == true)) {
-          final notifier = ref.read(cartProvider.notifier);
-          try {
-            await notifier.clearCart(
-              shopId: widget.shopId,
-              diningDate: cartState.diningDate,
-            );
-            Logger.info('ShopCart', '支付成功，购物车已清空');
-          } catch (e) {
-            Logger.error('ShopCart', '清空购物车失败: $e');
-            _toast('清空购物车失败');
-          }
-        }
-      },
+      onTap:
+          isDisabled
+              ? null
+              : () async {
+                Logger.info('ShopCart', '点击下单 shopId=${widget.shopId}');
+                // 使用传入的选中日期
+                final diningDateStr = formatDiningDate(widget.selectedDate);
+                final result = await Navigate.push(
+                  context,
+                  Routes.confirmOrder,
+                  arguments: {
+                    "shopId": widget.shopId,
+                    "initialDiningDate": diningDateStr,
+                  },
+                );
+
+                // 支付成功后清空购物车
+                if (result == true ||
+                    (result is Map && result['success'] == true)) {
+                  final notifier = ref.read(cartProvider.notifier);
+                  try {
+                    await notifier.clearCart(
+                      shopId: widget.shopId,
+                      diningDate: cartState.diningDate,
+                    );
+                    // 清空购物车后也清除已选优惠券
+                    ref
+                        .read(selectedCouponProvider(widget.shopId).notifier)
+                        .state = null;
+                    Logger.info('ShopCart', '支付成功，购物车已清空并移除优惠券');
+                  } catch (e) {
+                    Logger.error('ShopCart', '清空购物车失败: $e');
+                    _toast('清空购物车失败');
+                  }
+                }
+              },
       child: Container(
         decoration: BoxDecoration(
           color: isDisabled ? Colors.grey[400] : AppTheme.primaryOrange,
@@ -292,5 +304,3 @@ class _ShopCartState extends ConsumerState<ShopCart> {
     toast.warn(message);
   }
 }
-
-

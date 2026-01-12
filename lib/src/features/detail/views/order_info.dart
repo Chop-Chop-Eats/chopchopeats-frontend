@@ -11,6 +11,8 @@ import '../../../core/widgets/common_indicator.dart';
 import '../../../core/widgets/common_spacing.dart';
 import '../../address/models/address_models.dart';
 import '../../wallet/providers/wallet_provider.dart';
+import '../../coupon/providers/coupon_page_provider.dart';
+import '../../coupon/models/coupon_models.dart';
 import '../providers/cart_notifier.dart';
 import '../providers/detail_provider.dart';
 import '../providers/confirm_order_provider.dart';
@@ -66,6 +68,8 @@ class _OrderInfoViewState extends ConsumerState<OrderInfoView> {
   );
 
   late final VoidCallback _focusListener;
+  CouponSelectionResult? _previousCoupon; // 追踪优惠券变化
+  bool _isUserRemovingCoupon = false; // 标记用户是否主动移除优惠券
 
   @override
   void initState() {
@@ -91,6 +95,18 @@ class _OrderInfoViewState extends ConsumerState<OrderInfoView> {
       // 预加载钱包信息，提升支付方式弹窗打开速度
       ref.read(walletInfoProvider.notifier).loadWalletInfo();
       Logger.info('OrderInfoView', '预加载钱包信息...');
+
+      // 加载我的优惠券列表（用于下单）
+      ref
+          .read(myCouponListProvider.notifier)
+          .loadMyCouponList(
+            status: 0, // 0表示未使用的优惠券
+            shopId: widget.shopId,
+          );
+      Logger.info('OrderInfoView', '加载我的优惠券列表...');
+
+      // 记录初始优惠券状态
+      _previousCoupon = ref.read(selectedCouponProvider(widget.shopId));
     });
   }
 
@@ -129,6 +145,47 @@ class _OrderInfoViewState extends ConsumerState<OrderInfoView> {
 
   @override
   Widget build(BuildContext context) {
+    // 监听优惠券状态变化，检测是否被自动移除
+    ref.listen(selectedCouponProvider(widget.shopId), (previous, next) {
+      if (previous != null && next == null && _previousCoupon != null) {
+        // 只有在非用户主动移除的情况下才显示提示（即系统自动移除）
+        if (!_isUserRemovingCoupon) {
+          final l10n = AppLocalizations.of(context)!;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            toast(l10n.confirmOrderCouponRemovedDueToThreshold);
+          });
+        }
+        // 重置标志位
+        _isUserRemovingCoupon = false;
+      }
+      _previousCoupon = next;
+    });
+
+    // 监听购物车变化，当购物车为空时清除优惠券
+    final cartState = ref.watch(cartStateProvider(widget.shopId));
+    if (cartState.items.isEmpty && _previousCoupon != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          ref.read(selectedCouponProvider(widget.shopId).notifier).state = null;
+          Logger.info('OrderInfoView', '购物车为空，已清除优惠券');
+        }
+      });
+    }
+
+    // 监听用餐日期变化，当日期改变时清除优惠券
+    ref.listen(selectedDiningDateProvider(widget.shopId), (previous, next) {
+      if (previous != null && next != null && previous != next) {
+        // 日期改变，清除优惠券
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            ref.read(selectedCouponProvider(widget.shopId).notifier).state =
+                null;
+            Logger.info('OrderInfoView', '用餐日期改变，已清除优惠券');
+          }
+        });
+      }
+    });
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.6),
@@ -179,7 +236,7 @@ class _OrderInfoViewState extends ConsumerState<OrderInfoView> {
         if (result != null) {
           ref.read(selectedAddressProvider(widget.shopId).notifier).state =
               result;
-          
+
           // 重新计算配送费
           await _recalculateDeliveryFee(result);
         }
@@ -192,10 +249,7 @@ class _OrderInfoViewState extends ConsumerState<OrderInfoView> {
   Future<void> _recalculateDeliveryFee(AddressItem address) async {
     // 验证地址是否包含经纬度信息
     if (address.latitude == null || address.longitude == null) {
-      Logger.error(
-        'OrderInfoView',
-        '地址缺少经纬度信息，无法计算配送费。地址ID: ${address.id}',
-      );
+      Logger.error('OrderInfoView', '地址缺少经纬度信息，无法计算配送费。地址ID: ${address.id}');
       toast('该地址缺少位置信息，请重新编辑地址并从地图选择位置');
       return;
     }
@@ -204,16 +258,18 @@ class _OrderInfoViewState extends ConsumerState<OrderInfoView> {
       Logger.info(
         'OrderInfoView',
         '开始重新计算配送费: shopId=${widget.shopId}, '
-        'addressId=${address.id}, lat=${address.latitude}, lng=${address.longitude}',
+            'addressId=${address.id}, lat=${address.latitude}, lng=${address.longitude}',
       );
-      
+
       // 调用 CartNotifier 中的更新配送费方法
-      await ref.read(cartProvider.notifier).updateDeliveryFee(
-        shopId: widget.shopId,
-        latitude: address.latitude!,
-        longitude: address.longitude!,
-      );
-      
+      await ref
+          .read(cartProvider.notifier)
+          .updateDeliveryFee(
+            shopId: widget.shopId,
+            latitude: address.latitude!,
+            longitude: address.longitude!,
+          );
+
       Logger.info('OrderInfoView', '配送费计算成功');
     } catch (e) {
       Logger.error('OrderInfoView', '计算配送费失败: $e');
@@ -727,36 +783,72 @@ class _OrderInfoViewState extends ConsumerState<OrderInfoView> {
           isCouponHint: _isCouponHintValue(selectedCoupon, pricesMap),
           onTap: () async {
             final l10n = AppLocalizations.of(context)!;
-            final couponData = ref.read(couponDataProvider(widget.shopId));
-            final isLoading = ref.read(couponLoadingProvider(widget.shopId));
+            // 使用"我的优惠券"列表（包含正确的 userCouponId）
+            final myCouponData = ref.read(myCouponListDataProvider);
+            final isLoading = ref.read(myCouponListLoadingProvider);
 
-            if (couponData == null ||
-                couponData.list == null ||
-                couponData.list!.isEmpty) {
+            if (myCouponData == null || myCouponData.list.isEmpty) {
               toast(l10n.noCoupon);
               return;
             }
-            final availableCoupons =
-                couponData.list!
-                    .where((item) => (item.status ?? 0) == 1)
+
+            // 获取当前店铺的未使用优惠券，并按模板ID去重（避免重复显示）
+            final allShopCoupons =
+                myCouponData.list
+                    .where((group) => group.shopId == widget.shopId)
+                    .expand((group) => group.couponList ?? <CouponItem>[])
+                    .where((coupon) => (coupon.status ?? 0) == 0) // 0表示未使用
+                    .cast<CouponItem>()
                     .toList();
-            if (availableCoupons.isEmpty) {
+
+            // 按优惠券模板ID去重，只保留第一个（用户可能多次领取同一优惠券）
+            final seenCouponIds = <String>{};
+            final shopCoupons =
+                allShopCoupons.where((coupon) {
+                  final couponId = coupon.couponId;
+                  if (couponId == null || seenCouponIds.contains(couponId)) {
+                    return false;
+                  }
+                  seenCouponIds.add(couponId);
+                  return true;
+                }).toList();
+
+            if (shopCoupons.isEmpty) {
               toast(l10n.noCoupon);
               return;
             }
 
-            final result = await CouponSelectionSheet.show(
+            // 计算当前订单金额（餐品小计 + 配送费 + 税费服务费，不包括优惠券折扣）
+            final currentOrderAmount =
+                pricesMap['mealSubtotal']! +
+                pricesMap['deliveryFee']! +
+                pricesMap['taxAndServiceFee']!;
+
+            final result = await CouponSelectionSheet.showMyCoupons(
               context: context,
               ref: ref,
               shopId: widget.shopId,
-              couponList: availableCoupons,
+              couponList: shopCoupons,
               isLoading: isLoading,
+              currentOrderAmount: currentOrderAmount,
             );
 
+            // 处理结果：
+            // - null: 用户关闭弹窗，不做任何操作
+            // - CouponSelectionResult.removed: 用户主动移除优惠券
+            // - 其他: 用户选择了新的优惠券
             if (result != null) {
-              ref.read(selectedCouponProvider(widget.shopId).notifier).state =
-                  result;
+              if (result.isRemoved) {
+                // 标记为用户主动移除，避免触发自动移除提示
+                _isUserRemovingCoupon = true;
+                ref.read(selectedCouponProvider(widget.shopId).notifier).state =
+                    null;
+              } else {
+                ref.read(selectedCouponProvider(widget.shopId).notifier).state =
+                    result;
+              }
             }
+            // result == null 表示用户直接关闭弹窗，不做任何操作
           },
         ),
         Container(

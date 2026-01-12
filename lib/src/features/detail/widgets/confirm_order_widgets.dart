@@ -15,6 +15,7 @@ import '../../address/models/address_models.dart';
 import '../../address/providers/address_provider.dart';
 import '../../address/widgets/address_card.dart';
 import '../../coupon/widgets/coupoon_item.dart';
+import '../../coupon/models/coupon_models.dart';
 import '../models/detail_model.dart';
 import '../models/order_model.dart';
 
@@ -127,6 +128,7 @@ class CouponSelectionSheet {
     required String shopId,
     required List<AvailableCouponItem> couponList,
     required bool isLoading,
+    required double currentOrderAmount, // 当前订单金额（用于验证优惠券门槛）
   }) async {
     final l10n = AppLocalizations.of(context)!;
     return await Pop.sheet<CouponSelectionResult>(
@@ -134,27 +136,265 @@ class CouponSelectionSheet {
       titleStyle: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
       showCloseButton: true,
       maxHeight: SheetDimension.fraction(0.5),
-      childBuilder: (dismiss) => isLoading
-          ? const CommonIndicator()
-          : ListView.builder(
-              itemBuilder: (context, index) {
-                final coupon = couponList[index];
-                return CoupoonItem(
-                  coupon: coupon.toDisplayModel(),
-                  showClaimButton: false,
-                  showUseButton: true,
-                  onUse: () {
-                    if (coupon.id != null && coupon.discountAmount != null) {
-                      dismiss(CouponSelectionResult(
-                        couponId: coupon.id!,
-                        discountAmount: coupon.discountAmount!,
-                      ));
-                    }
-                  },
-                );
-              },
-              itemCount: couponList.length,
-            ),
+      childBuilder:
+          (dismiss) =>
+              isLoading
+                  ? const CommonIndicator()
+                  : Column(
+                    children: [
+                      // "不使用优惠券"选项
+                      GestureDetector(
+                        onTap: () {
+                          // 返回特殊标记表示用户主动移除优惠券
+                          dismiss(CouponSelectionResult.removed);
+                        },
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 16.w,
+                            vertical: 16.h,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.grey[100],
+                            border: Border(
+                              bottom: BorderSide(
+                                color: Colors.grey[300]!,
+                                width: 1,
+                              ),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.block,
+                                size: 20.w,
+                                color: Colors.grey[600],
+                              ),
+                              SizedBox(width: 12.w),
+                              Text(
+                                l10n.confirmOrderRemoveCoupon,
+                                style: TextStyle(
+                                  fontSize: 14.sp,
+                                  color: Colors.grey[700],
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      // 优惠券列表
+                      Expanded(
+                        child: ListView.builder(
+                          itemBuilder: (context, index) {
+                            final coupon = couponList[index];
+                            final minSpend = coupon.minSpendAmount ?? 0;
+                            final meetsThreshold =
+                                currentOrderAmount >= minSpend;
+
+                            return Opacity(
+                              opacity: meetsThreshold ? 1.0 : 0.5,
+                              child: Stack(
+                                children: [
+                                  CoupoonItem(
+                                    coupon: coupon.toDisplayModel(),
+                                    showClaimButton: false,
+                                    showUseButton: meetsThreshold,
+                                    onUse:
+                                        meetsThreshold
+                                            ? () {
+                                              if (coupon.id != null &&
+                                                  coupon.discountAmount !=
+                                                      null) {
+                                                dismiss(
+                                                  CouponSelectionResult(
+                                                    couponId: coupon.id!,
+                                                    discountAmount:
+                                                        coupon.discountAmount!,
+                                                  ),
+                                                );
+                                              }
+                                            }
+                                            : null,
+                                  ),
+                                  // 如果不满足门槛，显示提示信息
+                                  if (!meetsThreshold)
+                                    Positioned.fill(
+                                      child: Container(
+                                        alignment: Alignment.center,
+                                        child: Container(
+                                          padding: EdgeInsets.symmetric(
+                                            horizontal: 12.w,
+                                            vertical: 6.h,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: Colors.black.withOpacity(
+                                              0.7,
+                                            ),
+                                            borderRadius: BorderRadius.circular(
+                                              8.r,
+                                            ),
+                                          ),
+                                          child: Text(
+                                            l10n.confirmOrderCouponThresholdNotMet(
+                                              minSpend.toStringAsFixed(2),
+                                            ),
+                                            style: TextStyle(
+                                              fontSize: 12.sp,
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            );
+                          },
+                          itemCount: couponList.length,
+                        ),
+                      ),
+                    ],
+                  ),
+    );
+  }
+
+  /// 显示"我的优惠券"选择sheet（用于下单时选择）
+  static Future<CouponSelectionResult?> showMyCoupons({
+    required BuildContext context,
+    required WidgetRef ref,
+    required String shopId,
+    required List<CouponItem> couponList,
+    required bool isLoading,
+    required double currentOrderAmount,
+  }) async {
+    final l10n = AppLocalizations.of(context)!;
+    return await Pop.sheet<CouponSelectionResult>(
+      title: l10n.coupons,
+      titleStyle: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
+      showCloseButton: true,
+      maxHeight: SheetDimension.fraction(0.5),
+      childBuilder:
+          (dismiss) =>
+              isLoading
+                  ? const CommonIndicator()
+                  : Column(
+                    children: [
+                      // "不使用优惠券"选项
+                      GestureDetector(
+                        onTap: () {
+                          dismiss(CouponSelectionResult.removed);
+                        },
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 16.w,
+                            vertical: 16.h,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.grey[100],
+                            border: Border(
+                              bottom: BorderSide(
+                                color: Colors.grey[300]!,
+                                width: 1,
+                              ),
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.block,
+                                size: 20.w,
+                                color: Colors.grey[600],
+                              ),
+                              SizedBox(width: 12.w),
+                              Text(
+                                l10n.confirmOrderRemoveCoupon,
+                                style: TextStyle(
+                                  fontSize: 14.sp,
+                                  color: Colors.grey[700],
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      // 优惠券列表
+                      Expanded(
+                        child: ListView.builder(
+                          itemBuilder: (context, index) {
+                            final coupon = couponList[index];
+                            final minSpend = coupon.minSpendAmount ?? 0;
+                            final meetsThreshold =
+                                currentOrderAmount >= minSpend;
+
+                            return Opacity(
+                              opacity: meetsThreshold ? 1.0 : 0.5,
+                              child: Stack(
+                                children: [
+                                  CoupoonItem(
+                                    coupon: coupon.toDisplayModel(),
+                                    showClaimButton: false,
+                                    showUseButton: meetsThreshold,
+                                    onUse:
+                                        meetsThreshold
+                                            ? () {
+                                              // 注意：这里使用 coupon.id（用户优惠券记录ID）
+                                              // 而不是 couponId（优惠券模板ID）
+                                              if (coupon.id != null &&
+                                                  coupon.discountAmount !=
+                                                      null) {
+                                                dismiss(
+                                                  CouponSelectionResult(
+                                                    couponId:
+                                                        coupon.id!, // 用户优惠券记录ID
+                                                    discountAmount:
+                                                        coupon.discountAmount!,
+                                                  ),
+                                                );
+                                              }
+                                            }
+                                            : null,
+                                  ),
+                                  if (!meetsThreshold)
+                                    Positioned.fill(
+                                      child: Container(
+                                        alignment: Alignment.center,
+                                        child: Container(
+                                          padding: EdgeInsets.symmetric(
+                                            horizontal: 12.w,
+                                            vertical: 6.h,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: Colors.black.withOpacity(
+                                              0.7,
+                                            ),
+                                            borderRadius: BorderRadius.circular(
+                                              8.r,
+                                            ),
+                                          ),
+                                          child: Text(
+                                            l10n.confirmOrderCouponThresholdNotMet(
+                                              minSpend.toStringAsFixed(2),
+                                            ),
+                                            style: TextStyle(
+                                              fontSize: 12.sp,
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            );
+                          },
+                          itemCount: couponList.length,
+                        ),
+                      ),
+                    ],
+                  ),
     );
   }
 }
@@ -167,13 +407,13 @@ class AddressSelectionSheet {
     required WidgetRef ref,
   }) async {
     final l10n = AppLocalizations.of(context)!;
-    
+
     // 确保在打开sheet时加载地址数据
     final addressState = ref.read(addressListProvider);
     if (addressState.addresses.isEmpty && !addressState.isLoading) {
       await ref.read(addressListProvider.notifier).loadAddresses();
     }
-    
+
     return await Pop.sheet<AddressItem>(
       title: l10n.address,
       titleStyle: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
@@ -197,15 +437,23 @@ class AddressSelectionSheet {
                         children: [
                           Text(
                             l10n.emptyListText,
-                            style: TextStyle(fontSize: 14.sp, color: Colors.grey[600]),
+                            style: TextStyle(
+                              fontSize: 14.sp,
+                              color: Colors.grey[600],
+                            ),
                           ),
                           CommonSpacing.medium,
                           CommonButton(
                             text: l10n.addAddress,
                             onPressed: () async {
-                              final result = await Navigate.push(context, Routes.addAddress);
+                              final result = await Navigate.push(
+                                context,
+                                Routes.addAddress,
+                              );
                               if (result == true) {
-                                await ref.read(addressListProvider.notifier).loadAddresses();
+                                await ref
+                                    .read(addressListProvider.notifier)
+                                    .loadAddresses();
                               }
                             },
                           ),
@@ -233,12 +481,20 @@ class AddressSelectionSheet {
                 Padding(
                   padding: EdgeInsets.all(16.w),
                   child: CommonButton(
-                    padding: EdgeInsets.symmetric(horizontal: 80.w, vertical: 12.h),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 80.w,
+                      vertical: 12.h,
+                    ),
                     text: l10n.addAddress,
                     onPressed: () async {
-                      final result = await Navigate.push(context, Routes.addAddress);
+                      final result = await Navigate.push(
+                        context,
+                        Routes.addAddress,
+                      );
                       if (result == true) {
-                        await ref.read(addressListProvider.notifier).loadAddresses();
+                        await ref
+                            .read(addressListProvider.notifier)
+                            .loadAddresses();
                       }
                     },
                   ),
@@ -251,5 +507,3 @@ class AddressSelectionSheet {
     );
   }
 }
-
-

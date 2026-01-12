@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import '../../../core/l10n/locale_service.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/common_image.dart';
 import '../../../core/widgets/common_spacing.dart';
@@ -42,10 +43,14 @@ class CartItemList extends ConsumerWidget {
   }
 
   Widget _buildCartItem(CartItemModel item) {
-    final productName = item.productName ?? '';
+    // 根据当前语言选择产品名称
+    final productName = LocaleService.getLocalizedText(
+      item.productName,
+      item.englishProductName,
+    );
     final image = item.imageThumbnail ?? 'assets/images/shop_cart.png';
     final price = item.price ?? 0;
-    
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
@@ -86,15 +91,20 @@ class CartItemList extends ConsumerWidget {
           shopId: shopId,
           productId: item.productId ?? '',
           productName: item.productName ?? '',
-          englishProductName: null,
-          selectedSkus: item.selectedSkus?.map((sku) => SelectedSkuVO(
-            id: sku.id ?? '',
-            skuName: sku.skuName ?? '',
-            englishSkuName: sku.englishSkuName,
-            skuPrice: sku.skuPrice ?? 0,
-            skuGroupId: sku.skuGroupId,
-            skuGroupType: sku.skuGroupType,
-          )).toList(),
+          englishProductName: item.englishProductName,
+          selectedSkus:
+              item.selectedSkus
+                  ?.map(
+                    (sku) => SelectedSkuVO(
+                      id: sku.id ?? '',
+                      skuName: sku.skuName ?? '',
+                      englishSkuName: sku.englishSkuName,
+                      skuPrice: sku.skuPrice ?? 0,
+                      skuGroupId: sku.skuGroupId,
+                      skuGroupType: sku.skuGroupType,
+                    ),
+                  )
+                  .toList(),
           diningDate: diningDate,
           cartItemId: item.id, // 传递购物车条目ID
         ),
@@ -108,10 +118,7 @@ class CartItemList extends ConsumerWidget {
     if (item.productSpecName != null && item.productSpecName!.isNotEmpty) {
       return Text(
         item.productSpecName!,
-        style: TextStyle(
-          fontSize: 12.sp,
-          color: Colors.grey[600],
-        ),
+        style: TextStyle(fontSize: 12.sp, color: Colors.grey[600]),
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
       );
@@ -128,7 +135,11 @@ class CartItemList extends ConsumerWidget {
     final stackableSkus = <String>[]; // skuGroupType = 1 (可叠加)
 
     for (final sku in skuList) {
-      final skuName = sku.skuName ?? sku.englishSkuName ?? '';
+      // 根据当前语言选择SKU名称
+      final skuName = LocaleService.getLocalizedText(
+        sku.skuName,
+        sku.englishSkuName,
+      );
       if (skuName.isEmpty) continue;
 
       if (sku.skuGroupType == 2) {
@@ -145,10 +156,7 @@ class CartItemList extends ConsumerWidget {
 
     return Text(
       allSkuNames.join(', '),
-      style: TextStyle(
-        fontSize: 12.sp,
-        color: Colors.grey[600],
-      ),
+      style: TextStyle(fontSize: 12.sp, color: Colors.grey[600]),
       maxLines: 2,
       overflow: TextOverflow.ellipsis,
     );

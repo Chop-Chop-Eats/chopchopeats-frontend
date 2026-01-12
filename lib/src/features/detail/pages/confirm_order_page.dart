@@ -299,37 +299,48 @@ class _ConfirmOrderPageState extends ConsumerState<ConfirmOrderPage> {
       '重新计算 deliveryTip: $recalculatedDeliveryTip (原值: ${pricesMap['tipAmount']}, tipRate: $tipRate)',
     );
 
+    // 先格式化各个费用项
+    final formattedMealSubtotal = formatPrice(recalculatedMealSubtotal);
+    final formattedDeliveryFee = formatPrice(pricesMap['deliveryFee']);
+    final formattedTaxAmount = formatPrice(recalculatedTaxAmount);
+    final formattedServiceFee = formatPrice(recalculatedServiceFee);
+    final formattedDeliveryTip = formatPrice(recalculatedDeliveryTip);
+    final formattedCouponDiscount =
+        selectedCoupon?.discountAmount != null
+            ? formatPrice(selectedCoupon!.discountAmount)
+            : 0.0;
+
+    // 使用格式化后的值计算总支付金额
+    final formattedPayAmount = formatPrice(
+      formattedMealSubtotal +
+          formattedDeliveryFee +
+          formattedTaxAmount +
+          formattedServiceFee +
+          formattedDeliveryTip -
+          formattedCouponDiscount,
+    );
+
     // 组装CreateOrderParams，所有价格字段都格式化为两位小数
     final orderParams = CreateOrderParams(
       comment:
           remarkController.text.trim().isEmpty
               ? null
               : remarkController.text.trim(),
-      couponAmount:
-          selectedCoupon?.discountAmount != null
-              ? formatPrice(selectedCoupon!.discountAmount)
-              : null,
+      couponAmount: formattedCouponDiscount > 0 ? formattedCouponDiscount : null,
       deliveryAddressId: selectedAddress.id,
-      deliveryFee: formatPrice(pricesMap['deliveryFee']),
+      deliveryFee: formattedDeliveryFee,
       deliveryMethod: 1, // 固定为1（门店配送）
       deliveryTime: selectedDeliveryTime.time!,
-      deliveryTip: formatPrice(recalculatedDeliveryTip), // 使用重新计算的小费
+      deliveryTip: formattedDeliveryTip, // 使用重新计算的小费
       diningDate: selectedDiningDate,
       items: orderItems,
-      mealSubtotal: formatPrice(recalculatedMealSubtotal), // 使用重新计算的餐品小计
+      mealSubtotal: formattedMealSubtotal, // 使用重新计算的餐品小计
       orderSource: 1, // 固定为1（APP）
-      payAmount: formatPrice(
-        recalculatedMealSubtotal +
-            recalculatedTaxAmount +
-            recalculatedServiceFee +
-            (pricesMap['deliveryFee'] ?? 0) +
-            recalculatedDeliveryTip -
-            (selectedCoupon?.discountAmount ?? 0),
-      ), // 重新计算总支付金额
+      payAmount: formattedPayAmount, // 使用格式化后计算的总支付金额
       payType: 1, // 固定为1（Stripe）
-      serviceFee: formatPrice(recalculatedServiceFee), // 使用重新计算的服务费
+      serviceFee: formattedServiceFee, // 使用重新计算的服务费
       shopId: widget.shopId,
-      taxAmount: formatPrice(recalculatedTaxAmount), // 使用重新计算的税费
+      taxAmount: formattedTaxAmount, // 使用重新计算的税费
       tipRate: formatPrice(pricesMap['tipRate']),
       userCouponId: selectedCoupon?.couponId,
     );

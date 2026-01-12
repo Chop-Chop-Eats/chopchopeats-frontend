@@ -6,6 +6,15 @@ class CouponSelectionResult {
   final double discountAmount;
 
   CouponSelectionResult({required this.couponId, required this.discountAmount});
+
+  /// 特殊标记：用户主动移除优惠券
+  static final CouponSelectionResult removed = CouponSelectionResult(
+    couponId: '__REMOVED__',
+    discountAmount: 0.0,
+  );
+
+  /// 判断是否为移除标记
+  bool get isRemoved => couponId == '__REMOVED__';
 }
 
 /// 将 DateTime 转换为 YYYY-MM-DD 格式的字符串
@@ -33,7 +42,8 @@ DateTime? parseDiningDate(String? dateStr) {
 
 double formatPrice(double? price) {
   if (price == null) return 0.0;
-  return double.parse(price.toStringAsFixed(2));
+  // 使用标准四舍五入：将价格乘以100，四舍五入到整数，再除以100
+  return (price * 100).round() / 100;
 }
 
 /// 创建订单参数

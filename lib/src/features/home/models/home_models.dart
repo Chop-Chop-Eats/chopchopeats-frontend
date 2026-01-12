@@ -45,6 +45,9 @@ class ChefItem {
   ///中文店铺名称
   final String chineseShopName;
 
+  ///英文店铺名称
+  final String? englishShopName;
+
   ///距离（千米）
   final double? distance;
 
@@ -75,6 +78,7 @@ class ChefItem {
     this.categoryEnglishName,
     this.categoryId,
     required this.chineseShopName,
+    this.englishShopName,
     this.distance,
     required this.id,
     this.newShopMark,
@@ -92,6 +96,7 @@ class ChefItem {
       categoryEnglishName: json['categoryEnglishName'],
       categoryId: json['categoryId'],
       chineseShopName: json['chineseShopName'],
+      englishShopName: json['englishShopName'],
       id: json['id'],
       newShopMark: json['newShopMark'],
       distance: JsonUtils.parseDouble(json, 'distance'),
@@ -114,6 +119,7 @@ class ChefItem {
     String? categoryEnglishName,
     int? categoryId,
     String? chineseShopName,
+    String? englishShopName,
     double? distance,
     String? id,
     bool? newShopMark,
@@ -129,6 +135,7 @@ class ChefItem {
       categoryEnglishName: categoryEnglishName ?? this.categoryEnglishName,
       categoryId: categoryId ?? this.categoryId,
       chineseShopName: chineseShopName ?? this.chineseShopName,
+      englishShopName: englishShopName ?? this.englishShopName,
       distance: distance ?? this.distance,
       id: id ?? this.id,
       newShopMark: newShopMark ?? this.newShopMark,
@@ -141,13 +148,18 @@ class ChefItem {
   }
 
   /// ========== 国际化便捷属性 ==========
-  
+
   /// 获取本地化的店铺名称
-  String get localizedShopName => chineseShopName;
-  
+  String get localizedShopName {
+    return LocaleService.getLocalizedText(chineseShopName, englishShopName);
+  }
+
   /// 获取本地化的分类名称
   String? get localizedCategoryName {
-    return LocaleService.getLocalizedText(categoryChineseName, categoryEnglishName);
+    return LocaleService.getLocalizedText(
+      categoryChineseName,
+      categoryEnglishName,
+    );
   }
 }
 
@@ -173,7 +185,7 @@ class OperatingHour {
   }
 }
 
-/// 获取分类浏览私厨店铺请求query 
+/// 获取分类浏览私厨店铺请求query
 class DiamondAreaQuery extends CommonQuery {
   ///店铺分类
   final int categoryId;
@@ -188,10 +200,7 @@ class DiamondAreaQuery extends CommonQuery {
 
   @override
   Map<String, dynamic> toJson() {
-    return {
-      'categoryId': categoryId,
-      ...super.toJson(),
-    };
+    return {'categoryId': categoryId, ...super.toJson()};
   }
 }
 
@@ -199,6 +208,7 @@ class DiamondAreaQuery extends CommonQuery {
 class TotalWithChefItem {
   ///总量
   final int total;
+
   ///数据
   final List<ChefItem> list;
 
@@ -263,7 +273,7 @@ class CategoryListItem {
   }
 
   /// ========== 国际化便捷属性 ==========
-  
+
   /// 获取本地化的分类名称
   String? get localizedCategoryName {
     return LocaleService.getLocalizedText(categoryName, englishCategoryName);

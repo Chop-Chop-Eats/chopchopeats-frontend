@@ -181,6 +181,9 @@ abstract class AppLocalizations {
   String get confirmOrderDeliveryFee; // 配送费
   String get confirmOrderCouponDiscount; // 优惠券折扣
   String get confirmOrderAvailableCoupons; // 可用优惠券
+  String get confirmOrderRemoveCoupon; // 移除优惠券
+  String confirmOrderCouponThresholdNotMet(String minSpend); // 优惠券使用门槛未达到
+  String get confirmOrderCouponRemovedDueToThreshold; // 优惠券因未达门槛已自动移除
   String get confirmOrderTotal; // 合计
   String get confirmOrderPaymentMethod; // 支付方式
   String get confirmOrderSelectPaymentMethod; // 选择支付方式
@@ -359,6 +362,7 @@ abstract class AppLocalizations {
   String orderCountdownTime(int minutes, int seconds); // 倒计时时间
   String get orderCountdownSuffix; // 后失效
   String get orderStatusDescDefault; // 默认状态描述
+  String get orderCancelReason; // 取消原因
 
   // ============== 消息中心 ==============
   String get messageCenter; // 消息中心

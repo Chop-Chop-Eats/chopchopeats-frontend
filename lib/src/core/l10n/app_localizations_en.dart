@@ -320,6 +320,14 @@ class AppLocalizationsEn implements AppLocalizations {
   @override
   String get confirmOrderAvailableCoupons => 'Available Coupons';
   @override
+  String get confirmOrderRemoveCoupon => 'Remove Coupon';
+  @override
+  String confirmOrderCouponThresholdNotMet(String minSpend) =>
+      'Minimum spend \$$minSpend required';
+  @override
+  String get confirmOrderCouponRemovedDueToThreshold =>
+      'Coupon automatically removed due to minimum spend not met';
+  @override
   String get confirmOrderTotal => 'Total';
   @override
   String get confirmOrderPaymentMethod => 'Payment Method';
@@ -674,6 +682,9 @@ class AppLocalizationsEn implements AppLocalizations {
   String get orderCountdownSuffix => ' until expiration';
   @override
   String get orderStatusDescDefault => 'Chef accepted, waiting for driver';
+
+  @override
+  String get orderCancelReason => 'Cancel Reason: ';
 
   // ============== Message Center ==============
   @override

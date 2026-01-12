@@ -563,6 +563,9 @@ class AvailableCouponItem {
   ///优惠券标题
   final String? couponTitle;
 
+  ///英文优惠券标题
+  final String? englishCouponTitle;
+
   ///优惠金额
   final double? discountAmount;
 
@@ -599,6 +602,7 @@ class AvailableCouponItem {
   AvailableCouponItem({
     this.canClaim,
     this.couponTitle,
+    this.englishCouponTitle,
     this.discountAmount,
     this.id,
     this.minSpendAmount,
@@ -616,6 +620,7 @@ class AvailableCouponItem {
     return AvailableCouponItem(
       canClaim: json['canClaim'],
       couponTitle: json['couponTitle'],
+      englishCouponTitle: json['englishCouponTitle'],
       discountAmount: json['discountAmount'],
       id: json['id'],
       minSpendAmount: json['minSpendAmount'],
@@ -630,11 +635,16 @@ class AvailableCouponItem {
     );
   }
 
+  /// 获取本地化的优惠券标题
+  String get localizedCouponTitle {
+    return LocaleService.getLocalizedText(couponTitle, englishCouponTitle);
+  }
+
   /// 转换为统一的显示模型
   CouponDisplayModel toDisplayModel() {
     return CouponDisplayModel(
       id: id,
-      couponTitle: couponTitle,
+      couponTitle: localizedCouponTitle,
       discountAmount: discountAmount,
       minSpendAmount: minSpendAmount,
       remark: remark,

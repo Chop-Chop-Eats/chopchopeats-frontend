@@ -58,7 +58,7 @@ class OrderDetailPage extends ConsumerWidget {
           SizedBox(height: 24.h),
           Container(
             decoration: BoxDecoration(
-              color: Colors.white60,
+              color: const Color(0xFFFBFBFB),
               borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(24.r),
                 topRight: Radius.circular(24.r),
@@ -169,7 +169,7 @@ class OrderDetailPage extends ConsumerWidget {
           Text(
             order.getLocalizedStatusName(context),
             style: TextStyle(
-              fontSize: 32.sp,
+              fontSize: 26.sp,
               fontWeight: FontWeight.bold,
               color: const Color(0xFF333333),
             ),
@@ -185,7 +185,14 @@ class OrderDetailPage extends ConsumerWidget {
                 ref.invalidate(orderDetailProvider(orderNo));
               },
             ),
-          ] else
+          ] else if ((order.status == 902 || order.status == 901) &&
+              order.cancelReason != null &&
+              order.cancelReason!.isNotEmpty)
+            Text(
+              '${l10n.orderCancelReason}${order.cancelReason}',
+              style: TextStyle(fontSize: 14.sp, color: const Color(0xFF999999)),
+            )
+          else
             Text(
               order.getLocalizedStatusDesc(context).isNotEmpty
                   ? order.getLocalizedStatusDesc(context)
@@ -203,6 +210,14 @@ class OrderDetailPage extends ConsumerWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24.r),
+        // 阴影
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -248,6 +263,14 @@ class OrderDetailPage extends ConsumerWidget {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(24.r),
+            // 阴影
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -299,6 +322,14 @@ class OrderDetailPage extends ConsumerWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(24.r),
+        // 阴影
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         children: [
@@ -473,6 +504,14 @@ class OrderDetailPage extends ConsumerWidget {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(24.r),
+            // 阴影
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

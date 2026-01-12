@@ -200,7 +200,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
                 Row(
                   children: [
                     Text(
-                      "总价",
+                      l10n.totalPrice,
                       style: TextStyle(
                         fontSize: 12.sp,
                         fontWeight: FontWeight.bold,
@@ -667,7 +667,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              sku.skuName ?? '',
+              sku.localizedSkuName ?? '',
               style: TextStyle(
                 fontSize: 14.sp,
                 color: isSelected ? Colors.white : const Color(0xFF333333),

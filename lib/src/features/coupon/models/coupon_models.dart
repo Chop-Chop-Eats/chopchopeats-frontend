@@ -1,3 +1,4 @@
+import '../../../core/l10n/locale_service.dart';
 import '../../../core/utils/json_utils.dart';
 
 class CouponListQuery {
@@ -31,14 +32,17 @@ class CouponListModel {
   ///总量
   final int total;
 
-  CouponListModel({
-    required this.list,
-    required this.total,
-  });
+  CouponListModel({required this.list, required this.total});
 
   factory CouponListModel.fromJson(Map<String, dynamic> json) {
     return CouponListModel(
-      list: JsonUtils.parseList<CouponGroupItem>(json, 'list', (e) => CouponGroupItem.fromJson(e)) ?? [],
+      list:
+          JsonUtils.parseList<CouponGroupItem>(
+            json,
+            'list',
+            (e) => CouponGroupItem.fromJson(e),
+          ) ??
+          [],
       total: json['total'],
     );
   }
@@ -59,7 +63,11 @@ class CouponGroupItem {
 
   factory CouponGroupItem.fromJson(Map<String, dynamic> json) {
     return CouponGroupItem(
-      couponList: JsonUtils.parseList<CouponItem>(json, 'couponList', (e) => CouponItem.fromJson(e)),
+      couponList: JsonUtils.parseList<CouponItem>(
+        json,
+        'couponList',
+        (e) => CouponItem.fromJson(e),
+      ),
       shopId: json['shopId'],
       shopName: json['shopName'],
     );
@@ -73,6 +81,9 @@ class CouponItem {
 
   ///优惠券标题
   final String? couponTitle;
+
+  ///英文优惠券标题
+  final String? englishCouponTitle;
 
   ///领取时间
   final DateTime? createTime;
@@ -110,6 +121,7 @@ class CouponItem {
   CouponItem({
     this.couponId,
     this.couponTitle,
+    this.englishCouponTitle,
     this.createTime,
     this.discountAmount,
     this.id,
@@ -127,6 +139,7 @@ class CouponItem {
     return CouponItem(
       couponId: json['couponId'],
       couponTitle: json['couponTitle'],
+      englishCouponTitle: json['englishCouponTitle'],
       createTime: JsonUtils.parseDateTime(json, 'createTime'),
       discountAmount: JsonUtils.parseDouble(json, 'discountAmount'),
       id: json['id'],
@@ -141,11 +154,16 @@ class CouponItem {
     );
   }
 
+  /// 获取本地化的优惠券标题
+  String get localizedCouponTitle {
+    return LocaleService.getLocalizedText(couponTitle, englishCouponTitle);
+  }
+
   /// 转换为统一的显示模型
   CouponDisplayModel toDisplayModel() {
     return CouponDisplayModel(
       id: id ?? couponId,
-      couponTitle: couponTitle,
+      couponTitle: localizedCouponTitle,
       discountAmount: discountAmount,
       minSpendAmount: minSpendAmount,
       remark: remark,

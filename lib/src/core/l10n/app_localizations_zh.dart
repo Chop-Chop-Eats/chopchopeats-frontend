@@ -313,6 +313,13 @@ class AppLocalizationsZh implements AppLocalizations {
   @override
   String get confirmOrderCouponDiscount => '优惠券折扣';
   @override
+  String get confirmOrderRemoveCoupon => '移除优惠券';
+  @override
+  String confirmOrderCouponThresholdNotMet(String minSpend) =>
+      '需消费满 \$$minSpend 才可使用';
+  @override
+  String get confirmOrderCouponRemovedDueToThreshold => '优惠券因未达到使用门槛已自动移除';
+  @override
   String get confirmOrderTotal => '合计';
   @override
   String get confirmOrderPaymentMethod => '支付方式';
@@ -655,6 +662,9 @@ class AppLocalizationsZh implements AppLocalizations {
   String get orderCountdownSuffix => ' 后失效';
   @override
   String get orderStatusDescDefault => '私厨已接单，待骑手接单';
+
+  @override
+  String get orderCancelReason => '取消原因：';
 
   // ============== 消息中心 ==============
   @override

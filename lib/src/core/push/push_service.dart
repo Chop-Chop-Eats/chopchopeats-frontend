@@ -118,28 +118,38 @@ class PushService {
         );
         Logger.info("PushService", 'iOS 前台通知配置完成');
 
-        // 5. 获取 Token 并上传给后端（添加超时保护）
-        String? token;
-        try {
-          token = await _fcm!.getToken().timeout(
-            const Duration(seconds: 10),
-            onTimeout: () {
-              Logger.warn("PushService", "获取 Token 超时");
-              return null;
-            },
-          );
-        } catch (e) {
-          Logger.warn("PushService", "获取 Token 失败: $e");
-          token = null;
-        }
-        
-        if (token != null) {
-          Logger.info("PushService", "FCM Token: $token");
-          _cachedFcmToken = token;
-          // 尝试上报 Token（如果用户已登录）
-          _uploadTokenIfLoggedIn(token);
+        // 5. 获取 Token 并上传给后端
+        // iOS 平台：APNS Token 获取需要时间，使用延迟重试 + onTokenRefresh 监听
+        if (Platform.isIOS) {
+          Logger.info("PushService", "iOS 平台：启动后台 Token 获取任务...");
+          Logger.warn("PushService", "⚠️ 个人开发者账号不支持推送，如需使用请升级到付费账号");
+          Logger.info("PushService", "提示：APNS Token 可能需要几秒到几十秒，请耐心等待");
+          
+          // 延迟后台获取，不阻塞初始化流程
+          _retryGetTokenInBackground();
         } else {
-          Logger.warn("PushService", "未能获取 FCM Token，推送功能可能不可用");
+          // Android 平台：直接获取
+          String? token;
+          try {
+            token = await _fcm!.getToken().timeout(
+              const Duration(seconds: 10),
+              onTimeout: () {
+                Logger.warn("PushService", "获取 Token 超时");
+                return null;
+              },
+            );
+          } catch (e) {
+            Logger.warn("PushService", "获取 Token 失败: $e");
+            token = null;
+          }
+          
+          if (token != null) {
+            Logger.info("PushService", "FCM Token: $token");
+            _cachedFcmToken = token;
+            _uploadTokenIfLoggedIn(token);
+          } else {
+            Logger.warn("PushService", "未能获取 FCM Token，推送功能可能不可用");
+          }
         }
 
         // 6. 监听 Token 刷新（防止 Token 过期）
@@ -435,12 +445,119 @@ class PushService {
   /// 应该在用户登录成功后调用此方法
   Future<void> uploadTokenWhenLoggedIn() async {
     if (_cachedFcmToken == null) {
-      Logger.warn("PushService", "没有缓存的 FCM Token，跳过上报");
+      Logger.info("PushService", "没有缓存的 FCM Token");
+      
+      if (_fcm == null) {
+        Logger.warn("PushService", "Firebase 未初始化，无法获取 Token");
+        return;
+      }
+      
+      if (Platform.isIOS) {
+        Logger.info("PushService", "iOS 平台：Token 将通过后台任务和 onTokenRefresh 监听自动获取并上报");
+        Logger.info("PushService", "提示：APNS Token 需要时间获取，请耐心等待几秒");
+      } else {
+        // Android：尝试立即获取
+        try {
+          final token = await _fcm!.getToken().timeout(
+            const Duration(seconds: 10),
+            onTimeout: () => null,
+          );
+          
+          if (token != null) {
+            Logger.info("PushService", "✅ 获取 Token 成功: $token");
+            _cachedFcmToken = token;
+            await _uploadTokenToBackend(token);
+          } else {
+            Logger.warn("PushService", "获取 Token 失败，Token 为空");
+          }
+        } catch (e) {
+          Logger.error("PushService", "获取 Token 异常: $e", error: e);
+        }
+      }
       return;
     }
     
     Logger.info("PushService", "用户已登录，开始上报缓存的 FCM Token");
     await _uploadTokenToBackend(_cachedFcmToken!);
+  }
+  
+  // iOS 后台重试获取 Token
+  Future<void> _retryGetTokenInBackground() async {
+    if (_fcm == null || !Platform.isIOS) return;
+    
+    // 重试策略：2秒、5秒、10秒后重试
+    final delays = [2, 5, 10];
+    
+    for (int i = 0; i < delays.length; i++) {
+      await Future.delayed(Duration(seconds: delays[i]));
+      
+      // 如果已经有 Token 了，停止重试
+      if (_cachedFcmToken != null) {
+        Logger.info("PushService", "Token 已通过其他途径获取，停止后台重试");
+        return;
+      }
+      
+      Logger.info("PushService", "后台重试 ${i + 1}/${delays.length}：尝试获取 Token...");
+      
+      try {
+        // 先检查 APNS Token
+        final apnsToken = await _fcm!.getAPNSToken().timeout(
+          const Duration(seconds: 5),
+          onTimeout: () => null,
+        );
+        
+        if (apnsToken == null) {
+          Logger.info("PushService", "APNS Token 仍未就绪，继续等待...");
+          continue;
+        }
+        
+        Logger.info("PushService", "✅ APNS Token 已就绪！");
+        
+        // 获取 FCM Token
+        final token = await _fcm!.getToken().timeout(
+          const Duration(seconds: 5),
+          onTimeout: () => null,
+        );
+        
+        if (token != null) {
+          Logger.info("PushService", "🎉 成功获取 FCM Token: $token");
+          _cachedFcmToken = token;
+          _uploadTokenIfLoggedIn(token);
+          return; // 成功获取，结束重试
+        }
+      } catch (e) {
+        if (!e.toString().contains('apns-token-not-set')) {
+          Logger.warn("PushService", "重试 ${i + 1} 失败: $e");
+        }
+      }
+    }
+    
+    // 所有重试都失败，给出详细的诊断建议
+    Logger.warn("PushService", "========================================");
+    Logger.warn("PushService", "⚠️ iOS 推送配置问题诊断");
+    Logger.warn("PushService", "========================================");
+    Logger.warn("PushService", "APNS Token 无法获取，请检查以下配置：");
+    Logger.warn("PushService", "");
+    Logger.warn("PushService", "❌ 最可能的原因：使用了个人开发者账号");
+    Logger.warn("PushService", "   → 个人账号（Free/Personal Team）不支持推送功能");
+    Logger.warn("PushService", "   → 需要升级到付费的 Apple Developer Program（\$99/年）");
+    Logger.warn("PushService", "   → 检查 ios/Runner/Runner.entitlements 是否缺少 aps-environment");
+    Logger.warn("PushService", "");
+    Logger.warn("PushService", "如果已是付费账号，请检查：");
+    Logger.warn("PushService", "   1. Xcode → Runner → Signing & Capabilities");
+    Logger.warn("PushService", "      → 是否添加了 \"Push Notifications\" Capability");
+    Logger.warn("PushService", "");
+    Logger.warn("PushService", "   2. Bundle ID 是否匹配");
+    Logger.warn("PushService", "      → 当前: com.chopchop.chopuser");
+    Logger.warn("PushService", "      → Firebase Console 中是否一致？");
+    Logger.warn("PushService", "");
+    Logger.warn("PushService", "   3. Firebase Console → Project Settings → Cloud Messaging");
+    Logger.warn("PushService", "      → iOS 是否上传了 APNS 认证密钥（.p8）或证书（.p12）？");
+    Logger.warn("PushService", "");
+    Logger.warn("PushService", "   4. 设备网络");
+    Logger.warn("PushService", "      → 能否访问 Apple 推送服务器？");
+    Logger.warn("PushService", "      → 尝试切换网络或使用 VPN");
+    Logger.warn("PushService", "========================================");
   }
   
   /// 调试方法：打印当前推送服务状态
@@ -460,18 +577,44 @@ class PushService {
         Logger.warn("PushService", "无法获取通知权限状态: $e");
       }
       
+      if (Platform.isIOS) {
+        try {
+          final apnsToken = await _fcm!.getAPNSToken();
+          Logger.info("PushService", "4. APNS Token: ${apnsToken ?? '❌ 未获取'}");
+          if (apnsToken == null) {
+            Logger.warn("PushService", "   ⚠️ 可能使用了个人开发者账号（不支持推送）");
+            Logger.warn("PushService", "   ⚠️ 或者未在 Xcode 中添加 Push Notifications Capability");
+          }
+        } catch (e) {
+          Logger.warn("PushService", "4. APNS Token: ❌ 获取失败");
+          Logger.warn("PushService", "   错误: $e");
+        }
+      }
+      
       try {
         final token = await _fcm!.getToken();
-        Logger.info("PushService", "4. 当前 FCM Token: $token");
+        Logger.info("PushService", "${Platform.isIOS ? '5' : '4'}. 当前 FCM Token: $token");
       } catch (e) {
-        Logger.warn("PushService", "无法获取 Token: $e");
+        Logger.warn("PushService", "${Platform.isIOS ? '5' : '4'}. 无法获取 FCM Token: $e");
       }
     }
     
     final accessToken = await AppServices.cache.get<String>(AppConstants.accessToken);
-    Logger.info("PushService", "5. 用户登录状态: ${accessToken != null && accessToken.isNotEmpty ? '✅ 已登录' : '❌ 未登录'}");
+    final loginIndex = Platform.isIOS ? '6' : '5';
+    Logger.info("PushService", "$loginIndex. 用户登录状态: ${accessToken != null && accessToken.isNotEmpty ? '✅ 已登录' : '❌ 未登录'}");
     
-    Logger.info("PushService", "6. 平台: ${Platform.operatingSystem}");
+    final platformIndex = Platform.isIOS ? '7' : '6';
+    Logger.info("PushService", "$platformIndex. 平台: ${Platform.operatingSystem}");
+    
+    if (Platform.isIOS) {
+      Logger.info("PushService", "");
+      Logger.info("PushService", "iOS 推送配置提示：");
+      Logger.info("PushService", "  • Bundle ID: com.chopchop.chopuser");
+      Logger.info("PushService", "  • 需要付费 Apple Developer Program 账号");
+      Logger.info("PushService", "  • 需要在 Xcode 中添加 Push Notifications Capability");
+      Logger.info("PushService", "  • 需要在 Firebase Console 上传 APNS 密钥");
+    }
+    
     Logger.info("PushService", "=====================================");
   }
   

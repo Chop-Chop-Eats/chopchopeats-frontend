@@ -23,7 +23,9 @@ class CouponList extends ConsumerStatefulWidget {
 
 class _CouponListState extends ConsumerState<CouponList> {
   // 在弹出的 sheet 中使用的“正在领取中”的券ID集合（可响应监听）
-  final ValueNotifier<Set<String>> _claimingIds = ValueNotifier<Set<String>>(<String>{});
+  final ValueNotifier<Set<String>> _claimingIds = ValueNotifier<Set<String>>(
+    <String>{},
+  );
 
   @override
   void dispose() {
@@ -39,7 +41,9 @@ class _CouponListState extends ConsumerState<CouponList> {
       final currentState = ref.read(couponProvider(widget.shopId));
       // 只有当数据为空且未加载时才请求
       if (currentState.couponData == null && !currentState.isLoading) {
-        ref.read(couponProvider(widget.shopId).notifier).loadCouponList(widget.shopId);
+        ref
+            .read(couponProvider(widget.shopId).notifier)
+            .loadCouponList(widget.shopId);
       }
     });
   }
@@ -54,13 +58,14 @@ class _CouponListState extends ConsumerState<CouponList> {
     return GestureDetector(
       onTap: () {
         Logger.info("CouponList", "点击查看更多优惠券");
-        if (couponData == null || couponData.list == null || couponData.list!.isEmpty) {
+        if (couponData == null ||
+            couponData.list == null ||
+            couponData.list!.isEmpty) {
           Pop.toast(l10n.noCoupon, toastType: ToastType.none);
           return;
         }
-        final filteredList = couponData.list!
-            .where((item) => (item.status ?? 0) == 1)
-            .toList();
+        final filteredList =
+            couponData.list!.where((item) => (item.status ?? 0) == 1).toList();
         if (filteredList.isEmpty) {
           Pop.toast(l10n.noCoupon, toastType: ToastType.none);
           return;
@@ -85,9 +90,7 @@ class _CouponListState extends ConsumerState<CouponList> {
           CommonSpacing.width(8.w),
           // 优惠券列表内容
           Expanded(child: _buildCouponContent(couponData, isLoading, error)),
-          Icon(
-            Icons.arrow_forward_ios, size: 16.w, color: Colors.black,
-          ),
+          Icon(Icons.arrow_forward_ios, size: 16.w, color: Colors.black),
         ],
       ),
     );
@@ -110,9 +113,8 @@ class _CouponListState extends ConsumerState<CouponList> {
       );
     }
 
-    final filteredList = couponData?.list
-            ?.where((item) => (item.status ?? 0) == 1)
-            .toList() ??
+    final filteredList =
+        couponData?.list?.where((item) => (item.status ?? 0) == 1).toList() ??
         [];
 
     if (filteredList.isEmpty) {
@@ -126,9 +128,12 @@ class _CouponListState extends ConsumerState<CouponList> {
       scrollDirection: Axis.horizontal,
       physics: const BouncingScrollPhysics(), // 弹性滚动
       child: Row(
-        children: filteredList
-            .map<Widget>((coupon) => _buildCouponItem(coupon.couponTitle ?? ''))
-            .toList(),
+        children:
+            filteredList
+                .map<Widget>(
+                  (coupon) => _buildCouponItem(coupon.localizedCouponTitle),
+                )
+                .toList(),
       ),
     );
   }
@@ -152,7 +157,6 @@ class _CouponListState extends ConsumerState<CouponList> {
     ),
   );
 
-
   Future<void> _showCouponSheet({
     required AppLocalizations l10n,
     required List<AvailableCouponItem> couponList,
@@ -163,24 +167,28 @@ class _CouponListState extends ConsumerState<CouponList> {
       titleStyle: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold),
       showCloseButton: true,
       maxHeight: SheetDimension.fraction(0.5),
-      childBuilder: (dismiss) => isLoading
-          ? const CommonIndicator()
-          : ListView.builder(
-              itemBuilder: (context, index) {
-                final coupon = couponList[index];
-                return CoupoonItem(
-                  coupon: coupon.toDisplayModel(),
-                  showClaimButton: true,
-                  shopId: widget.shopId,
-                  claimingIds: _claimingIds,
-                  onClaimSuccess: () {
-                    // 领取成功后刷新列表
-                    ref.read(couponProvider(widget.shopId).notifier).loadCouponList(widget.shopId);
-                  },
-                );
-              },
-              itemCount: couponList.length,
-            ),
+      childBuilder:
+          (dismiss) =>
+              isLoading
+                  ? const CommonIndicator()
+                  : ListView.builder(
+                    itemBuilder: (context, index) {
+                      final coupon = couponList[index];
+                      return CoupoonItem(
+                        coupon: coupon.toDisplayModel(),
+                        showClaimButton: true,
+                        shopId: widget.shopId,
+                        claimingIds: _claimingIds,
+                        onClaimSuccess: () {
+                          // 领取成功后刷新列表
+                          ref
+                              .read(couponProvider(widget.shopId).notifier)
+                              .loadCouponList(widget.shopId);
+                        },
+                      );
+                    },
+                    itemCount: couponList.length,
+                  ),
     );
   }
 }
