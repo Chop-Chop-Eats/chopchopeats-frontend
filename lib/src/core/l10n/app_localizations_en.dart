@@ -72,6 +72,74 @@ class AppLocalizationsEn implements AppLocalizations {
   @override
   String get tryAgainText => 'Try Again';
 
+  // ============== 认证相关 ==============
+  @override
+  String get authLoginTitle => 'Log in to ChopChop';
+  @override
+  String get authAutoRegisterHint =>
+      'If your number isn\'t registered, we\'ll create an account for you';
+  @override
+  String get authEmailHint => 'Enter email';
+  @override
+  String get authPhoneHint => 'Enter phone number';
+  @override
+  String get authPhoneRequired => 'Please enter your phone number';
+  @override
+  String get authGetVerificationCode => 'Get verification code';
+  @override
+  String get authSendingCode => 'Sending...';
+  @override
+  String get authPasswordLogin => 'Log in with password';
+  @override
+  String get authCodeLogin => 'Log in with code';
+  @override
+  String get authPasswordHint => 'Enter password';
+  @override
+  String get authPasswordRequired => 'Please enter your password';
+  @override
+  String get authForgotPasswordTitle => 'Reset password';
+  @override
+  String get authForgotPasswordQuestion => 'Forgot password?';
+  @override
+  String get authRecoverNow => 'Reset now';
+  @override
+  String get authLogin => 'Log in';
+  @override
+  String get authLoggingIn => 'Logging in...';
+  @override
+  String get authLoginSuccess => 'Logged in successfully';
+  @override
+  String get authLoginFailedRetry => 'Login failed. Please try again.';
+  @override
+  String get authEnterVerificationCodeTitle => 'Enter verification code';
+  @override
+  String get authVerifyIdentityTitle => 'Verify your identity';
+  @override
+  String get authCodeSentToPhonePrefix => 'Sent to phone number ';
+  @override
+  String get authNoCodeReceived => 'Didn\'t receive the code?';
+  @override
+  String get authResend => 'Resend';
+  @override
+  String get authCodeResentSuccess => 'Verification code resent';
+  @override
+  String get authProcessing => 'Processing...';
+  @override
+  String get authEnterCompleteCode => 'Please enter the full 6-digit code';
+  @override
+  String get authSetNewPassword => 'Set new password';
+  @override
+  String get authPasswordRequirementHint =>
+      'At least 8 characters, including letters and numbers';
+  @override
+  String get authNewPasswordHint => 'Enter new password';
+  @override
+  String get authSetPasswordSuccess => 'Password updated successfully';
+  @override
+  String get authSetPasswordFailed => 'Failed to update password';
+  @override
+  String get authSaveAndLogin => 'Save and log in';
+
   // ============== 业务文案 - 店铺相关 ==============
   @override
   String get distanceUnit => 'km';
@@ -130,7 +198,7 @@ class AppLocalizationsEn implements AppLocalizations {
   @override
   String get estimatedDeliveryFee => 'Estimated Delivery Fee';
   @override
-  String get totalPrice => 'Total Price';
+  String get totalPrice => 'Total';
   @override
   String get orderNow => 'Order Now';
   @override

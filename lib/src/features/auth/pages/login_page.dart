@@ -3,6 +3,7 @@ import 'package:chop_user/src/core/utils/pop/toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../../core/l10n/app_localizations.dart';
 import '../../../core/utils/logger/logger.dart';
 import '../../../core/routing/routes.dart';
 import '../../../core/widgets/system_ui_wrapper.dart';
@@ -42,6 +43,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return AuthGradientPageWrapper(
       child: Scaffold(
         resizeToAvoidBottomInset: true,
@@ -66,7 +69,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                       children: [
                         _buildHeader(),
                         SizedBox(height: 60.h),
-                        _buildLoginForm(context),
+                        _buildLoginForm(context, l10n),
                         // 底部协议
                         SizedBox(height: 100.h),
                         const AuthFooter()
@@ -171,7 +174,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     );
   }
 
-  Widget _buildLoginForm(BuildContext context) {
+  Widget _buildLoginForm(BuildContext context, AppLocalizations l10n) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 24.0.w),
       child: Container(
@@ -191,46 +194,46 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const AuthTitle(title: '登录ChopChop'),
+            AuthTitle(title: l10n.authLoginTitle),
             SizedBox(height: 8.h),
             Text(
-              '未注册手机号我们将自动为您注册',
+              l10n.authAutoRegisterHint,
               style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.w400, color: Colors.grey[400]),
             ),
             SizedBox(height: 30.h),
             
             // 邮箱输入框
-            _buildEmailInput(),
+            _buildEmailInput(l10n),
             SizedBox(height: 20.h),
             
             // 手机号输入框
-            _buildPhoneInput(),
+            _buildPhoneInput(l10n),
             SizedBox(height: 30.h),
             
             // 获取验证码按钮
-            _buildGetCodeButton(),
+            _buildGetCodeButton(l10n),
             SizedBox(height: 20.h),
             
             // 密码登录选项
-            _buildPasswordLoginOption(),
+            _buildPasswordLoginOption(l10n),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildEmailInput() {
+  Widget _buildEmailInput(AppLocalizations l10n) {
     return AuthInputField(
       controller: _emailController,
-      hintText: '请输入邮箱',
+      hintText: l10n.authEmailHint,
       keyboardType: TextInputType.emailAddress,
     );
   }
 
-  Widget _buildPhoneInput() {
+  Widget _buildPhoneInput(AppLocalizations l10n) {
     return AuthInputField(
       controller: _phoneController,
-      hintText: '请输入手机号',
+      hintText: l10n.authPhoneHint,
       keyboardType: TextInputType.phone,
       prefix: Row(
         mainAxisSize: MainAxisSize.min,
@@ -254,13 +257,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     );
   }
 
-  Widget _buildGetCodeButton() {
+  Widget _buildGetCodeButton(AppLocalizations l10n) {
     return Consumer(
       builder: (context, ref, child) {
         final authState = ref.watch(authNotifierProvider);
         
         return AuthButton(
-          text: authState.isSendingSms ? '发送中...' : '获取验证码',
+          text: authState.isSendingSms ? l10n.authSendingCode : l10n.authGetVerificationCode,
           isLoading: authState.isSendingSms,
           onPressed: authState.isSendingSms ? null : () async {
             Logger.info("LoginPage", "获取验证码按钮点击事件");
@@ -268,7 +271,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             // 验证手机号
             if (_phoneController.text.isEmpty) {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('请输入手机号')),
+                SnackBar(content: Text(l10n.authPhoneRequired)),
               );
               return;
             }
@@ -298,7 +301,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     );
   }
 
-  Widget _buildPasswordLoginOption() {
+  Widget _buildPasswordLoginOption(AppLocalizations l10n) {
     return Center(
       child: GestureDetector(
         onTap: () {
@@ -306,7 +309,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           Navigate.push(context, Routes.passwordLogin, arguments: _phoneController.text);
         },
         child: Text(
-          '密码登录',
+          l10n.authPasswordLogin,
           style: TextStyle(
             color: Colors.grey.shade600,
             fontSize: 14.sp,

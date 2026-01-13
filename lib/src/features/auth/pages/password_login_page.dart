@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import '../../../core/l10n/app_localizations.dart';
 import '../../../core/routing/navigate.dart';
 import '../../../core/routing/routes.dart';
 import '../../../core/utils/logger/logger.dart';
@@ -44,6 +45,8 @@ class _PasswordLoginPageState extends ConsumerState<PasswordLoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return AuthKeyboardAwarePage(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -64,30 +67,30 @@ class _PasswordLoginPageState extends ConsumerState<PasswordLoginPage> {
                     children: [
                       SizedBox(height: 60.h),
                       // 标题
-                      const AuthTitle(
-                        title: '密码登录',
+                      AuthTitle(
+                        title: l10n.authPasswordLogin,
                         textAlign: TextAlign.left,
                       ),
                       SizedBox(height: 40.h),
                       
                       // 手机号输入框
-                      _buildPhoneInput(),
+                      _buildPhoneInput(l10n),
                       SizedBox(height: 32.h),
                       
                       // 密码输入框
-                      _buildPasswordInput(),
+                      _buildPasswordInput(l10n),
                       SizedBox(height: 24.h),
                       
                       // 忘记密码
-                      _buildForgotPassword(),
+                      _buildForgotPassword(l10n),
                       SizedBox(height: 24.h),
                       
                       // 登录按钮
-                      _buildLoginButton(),
+                      _buildLoginButton(l10n),
                       SizedBox(height: 24.h),
                       
                       // 验证码登录
-                      _buildVerificationCodeLogin(),
+                      _buildVerificationCodeLogin(l10n),
                       SizedBox(height: 40.h),
                     ],
                   ),
@@ -103,10 +106,10 @@ class _PasswordLoginPageState extends ConsumerState<PasswordLoginPage> {
     );
   }
 
-  Widget _buildPhoneInput() {
+  Widget _buildPhoneInput(AppLocalizations l10n) {
     return AuthInputField(
       controller: _phoneController,
-      hintText: '请输入手机号',
+      hintText: l10n.authPhoneHint,
       keyboardType: TextInputType.phone,
       prefix: Row(
         mainAxisSize: MainAxisSize.min,
@@ -130,19 +133,19 @@ class _PasswordLoginPageState extends ConsumerState<PasswordLoginPage> {
     );
   }
 
-  Widget _buildPasswordInput() {
+  Widget _buildPasswordInput(AppLocalizations l10n) {
     return AuthPasswordField(
       controller: _passwordController,
-      hintText: '请输入密码',
+      hintText: l10n.authPasswordHint,
     );
   }
 
-  Widget _buildForgotPassword() {
+  Widget _buildForgotPassword(AppLocalizations l10n) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
         Text(
-          '忘记密码?',
+          l10n.authForgotPasswordQuestion,
           style: TextStyle(
             fontSize: 12.sp,
             color: Colors.grey.shade600,
@@ -156,7 +159,7 @@ class _PasswordLoginPageState extends ConsumerState<PasswordLoginPage> {
             Navigate.push(context, Routes.forgotPassword , arguments: _phoneController.text);
           },
           child: Text(
-            '立即找回',
+            l10n.authRecoverNow,
             style: TextStyle(
               fontSize: 12.sp,
               color: AppTheme.primaryOrange,
@@ -170,18 +173,19 @@ class _PasswordLoginPageState extends ConsumerState<PasswordLoginPage> {
 
   Future<void> _login() async {
     Logger.info("PasswordLoginPage", "密码登录按钮点击事件");
+    final l10n = AppLocalizations.of(context)!;
     
     // 输入验证
     final phone = _phoneController.text.trim();
     final password = _passwordController.text.trim();
     
     if (phone.isEmpty) {
-      toast.warn("请输入手机号");
+      toast.warn(l10n.authPhoneRequired);
       return;
     }
     
     if (password.isEmpty) {
-      toast.warn("请输入密码");
+      toast.warn(l10n.authPasswordRequired);
       return;
     }
     
@@ -193,7 +197,7 @@ class _PasswordLoginPageState extends ConsumerState<PasswordLoginPage> {
     
     if (success) {
       Logger.info("PasswordLoginPage", "密码登录成功，跳转到主页");
-      toast.success("登录成功");
+      toast.success(l10n.authLoginSuccess);
       Navigate.replace(context, Routes.home);
     } else {
       // 登录失败，显示错误信息
@@ -201,18 +205,18 @@ class _PasswordLoginPageState extends ConsumerState<PasswordLoginPage> {
       if (authState.error != null) {
         toast.warn(authState.error!);
       } else {
-        toast.warn("登录失败，请重试");
+        toast.warn(l10n.authLoginFailedRetry);
       }
     }
   }
 
-  Widget _buildLoginButton() {
+  Widget _buildLoginButton(AppLocalizations l10n) {
     return Consumer(
       builder: (context, ref, child) {
         final authState = ref.watch(authNotifierProvider);
         
         return AuthButton(
-          text: authState.isLoading ? '登录中...' : '登录',
+          text: authState.isLoading ? l10n.authLoggingIn : l10n.authLogin,
           isLoading: authState.isLoading,
           onPressed: authState.isLoading ? null : _login,
         );
@@ -220,7 +224,7 @@ class _PasswordLoginPageState extends ConsumerState<PasswordLoginPage> {
     );
   }
 
-  Widget _buildVerificationCodeLogin() {
+  Widget _buildVerificationCodeLogin(AppLocalizations l10n) {
     return Center(
       child: GestureDetector(
         onTap: () {
@@ -231,7 +235,7 @@ class _PasswordLoginPageState extends ConsumerState<PasswordLoginPage> {
           });
         },
         child: Text(
-          '验证码登录',
+          l10n.authCodeLogin,
           style: TextStyle(
             color: Colors.grey.shade600,
             fontSize: 14.sp,

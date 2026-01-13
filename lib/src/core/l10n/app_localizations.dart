@@ -55,6 +55,40 @@ abstract class AppLocalizations {
   String get emptyListText;
   String get tryAgainText;
 
+  // ============== 认证相关 ==============
+  String get authLoginTitle;
+  String get authAutoRegisterHint;
+  String get authEmailHint;
+  String get authPhoneHint;
+  String get authPhoneRequired;
+  String get authGetVerificationCode;
+  String get authSendingCode;
+  String get authPasswordLogin;
+  String get authCodeLogin;
+  String get authPasswordHint;
+  String get authPasswordRequired;
+  String get authForgotPasswordTitle;
+  String get authForgotPasswordQuestion;
+  String get authRecoverNow;
+  String get authLogin;
+  String get authLoggingIn;
+  String get authLoginSuccess;
+  String get authLoginFailedRetry;
+  String get authEnterVerificationCodeTitle;
+  String get authVerifyIdentityTitle;
+  String get authCodeSentToPhonePrefix;
+  String get authNoCodeReceived;
+  String get authResend;
+  String get authCodeResentSuccess;
+  String get authProcessing;
+  String get authEnterCompleteCode;
+  String get authSetNewPassword;
+  String get authPasswordRequirementHint;
+  String get authNewPasswordHint;
+  String get authSetPasswordSuccess;
+  String get authSetPasswordFailed;
+  String get authSaveAndLogin;
+
   // ============== 业务文案 - 店铺相关 ==============
   String get distanceUnit; // km
   String get deliveryFee;

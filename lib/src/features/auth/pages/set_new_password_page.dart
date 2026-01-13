@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../../core/l10n/app_localizations.dart';
 import '../../../core/routing/navigate.dart';
 import '../../../core/routing/routes.dart';
 import '../../../core/utils/pop/toast.dart';
@@ -32,6 +33,8 @@ class _SetNewPasswordPageState extends ConsumerState<SetNewPasswordPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return AuthKeyboardAwarePage(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -49,22 +52,22 @@ class _SetNewPasswordPageState extends ConsumerState<SetNewPasswordPage> {
                   SizedBox(height: 60.h),
                   
                   // 标题
-                  const AuthTitle(title: '设置新密码'),
+                  AuthTitle(title: l10n.authSetNewPassword),
                   SizedBox(height: 40.h),
                   
                   // 密码输入框
-                  _buildPasswordInput(),
+                  _buildPasswordInput(l10n),
                   SizedBox(height: 16.h),
                   
                   // 密码提示
-                  const AuthHintText(
-                    text: '密码至少8位,包含数字/字母',
+                  AuthHintText(
+                    text: l10n.authPasswordRequirementHint,
                     padding: EdgeInsets.zero,
                   ),
                   
                   SizedBox(height: 32.h),
                   // 保存按钮
-                  _buildSaveButton(),
+                  _buildSaveButton(l10n),
                 ],
               ),
             ),
@@ -74,43 +77,44 @@ class _SetNewPasswordPageState extends ConsumerState<SetNewPasswordPage> {
     );
   }
 
-  Widget _buildPasswordInput() {
+  Widget _buildPasswordInput(AppLocalizations l10n) {
     return AuthPasswordField(
       controller: _passwordController,
-      hintText: '请输入新密码',
+      hintText: l10n.authNewPasswordHint,
     );
   }
 
   Future<void> _savePassword() async {
+    final l10n = AppLocalizations.of(context)!;
     
     final success = await ref.read(authNotifierProvider.notifier).setNewPassword(widget.code, _passwordController.text, widget.phoneNumber);
     if (success) {
-      toast.success("设置新密码成功");
+      toast.success(l10n.authSetPasswordSuccess);
       // 立刻调用密码登录
       final success = await ref.read(authNotifierProvider.notifier).loginWithPhoneAndPassword(widget.phoneNumber, _passwordController.text);
       if (success) {
-        toast.success("设置新密码成功");
+        toast.success(l10n.authSetPasswordSuccess);
         Navigate.replace(context, Routes.home);
       } else {
-        toast.warn("设置新密码失败");
+        toast.warn(l10n.authSetPasswordFailed);
       }
     } else {
       final authState = ref.read(authNotifierProvider);
       if (authState.error != null) {
         toast.warn(authState.error!);
       } else {
-        toast.warn("设置新密码失败");
+        toast.warn(l10n.authSetPasswordFailed);
       }
 
     }
   }
 
-  Widget _buildSaveButton() {
+  Widget _buildSaveButton(AppLocalizations l10n) {
     return Consumer(
       builder: (context, ref, child) {
         final authState = ref.watch(authNotifierProvider);
         return AuthButton(
-          text: authState.isLoading ? '保存中...' : '保存并登录',
+          text: authState.isLoading ? l10n.btnSaving : l10n.authSaveAndLogin,
           onPressed: authState.isLoading ? null : _savePassword,
         );
       },

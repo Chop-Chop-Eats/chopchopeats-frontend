@@ -72,6 +72,72 @@ class AppLocalizationsZh implements AppLocalizations {
   @override
   String get tryAgainText => '重试';
 
+  // ============== 认证相关 ==============
+  @override
+  String get authLoginTitle => '登录ChopChop';
+  @override
+  String get authAutoRegisterHint => '未注册手机号我们将自动为您注册';
+  @override
+  String get authEmailHint => '请输入邮箱';
+  @override
+  String get authPhoneHint => '请输入手机号';
+  @override
+  String get authPhoneRequired => '请输入手机号';
+  @override
+  String get authGetVerificationCode => '获取验证码';
+  @override
+  String get authSendingCode => '发送中...';
+  @override
+  String get authPasswordLogin => '密码登录';
+  @override
+  String get authCodeLogin => '验证码登录';
+  @override
+  String get authPasswordHint => '请输入密码';
+  @override
+  String get authPasswordRequired => '请输入密码';
+  @override
+  String get authForgotPasswordTitle => '找回密码';
+  @override
+  String get authForgotPasswordQuestion => '忘记密码?';
+  @override
+  String get authRecoverNow => '立即找回';
+  @override
+  String get authLogin => '登录';
+  @override
+  String get authLoggingIn => '登录中...';
+  @override
+  String get authLoginSuccess => '登录成功';
+  @override
+  String get authLoginFailedRetry => '登录失败，请重试';
+  @override
+  String get authEnterVerificationCodeTitle => '输入验证码';
+  @override
+  String get authVerifyIdentityTitle => '验证身份';
+  @override
+  String get authCodeSentToPhonePrefix => '已发送至手机号 ';
+  @override
+  String get authNoCodeReceived => '未收到验证码?';
+  @override
+  String get authResend => '重新发送';
+  @override
+  String get authCodeResentSuccess => '验证码已重新发送';
+  @override
+  String get authProcessing => '处理中...';
+  @override
+  String get authEnterCompleteCode => '请输入完整的6位验证码';
+  @override
+  String get authSetNewPassword => '设置新密码';
+  @override
+  String get authPasswordRequirementHint => '密码至少8位,包含数字/字母';
+  @override
+  String get authNewPasswordHint => '请输入新密码';
+  @override
+  String get authSetPasswordSuccess => '设置新密码成功';
+  @override
+  String get authSetPasswordFailed => '设置新密码失败';
+  @override
+  String get authSaveAndLogin => '保存并登录';
+
   // ============== 业务文案 - 店铺相关 ==============
   @override
   String get distanceUnit => 'km';

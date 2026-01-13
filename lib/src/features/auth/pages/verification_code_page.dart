@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import '../../../core/l10n/app_localizations.dart';
 import '../../../core/routing/navigate.dart';
 import '../../../core/routing/routes.dart';
 import '../../../core/utils/logger/logger.dart';
@@ -76,6 +77,8 @@ class _VerificationCodePageState extends ConsumerState<VerificationCodePage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return AuthKeyboardAwarePage(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -92,7 +95,9 @@ class _VerificationCodePageState extends ConsumerState<VerificationCodePage> {
                   SizedBox(height: 60.h),
                   // 标题
                   AuthTitle(
-                    title: widget.type == VerificationCodeType.login ? '输入验证码' : '验证身份',
+                    title: widget.type == VerificationCodeType.login
+                        ? l10n.authEnterVerificationCodeTitle
+                        : l10n.authVerifyIdentityTitle,
                   ),
                   SizedBox(height: 16.h),
                   // 提示信息
@@ -103,7 +108,7 @@ class _VerificationCodePageState extends ConsumerState<VerificationCodePage> {
                         color: Colors.grey.shade600,
                       ),
                       children: [
-                        const TextSpan(text: '已发送至手机号 '),
+                        TextSpan(text: l10n.authCodeSentToPhonePrefix),
                         TextSpan(
                           text: widget.phoneNumber,
                           style: TextStyle(
@@ -120,10 +125,10 @@ class _VerificationCodePageState extends ConsumerState<VerificationCodePage> {
                   SizedBox(height: 32.h),
                   
                   // 重新发送
-                  _buildResendSection(),
+                  _buildResendSection(l10n),
                   SizedBox(height: 12.h),
                   // 操作按钮
-                  _buildActionButton(),
+                  _buildActionButton(l10n),
                 ],
               ),
             ),
@@ -199,7 +204,7 @@ class _VerificationCodePageState extends ConsumerState<VerificationCodePage> {
     );
   }
 
-  Widget _buildResendSection() {
+  Widget _buildResendSection(AppLocalizations l10n) {
     return Consumer(
       builder: (context, ref, child) {
         final authState = ref.watch(authNotifierProvider);
@@ -208,7 +213,7 @@ class _VerificationCodePageState extends ConsumerState<VerificationCodePage> {
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
             Text(
-              '未收到验证码?',
+              l10n.authNoCodeReceived,
               style: TextStyle(
                 fontSize: 12.sp,
                 color: Colors.grey.shade600,
@@ -231,7 +236,7 @@ class _VerificationCodePageState extends ConsumerState<VerificationCodePage> {
                 if (!mounted) return;
                 
                 if (success) {
-                  toast.success("验证码已重新发送");
+                  toast.success(l10n.authCodeResentSuccess);
                 } else {
                   final error = authState.error;
                   if (error != null) {
@@ -240,7 +245,7 @@ class _VerificationCodePageState extends ConsumerState<VerificationCodePage> {
                 }
               },
               child: Text(
-                authState.isSendingSms ? '发送中...' : '重新发送',
+                authState.isSendingSms ? l10n.authSendingCode : l10n.authResend,
                 style: TextStyle(
                   fontSize: 12.sp,
                   color: authState.isSendingSms ? Colors.grey : AppTheme.primaryOrange,
@@ -254,18 +259,22 @@ class _VerificationCodePageState extends ConsumerState<VerificationCodePage> {
     );
   }
 
-  Widget _buildActionButton() {
-    final buttonText = widget.type == VerificationCodeType.login ? '登录' : '设置新密码';
+  Widget _buildActionButton(AppLocalizations l10n) {
+    final buttonText = widget.type == VerificationCodeType.login
+        ? l10n.authLogin
+        : l10n.authSetNewPassword;
+    final logActionText =
+        widget.type == VerificationCodeType.login ? '登录' : '设置新密码';
     
     return Consumer(
       builder: (context, ref, child) {
         final authState = ref.watch(authNotifierProvider);
         
         return AuthButton(
-          text: authState.isLoading ? '处理中...' : buttonText,
+          text: authState.isLoading ? l10n.authProcessing : buttonText,
           isLoading: authState.isLoading,
           onPressed: authState.isLoading ? null : () async {
-            Logger.info("VerificationCodePage", "验证码验证成功，准备$buttonText");
+            Logger.info("VerificationCodePage", "验证码验证成功，准备$logActionText");
             
             // 获取验证码
             final code = _codeControllers.map((controller) => controller.text).join('');
@@ -273,7 +282,7 @@ class _VerificationCodePageState extends ConsumerState<VerificationCodePage> {
             // 验证码位数检查：当前为4位，原为6位
             if (code.length != 6) { 
               if (mounted) {
-                toast.warn("请输入完整的6位验证码");
+                toast.warn(l10n.authEnterCompleteCode);
               }
               return;
             }

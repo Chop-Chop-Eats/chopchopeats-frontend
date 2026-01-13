@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import '../../../core/l10n/app_localizations.dart';
 import '../../../core/routing/navigate.dart';
 import '../../../core/routing/routes.dart';
 import '../../../core/utils/logger/logger.dart';
@@ -41,6 +42,8 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return AuthKeyboardAwarePage(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -58,15 +61,15 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
                   SizedBox(height: 60.h),
                   
                   // 标题
-                  const AuthTitle(title: '找回密码'),
+                  AuthTitle(title: l10n.authForgotPasswordTitle),
                   SizedBox(height: 40.h),
                   
                   // 手机号输入框
-                  _buildPhoneInput(),
+                  _buildPhoneInput(l10n),
                   SizedBox(height: 40.h),
                   
                   // 获取验证码按钮
-                  _buildGetCodeButton(),
+                  _buildGetCodeButton(l10n),
                 ],
               ),
             ),
@@ -76,10 +79,10 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
     );
   }
 
-  Widget _buildPhoneInput() {
+  Widget _buildPhoneInput(AppLocalizations l10n) {
     return AuthInputField(
       controller: _phoneController,
-      hintText: '请输入手机号',
+      hintText: l10n.authPhoneHint,
       keyboardType: TextInputType.phone,
       prefix: Row(
         mainAxisSize: MainAxisSize.min,
@@ -103,20 +106,20 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
     );
   }
 
-  Widget _buildGetCodeButton() {
+  Widget _buildGetCodeButton(AppLocalizations l10n) {
     return Consumer(
       builder: (context, ref, child) {
         final authState = ref.watch(authNotifierProvider);
         
         return AuthButton(
-          text: authState.isSendingSms ? '发送中...' : '获取验证码',
+          text: authState.isSendingSms ? l10n.authSendingCode : l10n.authGetVerificationCode,
           isLoading: authState.isSendingSms,
           onPressed: authState.isSendingSms ? null : () async {
             Logger.info("ForgotPasswordPage", "获取验证码点击事件，准备验证身份");
             
             // 验证手机号
             if (_phoneController.text.isEmpty) {
-              toast.warn("请输入手机号");
+              toast.warn(l10n.authPhoneRequired);
               return;
             }
             
