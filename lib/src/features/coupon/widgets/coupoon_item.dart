@@ -311,7 +311,7 @@ class _CoupoonItemState extends ConsumerState<CoupoonItem> {
             borderRadius: BorderRadius.circular(12.r),
           ),
           child: Text(
-            '使用',
+            l10n.couponUse,
             style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold, color: Colors.white),
           ),
         ),
@@ -348,7 +348,7 @@ class _CoupoonItemState extends ConsumerState<CoupoonItem> {
             borderRadius: BorderRadius.circular(12.r),
           ),
           child: Text(
-            '去使用',
+            l10n.couponUseNow,
             style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold, color: Colors.white),
           ),
         ),
@@ -364,7 +364,7 @@ class _CoupoonItemState extends ConsumerState<CoupoonItem> {
           borderRadius: BorderRadius.circular(12.r),
         ),
         child: Text(
-          '已使用',
+          l10n.couponUsed,
           style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold, color: Colors.grey[600]),
         ),
       );
@@ -379,7 +379,7 @@ class _CoupoonItemState extends ConsumerState<CoupoonItem> {
           borderRadius: BorderRadius.circular(12.r),
         ),
         child: Text(
-          '已过期',
+          l10n.couponExpired,
           style: TextStyle(fontSize: 12.sp, fontWeight: FontWeight.bold, color: Colors.grey[600]),
         ),
       );

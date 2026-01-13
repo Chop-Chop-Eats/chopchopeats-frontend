@@ -1,6 +1,8 @@
 import 'package:chop_user/src/core/utils/logger/logger.dart';
 import 'package:chop_user/src/core/utils/pop/toast.dart';
 import 'package:chop_user/src/core/widgets/common_button.dart';
+import 'package:chop_user/src/core/l10n/app_localizations.dart';
+import 'package:chop_user/src/core/l10n/locale_service.dart';
 import 'package:chop_user/src/features/order/models/order_model.dart';
 import 'package:chop_user/src/features/order/services/order_service.dart';
 import 'package:flutter/material.dart';
@@ -25,11 +27,13 @@ class CancelOrderPage extends StatefulWidget {
 class _CancelOrderPageState extends State<CancelOrderPage> {
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(
-          widget.isRefund ? '申请退款' : '取消/退款',
+          widget.isRefund ? l10n.orderRequestRefund : l10n.orderCancelOrRefundTitle,
           style: TextStyle(
             fontSize: 18.sp,
             fontWeight: FontWeight.bold,
@@ -51,7 +55,7 @@ class _CancelOrderPageState extends State<CancelOrderPage> {
           children: [
             SizedBox(height: 16.h),
             Text(
-              widget.isRefund ? '您为什么申请退款' : '您为什么取消订单',
+              widget.isRefund ? l10n.orderWhyRefund : l10n.orderWhyCancel,
               style: TextStyle(
                 fontSize: 20.sp,
                 fontWeight: FontWeight.bold,
@@ -61,13 +65,13 @@ class _CancelOrderPageState extends State<CancelOrderPage> {
             SizedBox(height: 8.h),
             Text(
               widget.isRefund
-                  ? '退款原因私厨不可见，您的选择会促使我们努力改善'
-                  : '取消原因私厨不可见，您的选择会促使我们努力改善',
+                  ? l10n.orderRefundReasonHint
+                  : l10n.orderCancelReasonHint,
               style: TextStyle(fontSize: 12.sp, color: Colors.grey),
             ),
             SizedBox(height: 32.h),
             _buildCategoryItem(
-              title: '私厨/商品的原因',
+              title: l10n.orderReasonCategoryChefProduct,
               onTap: () {
                 Navigator.push(
                   context,
@@ -76,7 +80,7 @@ class _CancelOrderPageState extends State<CancelOrderPage> {
                         (context) => CancelReasonPage(
                           orderNo: widget.orderNo,
                           category: 1,
-                          categoryName: '私厨/商品的原因',
+                          categoryName: l10n.orderReasonCategoryChefProduct,
                           onSuccess: widget.onSuccess,
                           isRefund: widget.isRefund,
                         ),
@@ -86,7 +90,7 @@ class _CancelOrderPageState extends State<CancelOrderPage> {
             ),
             SizedBox(height: 16.h),
             _buildCategoryItem(
-              title: '我自己的原因',
+              title: l10n.orderReasonCategoryPersonal,
               onTap: () {
                 Navigator.push(
                   context,
@@ -95,7 +99,7 @@ class _CancelOrderPageState extends State<CancelOrderPage> {
                         (context) => CancelReasonPage(
                           orderNo: widget.orderNo,
                           category: 2,
-                          categoryName: '我自己的原因',
+                          categoryName: l10n.orderReasonCategoryPersonal,
                           onSuccess: widget.onSuccess,
                           isRefund: widget.isRefund,
                         ),
@@ -198,14 +202,16 @@ class _CancelReasonPageState extends State<CancelReasonPage> {
         setState(() {
           _isLoading = false;
         });
-        Toast.error('加载失败: $e');
+        final l10n = AppLocalizations.of(context)!;
+        Toast.error(l10n.loadingFailedMessage(e.toString()));
       }
     }
   }
 
   Future<void> _submit() async {
     if (_selectedReasonText.isEmpty) {
-      Toast.show(widget.isRefund ? '请选择退款原因' : '请选择取消原因');
+      final l10n = AppLocalizations.of(context)!;
+      Toast.show(widget.isRefund ? l10n.orderSelectRefundReason : l10n.orderSelectCancelReason);
       return;
     }
 
@@ -217,7 +223,8 @@ class _CancelReasonPageState extends State<CancelReasonPage> {
       if (widget.isRefund) {
         await _orderService.applyRefund(widget.orderNo, _selectedReasonText);
         if (mounted) {
-          Toast.success('退款申请已提交');
+          final l10n = AppLocalizations.of(context)!;
+          Toast.success(l10n.orderRefundSubmitted);
           // Pop Reason Page
           Navigator.pop(context);
           // Pop Category Page
@@ -227,7 +234,8 @@ class _CancelReasonPageState extends State<CancelReasonPage> {
       } else {
         await _orderService.cancelOrder(widget.orderNo, _selectedReasonText);
         if (mounted) {
-          Toast.success('订单已取消');
+          final l10n = AppLocalizations.of(context)!;
+          Toast.success(l10n.orderCancelled);
           // Pop Reason Page
           Navigator.pop(context);
           // Pop Category Page
@@ -237,7 +245,12 @@ class _CancelReasonPageState extends State<CancelReasonPage> {
       }
     } catch (e) {
       if (mounted) {
-        Toast.error(widget.isRefund ? '申请退款失败: $e' : '取消失败: $e');
+        final l10n = AppLocalizations.of(context)!;
+        Toast.error(
+          widget.isRefund
+              ? l10n.orderRefundFailed(e.toString())
+              : l10n.orderCancelFailed(e.toString()),
+        );
         setState(() {
           _isSubmitting = false;
         });
@@ -247,11 +260,13 @@ class _CancelReasonPageState extends State<CancelReasonPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(
-          widget.isRefund ? '申请退款' : '取消订单',
+          widget.isRefund ? l10n.orderRequestRefund : l10n.orderCancelOrder,
           style: TextStyle(
             fontSize: 18.sp,
             fontWeight: FontWeight.bold,
@@ -279,7 +294,7 @@ class _CancelReasonPageState extends State<CancelReasonPage> {
                         children: [
                           SizedBox(height: 16.h),
                           Text(
-                            widget.isRefund ? '您为什么申请退款' : '您为什么取消订单',
+                            widget.isRefund ? l10n.orderWhyRefund : l10n.orderWhyCancel,
                             style: TextStyle(
                               fontSize: 20.sp,
                               fontWeight: FontWeight.bold,
@@ -289,8 +304,8 @@ class _CancelReasonPageState extends State<CancelReasonPage> {
                           SizedBox(height: 8.h),
                           Text(
                             widget.isRefund
-                                ? '退款原因私厨不可见，您的选择会促使我们努力改善'
-                                : '取消原因私厨不可见，您的选择会促使我们努力改善',
+                                ? l10n.orderRefundReasonHint
+                                : l10n.orderCancelReasonHint,
                             style: TextStyle(
                               fontSize: 12.sp,
                               color: Colors.grey,
@@ -320,11 +335,15 @@ class _CancelReasonPageState extends State<CancelReasonPage> {
 
   Widget _buildReasonItem(AppTradeRefundReasonRespVO reason) {
     final isSelected = _selectedReasonId == reason.id;
+    final reasonText = LocaleService.getLocalizedText(
+      reason.reasonChinese,
+      reason.reasonEnglish,
+    );
     return GestureDetector(
       onTap: () {
         setState(() {
           _selectedReasonId = reason.id;
-          _selectedReasonText = reason.reasonChinese ?? '';
+          _selectedReasonText = reasonText;
         });
       },
       child: Container(
@@ -336,7 +355,7 @@ class _CancelReasonPageState extends State<CancelReasonPage> {
           children: [
             Expanded(
               child: Text(
-                reason.reasonChinese ?? '',
+                reasonText,
                 style: TextStyle(fontSize: 14.sp, color: Colors.black87),
               ),
             ),
@@ -354,6 +373,8 @@ class _CancelReasonPageState extends State<CancelReasonPage> {
   }
 
   Widget _buildBottomButton() {
+    final l10n = AppLocalizations.of(context)!;
+
     return Container(
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
@@ -368,7 +389,7 @@ class _CancelReasonPageState extends State<CancelReasonPage> {
       ),
       child: SafeArea(
         child: CommonButton(
-          text: '提交',
+          text: l10n.btnSubmit,
           onPressed: _submit,
           isLoading: _isSubmitting,
           textColor: Colors.white,

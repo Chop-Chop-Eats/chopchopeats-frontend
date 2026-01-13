@@ -41,6 +41,7 @@ abstract class AppLocalizations {
   String get btnConfirm;
   String get btnCancel;
   String get btnSave;
+  String get btnSubmit;
   String get btnDelete;
   String get btnEdit;
   String get btnSearch;
@@ -187,6 +188,10 @@ abstract class AppLocalizations {
   String get claimCouponSuccess; // 领取优惠券成功
   String get claimCouponFailed; // 领取优惠券失败
   String get couponClaimLimitReached; // 已领取到上限
+  String get couponUse; // 使用
+  String get couponUseNow; // 去使用
+  String get couponUsed; // 已使用
+  String get couponExpired; // 已过期
 
   // 星期相关
   String get today;
@@ -397,6 +402,19 @@ abstract class AppLocalizations {
   String get orderCountdownSuffix; // 后失效
   String get orderStatusDescDefault; // 默认状态描述
   String get orderCancelReason; // 取消原因
+  String get orderCancelOrRefundTitle; // 取消/退款标题
+  String get orderWhyRefund; // 退款原因询问
+  String get orderWhyCancel; // 取消原因询问
+  String get orderRefundReasonHint; // 退款提示文案
+  String get orderCancelReasonHint; // 取消提示文案
+  String get orderReasonCategoryChefProduct; // 私厨/商品原因分类
+  String get orderReasonCategoryPersonal; // 个人原因分类
+  String get orderSelectRefundReason; // 请选择退款原因
+  String get orderSelectCancelReason; // 请选择取消原因
+  String get orderRefundSubmitted; // 退款申请已提交
+  String get orderCancelled; // 订单已取消
+  String orderRefundFailed(String error); // 退款失败提示
+  String orderCancelFailed(String error); // 取消失败提示
 
   // ============== 消息中心 ==============
   String get messageCenter; // 消息中心

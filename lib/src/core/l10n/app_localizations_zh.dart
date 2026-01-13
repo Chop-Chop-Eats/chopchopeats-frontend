@@ -48,6 +48,8 @@ class AppLocalizationsZh implements AppLocalizations {
   @override
   String get btnSave => '保存';
   @override
+  String get btnSubmit => '提交';
+  @override
   String get btnDelete => '删除';
   @override
   String get btnEdit => '编辑';
@@ -312,6 +314,14 @@ class AppLocalizationsZh implements AppLocalizations {
   String get claimCouponFailed => '领取优惠券失败';
   @override
   String get couponClaimLimitReached => '已经领取到上限';
+  @override
+  String get couponUse => '使用';
+  @override
+  String get couponUseNow => '去使用';
+  @override
+  String get couponUsed => '已使用';
+  @override
+  String get couponExpired => '已过期';
 
   // 星期相关
   @override
@@ -731,6 +741,32 @@ class AppLocalizationsZh implements AppLocalizations {
 
   @override
   String get orderCancelReason => '取消原因：';
+  @override
+  String get orderCancelOrRefundTitle => '取消/退款';
+  @override
+  String get orderWhyRefund => '您为什么申请退款';
+  @override
+  String get orderWhyCancel => '您为什么取消订单';
+  @override
+  String get orderRefundReasonHint => '退款原因私厨不可见，您的选择会促使我们努力改善';
+  @override
+  String get orderCancelReasonHint => '取消原因私厨不可见，您的选择会促使我们努力改善';
+  @override
+  String get orderReasonCategoryChefProduct => '私厨/商品的原因';
+  @override
+  String get orderReasonCategoryPersonal => '我自己的原因';
+  @override
+  String get orderSelectRefundReason => '请选择退款原因';
+  @override
+  String get orderSelectCancelReason => '请选择取消原因';
+  @override
+  String get orderRefundSubmitted => '退款申请已提交';
+  @override
+  String get orderCancelled => '订单已取消';
+  @override
+  String orderRefundFailed(String error) => '申请退款失败: $error';
+  @override
+  String orderCancelFailed(String error) => '取消失败: $error';
 
   // ============== 消息中心 ==============
   @override

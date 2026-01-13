@@ -598,11 +598,22 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
   }
 
   Widget _buildSkuItem(SaleProductSku sku, bool isSelected) {
+    // 获取基础价格，计算SKU的附加价格
+    final params = ProductDetailParams(
+      productId: widget.productId,
+      shopId: widget.shopId,
+    );
+    final product = ref.read(productDetailDataProvider(params));
+    final basePrice = product?.productPrice ?? 0.0;
+    
+    // SKU价格应该是附加价格（后端返回的是总价，需要减去基础价）
+    final additionalPrice = sku.price - basePrice;
+    
     // Format price: remove decimals if .00
     final priceStr =
-        sku.price.truncateToDouble() == sku.price
-            ? sku.price.toStringAsFixed(0)
-            : sku.price.toStringAsFixed(2);
+        additionalPrice.truncateToDouble() == additionalPrice
+            ? additionalPrice.toStringAsFixed(0)
+            : additionalPrice.toStringAsFixed(2);
 
     return GestureDetector(
       onTap: () {
@@ -717,9 +728,10 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
   ) {
     // (商品基础价 + 所有选中SKU的附加价) × 数量
     final basePrice = product.productPrice ?? 0.0;
+    // SKU价格是总价，需要减去基础价格得到附加价
     final skusPrice = selectedSkus.fold<double>(
       0.0,
-      (sum, sku) => sum + sku.price,
+      (sum, sku) => sum + (sku.price - basePrice),
     );
     return (basePrice + skusPrice) * quantity;
   }
@@ -754,8 +766,8 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
     }
 
     final cartQuantity = matchedItem?.quantity ?? 0;
-    // 详情页显示数量至少为1
-    return cartQuantity >= 1 ? cartQuantity : 1;
+    // 详情页默认显示至少1个
+    return cartQuantity > 0 ? cartQuantity : 1;
   }
 
   Future<void> _handleAddToCart(
@@ -892,8 +904,8 @@ class _DetailPageSkuCounter extends ConsumerWidget {
 
     final cartQuantity = matchedItem?.quantity ?? 0;
 
-    // 详情页显示数量：购物车数量 >= 1 ? 购物车数量 : 1
-    final displayQuantity = cartQuantity >= 1 ? cartQuantity : 1;
+    // 详情页默认显示至少1个
+    final displayQuantity = cartQuantity > 0 ? cartQuantity : 1;
 
     return Container(
       padding: EdgeInsets.symmetric(vertical: 2.h, horizontal: 2.w),
@@ -907,7 +919,7 @@ class _DetailPageSkuCounter extends ConsumerWidget {
         children: [
           _buildButton(
             icon: Icons.remove,
-            enabled: displayQuantity > 1, // 只有数量>1时才能减少
+            enabled: cartQuantity >= 1, // 购物车至少有1个才能减少
             onTap: () => _onDecrease(ref),
           ),
           Container(

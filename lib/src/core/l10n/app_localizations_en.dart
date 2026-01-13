@@ -48,6 +48,8 @@ class AppLocalizationsEn implements AppLocalizations {
   @override
   String get btnSave => 'Save';
   @override
+  String get btnSubmit => 'Submit';
+  @override
   String get btnDelete => 'Delete';
   @override
   String get btnEdit => 'Edit';
@@ -223,6 +225,14 @@ class AppLocalizationsEn implements AppLocalizations {
   String get claimCouponFailed => 'Claim Coupon Failed';
   @override
   String get couponClaimLimitReached => 'You have reached the claim limit';
+  @override
+  String get couponUse => 'Use';
+  @override
+  String get couponUseNow => 'Use now';
+  @override
+  String get couponUsed => 'Used';
+  @override
+  String get couponExpired => 'Expired';
   // ============== 业务文案 - 语言设置 ==============
   @override
   String get languageSettings => 'Language Settings';
@@ -406,11 +416,11 @@ class AppLocalizationsEn implements AppLocalizations {
   @override
   String get paymentMethodDefaultLabel => 'Default';
   @override
-  String get confirmOrderRemark => 'Remark(Optional)';
+  String get confirmOrderRemark => 'Note(Optional)';
   @override
   String confirmOrderSettlementTip(String value) => 'Total after tip $value';
   @override
-  String get confirmOrderSettlement => 'Settlement';
+  String get confirmOrderSettlement => 'Confirm';
   @override
   String get confirmOrderSyncCartFailed =>
       'Failed to sync cart, please try again later';
@@ -753,6 +763,34 @@ class AppLocalizationsEn implements AppLocalizations {
 
   @override
   String get orderCancelReason => 'Cancel Reason: ';
+  @override
+  String get orderCancelOrRefundTitle => 'Cancel / Refund';
+  @override
+  String get orderWhyRefund => 'Why are you requesting a refund?';
+  @override
+  String get orderWhyCancel => 'Why are you cancelling the order?';
+  @override
+  String get orderRefundReasonHint =>
+      'The chef can\'t see the refund reason. Your choice helps us improve.';
+  @override
+  String get orderCancelReasonHint =>
+      'The chef can\'t see the cancellation reason. Your choice helps us improve.';
+  @override
+  String get orderReasonCategoryChefProduct => 'Chef / item related';
+  @override
+  String get orderReasonCategoryPersonal => 'My own reasons';
+  @override
+  String get orderSelectRefundReason => 'Please select a refund reason';
+  @override
+  String get orderSelectCancelReason => 'Please select a cancellation reason';
+  @override
+  String get orderRefundSubmitted => 'Refund request submitted';
+  @override
+  String get orderCancelled => 'Order cancelled';
+  @override
+  String orderRefundFailed(String error) => 'Refund request failed: $error';
+  @override
+  String orderCancelFailed(String error) => 'Cancellation failed: $error';
 
   // ============== Message Center ==============
   @override
