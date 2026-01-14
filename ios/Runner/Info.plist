@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
@@ -45,8 +47,6 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-	
-	<!-- 位置权限说明 -->
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>我们需要获取您的位置信息以提供附近餐厅推荐服务</string>
 	<key>NSLocationAlwaysUsageDescription</key>
@@ -55,14 +55,14 @@
 	<string>我们需要获取您的位置信息以提供附近餐厅推荐服务</string>
 	<key>io.flutter.embedded_views_preview</key>
 	<true/>
-	
-	<!-- 相机和相册权限说明 -->
 	<key>NSCameraUsageDescription</key>
 	<string>需要访问相机以拍摄头像照片</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>需要访问相册以选择头像照片</string>
-	
-	<!-- 网络安全配置 -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>

@@ -1,3 +1,4 @@
+import 'package:chop_user/src/core/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -137,7 +138,7 @@ class RestaurantList extends ConsumerWidget {
         child: Center(
           child: Padding(
             padding: EdgeInsets.all(32.w),
-            child: const Text('暂无数据'),
+            child: Text(AppLocalizations.of(context)!.noDataText),
           ),
         ),
       );

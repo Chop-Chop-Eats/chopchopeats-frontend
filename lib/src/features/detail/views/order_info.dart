@@ -20,6 +20,7 @@ import '../widgets/cart_item_list.dart';
 import '../widgets/confirm_order_widgets.dart';
 import '../utils/order_price_calculator.dart';
 import '../models/order_model.dart';
+import '../models/payment_models.dart';
 import '../services/order_services.dart';
 import '../providers/payment_provider.dart';
 import 'payment_selection_sheet.dart';
@@ -970,7 +971,11 @@ class _OrderInfoViewState extends ConsumerState<OrderInfoView> {
     String iconPath = "assets/images/wallet.png"; // 默认图标
 
     if (selectedMethod != null) {
-      displayTitle = selectedMethod.displayName;
+      // 如果是钱包方式，使用国际化文案；否则使用 displayName
+      displayTitle =
+          selectedMethod.type == AppPaymentMethodType.wallet
+              ? l10n.myWallet
+              : selectedMethod.displayName;
       iconPath = selectedMethod.iconPath;
     }
 

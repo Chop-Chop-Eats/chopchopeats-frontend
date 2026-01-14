@@ -4,11 +4,14 @@ import '../../../core/config/app_services.dart';
 import '../../../core/config/environment_config.dart';
 import '../../../core/constants/app_constant.dart';
 import '../../../core/enums/auth_enums.dart';
+import '../../../core/enums/language_mode.dart';
+import '../../../core/l10n/locale_service.dart';
 import '../../../core/network/api_exception.dart';
 import '../../../core/push/push_service.dart';
 import '../../../core/utils/logger/logger.dart';
 import '../models/auth_models.dart';
 import '../services/auth_services.dart';
+import '../../mine/services/mine_services.dart';
 
 /// 认证状态
 class AuthState {
@@ -96,6 +99,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
             user: user,
           );
           Logger.info('AuthNotifier', '用户已登录');
+          _syncLanguageSettingIfNeeded().catchError((e) {
+            Logger.warn('AuthNotifier', '语言设置同步失败: $e');
+          });
         }
       } else {
         Logger.debug('AuthNotifier', '用户未登录');
@@ -177,6 +183,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
       // 登录成功后上报 FCM Token
       PushService().uploadTokenWhenLoggedIn().catchError((e) {
         Logger.warn('AuthNotifier', '上报 FCM Token 失败: $e');
+      });
+      _syncLanguageSettingIfNeeded().catchError((e) {
+        Logger.warn('AuthNotifier', '语言设置同步失败: $e');
       });
 
       return true;
@@ -261,6 +270,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
       PushService().uploadTokenWhenLoggedIn().catchError((e) {
         Logger.warn('AuthNotifier', '上报 FCM Token 失败: $e');
       });
+      _syncLanguageSettingIfNeeded().catchError((e) {
+        Logger.warn('AuthNotifier', '语言设置同步失败: $e');
+      });
 
       return true;
     } catch (e) {
@@ -299,6 +311,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
       await AppServices.cache.remove(AppConstants.userId);
       await AppServices.cache.remove(AppConstants.shopId);
       await AppServices.cache.remove(AppConstants.openid);
+      await AppServices.cache.remove(AppConstants.languageSettingSynced);
+      await AppServices.cache.remove(AppConstants.languageSettingSyncedValue);
 
       state = state.copyWith(
         isLoading: false,
@@ -316,6 +330,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
       await AppServices.cache.remove(AppConstants.userId);
       await AppServices.cache.remove(AppConstants.shopId);
       await AppServices.cache.remove(AppConstants.openid);
+      await AppServices.cache.remove(AppConstants.languageSettingSynced);
+      await AppServices.cache.remove(AppConstants.languageSettingSyncedValue);
 
       state = state.copyWith(
         isLoading: false,
@@ -336,6 +352,44 @@ class AuthNotifier extends StateNotifier<AuthState> {
   /// 清除错误信息
   void clearError() {
     state = state.copyWith(error: null);
+  }
+
+  Future<void> _syncLanguageSettingIfNeeded() async {
+    final hasSynced = await AppServices.cache.get<bool>(
+      AppConstants.languageSettingSynced,
+    );
+    final languageSetting = _resolveLanguageSetting(
+      AppServices.appSettings.languageMode,
+    );
+    final cachedValue = await AppServices.cache.get<int>(
+      AppConstants.languageSettingSyncedValue,
+    );
+    if (hasSynced == true && cachedValue == languageSetting) return;
+
+    final success = await MineServices().updateLanguage(languageSetting);
+    if (success) {
+      await AppServices.cache.set<bool>(
+        AppConstants.languageSettingSynced,
+        true,
+      );
+      await AppServices.cache.set<int>(
+        AppConstants.languageSettingSyncedValue,
+        languageSetting,
+      );
+    }
+  }
+
+  int _resolveLanguageSetting(LanguageMode languageMode) {
+    switch (languageMode) {
+      case LanguageMode.zh:
+        return 1;
+      case LanguageMode.en:
+        return 2;
+      case LanguageMode.system:
+        final locale =
+            AppServices.appSettings.locale ?? LocaleService.currentLocale;
+        return locale.languageCode == 'zh' ? 1 : 2;
+    }
   }
 }
 

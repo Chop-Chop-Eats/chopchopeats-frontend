@@ -21,7 +21,7 @@ ERROR: [core/not-initialized] Firebase has not been correctly initialized.
 3. 点击项目设置（齿轮图标）
 4. 在"您的应用"部分，找到 iOS 应用
 5. 如果还没有注册 iOS 应用，点击"添加应用"，选择 iOS
-   - Bundle ID: `com.chop.chopUser`（与 `ios/Runner.xcodeproj` 中的一致）
+   - Bundle ID: `com.chopchop.chopuser`（与 `ios/Runner.xcodeproj` 中的一致）
 6. 下载 `GoogleService-Info.plist` 文件
 
 ### 2. 添加配置文件到项目

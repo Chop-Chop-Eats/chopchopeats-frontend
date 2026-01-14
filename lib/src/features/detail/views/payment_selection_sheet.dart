@@ -184,7 +184,15 @@ class PaymentSelectionSheet extends ConsumerWidget {
     }
     return GestureDetector(
       onTap: () {
+        Logger.info(
+          'PaymentSelectionSheet',
+          '点击支付方式: type=${method.type}, displayName=${method.displayName}, walletBalance=${method.walletBalance}',
+        );
         ref.read(selectedPaymentMethodProvider.notifier).state = method;
+        Logger.info(
+          'PaymentSelectionSheet',
+          '支付方式已更新到provider',
+        );
       },
       child: Container(
         margin: EdgeInsets.only(bottom: 16.h),

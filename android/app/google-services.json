@@ -7,6 +7,63 @@
   "client": [
     {
       "client_info": {
+        "mobilesdk_app_id": "1:273156686715:android:6cf48b9360a8801cdbb3de",
+        "android_client_info": {
+          "package_name": "com.chopchop.chef"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD8oUmWcmYAgCbv2ZtV38tVnOs6Q3xLN1o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:273156686715:android:ed4c5c81d6988320dbb3de",
+        "android_client_info": {
+          "package_name": "com.chopchop.chopuser"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD8oUmWcmYAgCbv2ZtV38tVnOs6Q3xLN1o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:273156686715:android:1d7fa6a146579770dbb3de",
+        "android_client_info": {
+          "package_name": "com.chopchop.driver"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD8oUmWcmYAgCbv2ZtV38tVnOs6Q3xLN1o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
         "mobilesdk_app_id": "1:273156686715:android:3bc36a41293487cddbb3de",
         "android_client_info": {
           "package_name": "com.example.chop_user"

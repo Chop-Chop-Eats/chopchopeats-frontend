@@ -9,6 +9,10 @@ class AppConstants {
   static const String themeMode = "THEME_MODE";
   // 语言模式
   static const String languageMode = "LANGUAGE_MODE";
+  // 语言设置是否已同步到云端
+  static const String languageSettingSynced = "LANGUAGE_SETTING_SYNCED";
+  // 最近一次同步到云端的语言设置值
+  static const String languageSettingSyncedValue = "LANGUAGE_SETTING_SYNCED_VALUE";
   // 用户token
   static const String accessToken = "ACCESS_TOKEN";
   // 用户刷新token

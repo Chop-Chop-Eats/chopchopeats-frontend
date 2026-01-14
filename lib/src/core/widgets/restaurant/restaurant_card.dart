@@ -45,11 +45,11 @@ class RestaurantCard extends StatelessWidget {
             CommonRoundedImage(
               imagePath: restaurant.shopLogo ?? 'assets/images/restaurant1.png',
               width: 100.w,
-              height: 100.h,
+              height: 100.w,
               borderRadius: 16.r,
               placeholder: Container(
                 width: 100.w,
-                height: 100.h,
+                height: 100.w,
                 color: Colors.grey[200],
                 child: Icon(
                   Icons.restaurant,
@@ -59,7 +59,7 @@ class RestaurantCard extends StatelessWidget {
               ),
               errorWidget: Container(
                 width: 100.w,
-                height: 100.h,
+                height: 100.w,
                 color: Colors.grey[100],
                 child: Icon(
                   Icons.restaurant,

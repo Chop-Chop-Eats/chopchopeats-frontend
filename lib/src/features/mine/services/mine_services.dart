@@ -52,6 +52,8 @@ class MineServices {
       ApiPaths.updateLanguageApi,
       data: {'languageSetting': language},
     );
+    // 打印language设置结果
+    Logger.info('MineServices', '设置语言为: $language');
     Logger.info('MineServices', 'updateLanguage response: ${response.data}');
     return response.data;
   }

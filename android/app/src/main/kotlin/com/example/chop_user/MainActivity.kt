@@ -1,4 +1,4 @@
-package com.example.chop_user
+package com.chopchop.chopuser
 
 import android.os.Bundle
 import com.stripe.android.PaymentConfiguration

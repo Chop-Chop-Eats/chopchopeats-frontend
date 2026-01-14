@@ -8,7 +8,7 @@
 
 | 配置项 | 值 |
 |--------|-----|
-| **Bundle ID (iOS 软件包名称)** | `com.chop.chopUser` |
+| **Bundle ID (iOS 软件包名称)** | `com.chopchop.chopuser` |
 | **应用昵称（可选）** | `ChopChop Eats User` |
 | **App Store ID（可选）** | 暂无（开发阶段可不填） |
 
@@ -35,7 +35,7 @@ https://console.firebase.google.com/
 1. 点击项目概览页面的 **iOS 图标** 或 "添加应用"
 2. 填写以下信息：
    ```
-   iOS 软件包名称: com.chop.chopUser
+   iOS 软件包名称: com.chopchop.chopuser
    应用昵称: ChopChop Eats User (可选)
    App Store ID: (留空，开发阶段不需要)
    ```
@@ -94,7 +94,7 @@ Android 的 Firebase 配置文件已存在：
 A: 在以下位置可以看到：
 - Xcode: Runner -> Signing & Capabilities -> Bundle Identifier
 - 配置文件: `ios/Runner.xcodeproj/project.pbxproj` 搜索 `PRODUCT_BUNDLE_IDENTIFIER`
-- 当前值: `com.chop.chopUser`
+- 当前值: `com.chopchop.chopuser`
 
 ### Q2: 为什么需要配置文件？
 A: `GoogleService-Info.plist` 包含：

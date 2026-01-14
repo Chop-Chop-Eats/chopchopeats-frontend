@@ -110,7 +110,7 @@ keytool -list -v -keystore %USERPROFILE%\.android\debug.keystore -alias androidd
 
 1. 在 Firebase 项目概览页面，点击"添加应用"，选择 **Android** 图标
 2. 填写应用信息：
-   - **Android 包名**: 你的应用包名（如 `com.example.chop_user`）
+   - **Android 包名**: 你的应用包名（如 `com.chopchop.chopuser`）
    - **应用昵称（可选）**: 应用显示名称
    - **调试签名证书 SHA-1**: 粘贴步骤 2 获取的 SHA-1 指纹
 3. 点击"注册应用"
@@ -166,7 +166,7 @@ plugins {
 }
 
 android {
-    namespace "com.example.chop_user"  // 替换为你的包名
+    namespace "com.chopchop.chopuser"  // 替换为你的包名
     compileSdk 34
     ndkVersion flutter.ndkVersion
 
@@ -180,7 +180,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.example.chop_user"  // 替换为你的包名
+        applicationId "com.chopchop.chopuser"  // 替换为你的包名
         minSdkVersion 21
         targetSdkVersion 34
         versionCode flutterVersionCode.toInteger()
@@ -196,7 +196,7 @@ android {
 
 ```xml
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.chop_user">  <!-- 替换为你的包名 -->
+    package="com.chopchop.chopuser">  <!-- 替换为你的包名 -->
     
     <!-- 网络权限 -->
     <uses-permission android:name="android.permission.INTERNET"/>

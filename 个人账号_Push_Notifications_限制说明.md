@@ -4,7 +4,7 @@
 
 你遇到的错误：
 ```
-Cannot create a iOS App Development provisioning profile for "com.chop.chopUser".
+Cannot create a iOS App Development provisioning profile for "com.chopchop.chopuser".
 Personal development teams, including "Rq lin", do not support the Push Notifications capability.
 ```
 

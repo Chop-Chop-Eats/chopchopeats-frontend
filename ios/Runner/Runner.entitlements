@@ -2,15 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<!-- 
-	注意：个人开发者账号（Free/Personal Team）不支持 Push Notifications capability
-	如果需要使用推送通知功能，需要升级到付费的 Apple Developer Program（$99/年）
-	
-	当前配置已移除 aps-environment，以便在个人账号下可以编译运行
-	当升级到付费账号后，可以重新添加：
 	<key>aps-environment</key>
 	<string>development</string>
-	-->
 </dict>
 </plist>
 

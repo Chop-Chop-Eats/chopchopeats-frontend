@@ -60,6 +60,11 @@ class CommonImage extends StatelessWidget {
     
     if (isNetworkImage) {
       // 网络图片 - 使用 cached_network_image
+      // 获取设备像素比以确保高清显示
+      final devicePixelRatio = MediaQuery.of(context).devicePixelRatio;
+      final cacheWidth = width != null ? (width! * devicePixelRatio).toInt() : null;
+      final cacheHeight = height != null ? (height! * devicePixelRatio).toInt() : null;
+      
       imageWidget = CachedNetworkImage(
         imageUrl: imagePath,
         width: width,
@@ -67,11 +72,11 @@ class CommonImage extends StatelessWidget {
         fit: fit,
         placeholder: (context, url) => _buildPlaceholder(),
         errorWidget: (context, url, error) => _buildErrorWidget(),
-        // 缓存配置
-        memCacheWidth: width?.toInt(),
-        memCacheHeight: height?.toInt(),
-        maxWidthDiskCache: width != null ? (width! * 2).toInt() : null,
-        maxHeightDiskCache: height != null ? (height! * 2).toInt() : null,
+        // 缓存配置 - 根据设备像素比设置，确保高清显示
+        memCacheWidth: cacheWidth,
+        memCacheHeight: cacheHeight,
+        maxWidthDiskCache: cacheWidth,
+        maxHeightDiskCache: cacheHeight,
         color: color,
       );
     } else if (isLocalFile) {

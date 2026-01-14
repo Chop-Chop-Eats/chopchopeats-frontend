@@ -11,6 +11,9 @@ import UserNotifications
     _ application: UIApplication,
     didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
   ) -> Bool {
+    // 初始化Firebase（必须在其他Firebase服务使用之前）
+    FirebaseApp.configure()
+    
     GMSServices.provideAPIKey("AIzaSyAjvcQ-m3FCQCO1Zc0DnJ0HaFiPoCA_3zc")
     
     // 配置 APNS（Apple Push Notification service）
