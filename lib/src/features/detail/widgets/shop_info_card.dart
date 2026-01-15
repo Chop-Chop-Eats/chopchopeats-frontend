@@ -52,7 +52,7 @@ class ShopInfoCard extends StatelessWidget {
           _buildRatingWithOperatingHours(
             rating: shop.rating?.toString() ?? '0.0',
             operatingHours: shop.operatingHours ?? [],
-            distance: shop.distance != null ? '${shop.distance!.toStringAsFixed(1)}km' : l10n.unknownDistance,
+            distance: shop.distance != null ? '${shop.distance!.toStringAsFixed(1)} miles' : l10n.unknownDistance,
             commentCount: shop.commentCount?.toString() ?? '0',
             context: context,
           ),

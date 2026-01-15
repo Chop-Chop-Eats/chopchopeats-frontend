@@ -301,6 +301,7 @@ class _OrderInfoViewState extends ConsumerState<OrderInfoView> {
   Widget _buildPrivateChef() {
     final l10n = AppLocalizations.of(context)!;
     final shop = ref.watch(shopDetailProvider(widget.shopId));
+    final cartState = ref.watch(cartStateProvider(widget.shopId));
     final selectedDeliveryTime = ref.watch(
       selectedDeliveryTimeProvider(widget.shopId),
     );
@@ -318,9 +319,10 @@ class _OrderInfoViewState extends ConsumerState<OrderInfoView> {
       );
     }
 
-    // 格式化距离
-    final distanceText =
-        shop.distance != null ? "${shop.distance!.toStringAsFixed(1)}km" : "";
+    // 优先使用购物车中计算的距离（基于收货地址），否则使用店铺默认距离
+    final distanceText = cartState.distance != null
+        ? "${cartState.distance!.toStringAsFixed(1)} miles"
+        : (shop.distance != null ? "${shop.distance!.toStringAsFixed(1)} miles" : "");
 
     // 格式化配送时间（只显示已选中的）
     final deliveryTimeText = selectedDeliveryTime?.time ?? "";

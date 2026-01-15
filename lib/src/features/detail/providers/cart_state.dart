@@ -135,6 +135,7 @@ class CartState {
   final String diningDate; // 格式: YYYY-MM-DD
   final List<CartItemModel> items;
   final CartTotals totals;
+  final double? distance; // 配送距离（英里）
   final DateTime? lastSyncedAt;
   final CartDataOrigin dataOrigin;
   final bool isSyncing;
@@ -163,6 +164,7 @@ class CartState {
     required this.diningDate,
     this.items = const [],
     this.totals = const CartTotals(),
+    this.distance,
     this.lastSyncedAt,
     this.dataOrigin = CartDataOrigin.local,
     this.isSyncing = false,
@@ -185,6 +187,7 @@ class CartState {
     String? diningDate,
     List<CartItemModel>? items,
     CartTotals? totals,
+    Object? distance = _cartStateSentinel,
     DateTime? lastSyncedAt,
     CartDataOrigin? dataOrigin,
     bool? isSyncing,
@@ -195,6 +198,8 @@ class CartState {
     Object? operatingProductRef = _cartStateSentinel,
   }) {
     final nextItems = items ?? this.items;
+    final nextDistance =
+        identical(distance, _cartStateSentinel) ? this.distance : distance as double?;
     final nextError =
         identical(error, _cartStateSentinel) ? this.error : error as String?;
     final nextLastError =
@@ -210,6 +215,7 @@ class CartState {
       diningDate: diningDate ?? this.diningDate,
       items: nextItems,
       totals: totals ?? this.totals,
+      distance: nextDistance,
       lastSyncedAt: lastSyncedAt ?? this.lastSyncedAt,
       dataOrigin: dataOrigin ?? this.dataOrigin,
       isSyncing: isSyncing ?? this.isSyncing,
@@ -262,6 +268,7 @@ class CartState {
         other.items.length == items.length &&
         _listEquals(other.items, items) &&
         other.totals == totals &&
+        other.distance == distance &&
         other.lastSyncedAt == lastSyncedAt &&
         other.dataOrigin == dataOrigin &&
         other.isSyncing == isSyncing &&
@@ -279,6 +286,7 @@ class CartState {
         diningDate,
         Object.hashAll(items),
         totals,
+        distance,
         lastSyncedAt,
         dataOrigin,
         isSyncing,

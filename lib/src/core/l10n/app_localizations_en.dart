@@ -750,7 +750,7 @@ class AppLocalizationsEn implements AppLocalizations {
   @override
   String get orderPaymentMethod => 'Payment Method';
   @override
-  String orderDistance(double distance) => 'Distance ${distance}km';
+  String orderDistance(double distance) => 'Distance ${distance} miles';
   @override
   String orderDeliveryTime(String time) => 'Planned to start delivery at $time';
   @override

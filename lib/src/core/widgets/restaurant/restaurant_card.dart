@@ -106,7 +106,7 @@ class RestaurantCard extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          restaurant.distance != null ? '${restaurant.distance!.toStringAsFixed(1)}km' : AppLocalizations.of(context)!.unknownDistance,
+                          restaurant.distance != null ? '${restaurant.distance!.toStringAsFixed(1)} miles' : AppLocalizations.of(context)!.unknownDistance,
                           style: TextStyle(
                             fontSize: 12.sp,
                             color: Colors.grey[600],
