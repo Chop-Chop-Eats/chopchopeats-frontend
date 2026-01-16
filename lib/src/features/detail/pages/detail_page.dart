@@ -36,10 +36,12 @@ class _DetailPageState extends ConsumerState<DetailPage> {
     initialRefresh: false,
   );
   DateTime _selectedDate = DateTime.now(); // 当前选中的日期
+  DateTime? _previousDate; // 用于跟踪上一次选中的日期
 
   @override
   void initState() {
     super.initState();
+    _previousDate = _selectedDate; // 初始化上一次日期
     Logger.info('DetailPage', '店铺详情页面初始化: shopId=${widget.id}');
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -94,6 +96,13 @@ class _DetailPageState extends ConsumerState<DetailPage> {
     super.dispose();
   }
 
+  /// 判断两个日期是否是同一天
+  bool _isSameDay(DateTime date1, DateTime date2) {
+    return date1.year == date2.year &&
+        date1.month == date2.month &&
+        date1.day == date2.day;
+  }
+
   /// 下拉刷新
   Future<void> _onRefresh() async {
     Logger.info('DetailPage', '手动刷新店铺详情: shopId=${widget.id}');
@@ -108,7 +117,9 @@ class _DetailPageState extends ConsumerState<DetailPage> {
     final cartNotifier = ref.read(cartProvider.notifier);
     final detailNotifier = ref.read(detailProvider(widget.id).notifier);
     final couponNotifier = ref.read(couponProvider(widget.id).notifier);
-    final productListNotifier = ref.read(productListProvider(productListParams).notifier);
+    final productListNotifier = ref.read(
+      productListProvider(productListParams).notifier,
+    );
 
     // 使用 Future.wait 并行刷新所有接口
     try {
@@ -281,9 +292,33 @@ class _DetailPageState extends ConsumerState<DetailPage> {
                     logoHeight: logoHeight,
                     onDateChanged: (date) {
                       // 使用 addPostFrameCallback 避免在布局过程中调用 setState
-                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                      WidgetsBinding.instance.addPostFrameCallback((_) async {
                         if (mounted) {
+                          // 检查日期是否真的发生了变化
+                          if (_previousDate != null &&
+                              !_isSameDay(_previousDate!, date)) {
+                            Logger.info(
+                              'DetailPage',
+                              '日期改变: ${formatDiningDate(_previousDate!)} -> ${formatDiningDate(date)}, 清空购物车',
+                            );
+
+                            // 清空购物车
+                            try {
+                              final cartNotifier = ref.read(
+                                cartProvider.notifier,
+                              );
+                              await cartNotifier.clearCart(
+                                shopId: widget.id,
+                                diningDate: formatDiningDate(date),
+                              );
+                              Logger.info('DetailPage', '购物车已清空');
+                            } catch (e) {
+                              Logger.error('DetailPage', '清空购物车失败: $e');
+                            }
+                          }
+
                           setState(() {
+                            _previousDate = date;
                             _selectedDate = date;
                           });
                         }
@@ -299,10 +334,7 @@ class _DetailPageState extends ConsumerState<DetailPage> {
               bottom: 0,
               left: 0,
               right: 0,
-              child: ShopCart(
-                shopId: widget.id,
-                selectedDate: _selectedDate,
-              ),
+              child: ShopCart(shopId: widget.id, selectedDate: _selectedDate),
             ),
 
             // 固定在顶部的AppBar
@@ -318,4 +350,3 @@ class _DetailPageState extends ConsumerState<DetailPage> {
     );
   }
 }
-
