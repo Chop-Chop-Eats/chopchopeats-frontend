@@ -11,6 +11,15 @@ android {
     compileSdk = 36
     ndkVersion = "27.0.12077973"
 
+    signingConfigs {
+        create("release") {
+            storeFile = file(project.property("UPLOAD_STORE_FILE") as String)
+            storePassword = project.property("UPLOAD_STORE_PASSWORD") as String
+            keyAlias = project.property("UPLOAD_KEY_ALIAS") as String
+            keyPassword = project.property("UPLOAD_KEY_PASSWORD") as String
+        }
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -36,7 +45,7 @@ android {
         release {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),

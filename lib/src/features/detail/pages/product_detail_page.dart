@@ -49,6 +49,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
             .read(productDetailProvider(params).notifier)
             .loadProductDetail(widget.productId, widget.shopId);
       }
+
     });
   }
 
@@ -63,7 +64,6 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
     final product = ref.watch(productDetailDataProvider(params));
     final isLoading = ref.watch(productDetailLoadingProvider(params));
     final error = ref.watch(productDetailErrorProvider(params));
-
     return Scaffold(
       appBar: CommonAppBar(title: '', backgroundColor: Colors.transparent),
       body: _buildBody(isLoading, error, product, l10n),
@@ -267,12 +267,16 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
   }
 
   Widget _buildProductImages(SaleProductModel product) {
-    final images = product.carouselImages ?? [];
+    final images = product.detailImages ?? [];
     if (images.isEmpty && product.imageThumbnail != null) {
       return SizedBox(
         width: double.infinity,
         height: 300.h,
-        child: CommonImage(imagePath: product.imageThumbnail!, height: 300.h),
+        child: CommonImage(
+          imagePath: product.imageThumbnail!,
+          height: 300.h,
+          width: 1.sw,
+        ),
       );
     }
 
@@ -285,11 +289,21 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
       );
     }
 
+    final imageList = images.where((image) => image.url != null).toList();
+    if (imageList.isEmpty) {
+      return Container(
+        width: double.infinity,
+        height: 300.h,
+        color: Colors.grey[200],
+        child: Icon(Icons.image, size: 64.w, color: Colors.grey[400]),
+      );
+    }
+
     return CarouselSlider(
       options: CarouselOptions(
         height: 300.h,
         viewportFraction: 1.0,
-        autoPlay: true,
+        autoPlay: imageList.length > 1,
         autoPlayInterval: const Duration(seconds: 10),
         autoPlayAnimationDuration: const Duration(milliseconds: 800),
         autoPlayCurve: Curves.fastOutSlowIn,
@@ -297,16 +311,16 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
         scrollDirection: Axis.horizontal,
       ),
       items:
-          images.map((image) {
+          imageList.map((image) {
             return Builder(
               builder: (BuildContext context) {
                 return Container(
-                  color: Color(0xFFF4F4F4),
+                  color: const Color(0xFFF4F4F4),
                   alignment: Alignment.center,
                   child: CommonImage(
                     imagePath: image.url!,
-                    height: 120.h,
-                    width: 120.w,
+                    height: 300.h,
+                    width: 1.sw,
                   ),
                 );
               },
@@ -605,10 +619,10 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
     );
     final product = ref.read(productDetailDataProvider(params));
     final basePrice = product?.productPrice ?? 0.0;
-    
+
     // SKU价格应该是附加价格（后端返回的是总价，需要减去基础价）
     final additionalPrice = sku.price - basePrice;
-    
+
     // Format price: remove decimals if .00
     final priceStr =
         additionalPrice.truncateToDouble() == additionalPrice
@@ -783,11 +797,7 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
     final notifier = ref.read(cartProvider.notifier);
 
     try {
-      // 立即返回上一页（乐观更新）
-      if (mounted) {
-        Navigate.pop(context);
-      }
-
+      // 在关闭页面前先验证
       if (product.skuSetting == 1) {
         // 检查是否所有互斥组都已选择
         final mutualExclusiveGroups = <int>{};
@@ -806,7 +816,14 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
             return;
           }
         }
+      }
 
+      // 验证通过后才返回上一页（乐观更新）
+      if (mounted) {
+        Navigate.pop(context);
+      }
+
+      if (product.skuSetting == 1) {
         // 构建selectedSkus列表（传递所有选中的SKU）
         final selectedSkus =
             selectedSkusList

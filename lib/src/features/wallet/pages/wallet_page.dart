@@ -34,44 +34,55 @@ class _WalletPageState extends ConsumerState<WalletPage> {
       ref.read(walletInfoProvider.notifier).loadWalletInfo();
     });
   }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final walletInfoState = ref.watch(walletInfoProvider);
     final isLoading = ref.watch(walletInfoLoadingProvider);
 
-    Logger.info('WalletPage', 'build: isLoading=$isLoading, hasLoaded=${walletInfoState.hasLoaded}, error=${walletInfoState.error}, balance=${walletInfoState.walletInfo?.balance}');
+    Logger.info(
+      'WalletPage',
+      'build: isLoading=$isLoading, hasLoaded=${walletInfoState.hasLoaded}, error=${walletInfoState.error}, balance=${walletInfoState.walletInfo?.balance}',
+    );
 
     return Scaffold(
       body: Column(
         children: [
-          CommonAppBar(title: l10n.walletTitle, backgroundColor: Colors.transparent),
+          CommonAppBar(
+            title: l10n.walletTitle,
+            backgroundColor: Colors.transparent,
+          ),
           Expanded(
-            child: isLoading
-                ? const Center(child: CommonIndicator())
-                : Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16.w),
-                    child: Column(
-                      children: [
-                        CommonSpacing.large,
-                        // 钱包信息 getMyWalletInfo 接口
-                        _buildWalletInfo(walletInfoState.walletInfo, l10n),
-                        // 支付方式
-                        _buildPaymentMethod(l10n),
-                        // 余额明细
-                        Expanded(
-                          child: _buildBalanceDetail(walletInfoState.recentHistory, l10n),
-                        )
-                      ],
+            child:
+                isLoading
+                    ? const Center(child: CommonIndicator())
+                    : Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 16.w),
+                      child: Column(
+                        children: [
+                          CommonSpacing.large,
+                          // 钱包信息 getMyWalletInfo 接口
+                          _buildWalletInfo(walletInfoState.walletInfo, l10n),
+                          // 支付方式
+                          _buildPaymentMethod(l10n),
+                          // 余额明细
+                          Expanded(
+                            child: _buildBalanceDetail(
+                              walletInfoState.recentHistory,
+                              l10n,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildCard({required Widget child}){
+  Widget _buildCard({required Widget child}) {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
       decoration: BoxDecoration(
@@ -101,7 +112,10 @@ class _WalletPageState extends ConsumerState<WalletPage> {
               // balance 字段
               Text(
                 '\$${balance.toStringAsFixed(2)}',
-                style: AppValues.labelTitle.copyWith(fontSize: 20.sp, fontWeight: FontWeight.w500),
+                style: AppValues.labelTitle.copyWith(
+                  fontSize: 20.sp,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
               CommonButton(
                 text: l10n.recharge,
@@ -110,9 +124,9 @@ class _WalletPageState extends ConsumerState<WalletPage> {
                 onPressed: () {
                   Navigate.push(context, Routes.recharge);
                 },
-              )
+              ),
             ],
-          )
+          ),
         ],
       ),
     );
@@ -136,9 +150,13 @@ class _WalletPageState extends ConsumerState<WalletPage> {
               children: [
                 Text(l10n.manageBoundCards, style: AppValues.labelValue),
                 CommonSpacing.width(4.w),
-                Icon(Icons.arrow_forward_ios, size: 16.sp, color: Colors.grey.shade600),
+                Icon(
+                  Icons.arrow_forward_ios,
+                  size: 16.sp,
+                  color: Colors.grey.shade600,
+                ),
               ],
-            )
+            ),
           ],
         ),
       ),
@@ -147,7 +165,7 @@ class _WalletPageState extends ConsumerState<WalletPage> {
 
   Widget _buildBalanceDetail(List recentHistory, AppLocalizations l10n) {
     final dateFormat = DateFormat('yyyy-MM-dd');
-    
+
     return _buildCard(
       child: Column(
         children: [
@@ -164,31 +182,37 @@ class _WalletPageState extends ConsumerState<WalletPage> {
                   children: [
                     Text(l10n.btnViewAll, style: AppValues.labelValue),
                     CommonSpacing.width(4.w),
-                    Icon(Icons.arrow_forward_ios, size: 16.sp, color: Colors.grey.shade600),
+                    Icon(
+                      Icons.arrow_forward_ios,
+                      size: 16.sp,
+                      color: Colors.grey.shade600,
+                    ),
                   ],
                 ),
               ],
             ),
           ),
-          
+
           CommonSpacing.medium,
           Expanded(
-            child: recentHistory.isEmpty
-                ? CommonEmpty()
-                : ListView.builder(
-                    padding: EdgeInsets.zero,
-                    itemCount: recentHistory.length,
-                    itemBuilder: (context, index) {
-                      final item = recentHistory[index];
-                      return _buildBalanceDetailItem(
-                        title: item.txTypeName,
-                        value: '\$${item.transactionAmount.toStringAsFixed(2)}',
-                        time: dateFormat.format(item.recordDate),
-                        balance: '\$${item.balanceAfter.toStringAsFixed(2)}',
-                      );
-                    },
-                  ),
-          )
+            child:
+                recentHistory.isEmpty
+                    ? CommonEmpty()
+                    : ListView.builder(
+                      padding: EdgeInsets.zero,
+                      itemCount: recentHistory.length,
+                      itemBuilder: (context, index) {
+                        final item = recentHistory[index];
+                        return _buildBalanceDetailItem(
+                          title: item.getLocalizedTxTypeName(),
+                          value:
+                              '\$${item.transactionAmount.toStringAsFixed(2)}',
+                          time: dateFormat.format(item.recordDate),
+                          balance: '\$${item.balanceAfter.toStringAsFixed(2)}',
+                        );
+                      },
+                    ),
+          ),
         ],
       ),
     );

@@ -689,7 +689,7 @@ class OrderDetailPage extends ConsumerWidget {
     if (order.statusGroup == 2 ||
         (order.status != null && order.status! > 100 && order.status! < 175)) {
       return _buildFullWidthButton(
-        l10n.orderRequestRefund,
+        l10n.orderCancelOrder,
         const Color(0xFF333333),
         Colors.white,
         () {
@@ -699,7 +699,7 @@ class OrderDetailPage extends ConsumerWidget {
               builder:
                   (context) => CancelOrderPage(
                     orderNo: order.orderNo ?? '',
-                    isRefund: true,
+                    isRefund: false,
                     onSuccess: () {
                       ref.invalidate(orderDetailProvider(orderNo));
                     },

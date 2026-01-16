@@ -207,13 +207,16 @@ class _OrderListViewState extends ConsumerState<OrderListView>
                   );
                 },
                 onRefund: () {
+                  // 根据订单状态判断是取消订单还是申请退款
+                  // 进行中订单(200-299)是取消订单，已完成订单(300)是申请退款
+                  final isRefund = order.status == 300;
                   Navigator.push(
                     context,
                     MaterialPageRoute(
                       builder:
                           (context) => CancelOrderPage(
                             orderNo: order.orderNo ?? '',
-                            isRefund: true,
+                            isRefund: isRefund,
                             onSuccess: () {
                               ref
                                   .read(

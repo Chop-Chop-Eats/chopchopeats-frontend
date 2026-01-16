@@ -68,6 +68,8 @@ class AppLocalizationsEn implements AppLocalizations {
   @override
   String get noDataText => 'No Data';
   @override
+  String get noProductsText => 'No dishes available';
+  @override
   String get networkErrorText => 'Network Error, Please Try Again';
   @override
   String get emptyListText => 'Empty List';

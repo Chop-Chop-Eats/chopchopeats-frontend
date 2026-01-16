@@ -107,6 +107,9 @@ class RecentWalletHistoryItem {
   ///支付方式名称
   final String payTypeName;
 
+  ///支付方式英文名称
+  final String? englishPayTypeName;
+
   ///记录日期
   final DateTime recordDate;
 
@@ -119,15 +122,20 @@ class RecentWalletHistoryItem {
   ///交易类型名称
   final String txTypeName;
 
+  ///交易类型英文名称
+  final String? englishTxTypeName;
+
   RecentWalletHistoryItem({
     required this.balanceAfter,
     required this.id,
     required this.payType,
     required this.payTypeName,
+    this.englishPayTypeName,
     required this.recordDate,
     required this.transactionAmount,
     required this.txType,
     required this.txTypeName,
+    this.englishTxTypeName,
   });
 
   factory RecentWalletHistoryItem.fromJson(Map<String, dynamic> json) {
@@ -136,11 +144,24 @@ class RecentWalletHistoryItem {
       id: JsonUtils.parseString(json, 'id') ?? '',
       payType: JsonUtils.parseInt(json, 'payType') ?? 0,
       payTypeName: JsonUtils.parseString(json, 'payTypeName') ?? '',
+      englishPayTypeName: JsonUtils.parseString(json, 'englishPayTypeName'),
       recordDate: JsonUtils.parseDateTime(json, 'recordDate') ?? DateTime.now(),
-      transactionAmount: JsonUtils.parseDouble(json, 'transactionAmount') ?? 0.0,
+      transactionAmount:
+          JsonUtils.parseDouble(json, 'transactionAmount') ?? 0.0,
       txType: JsonUtils.parseInt(json, 'txType') ?? 0,
       txTypeName: JsonUtils.parseString(json, 'txTypeName') ?? '',
+      englishTxTypeName: JsonUtils.parseString(json, 'englishTxTypeName'),
     );
+  }
+
+  /// 获取本地化的交易类型名称
+  String getLocalizedTxTypeName() {
+    return LocaleService.getLocalizedText(txTypeName, englishTxTypeName);
+  }
+
+  /// 获取本地化的支付方式名称
+  String getLocalizedPayTypeName() {
+    return LocaleService.getLocalizedText(payTypeName, englishPayTypeName);
   }
 
   Map<String, dynamic> toJson() {
@@ -149,10 +170,12 @@ class RecentWalletHistoryItem {
       'id': id,
       'payType': payType,
       'payTypeName': payTypeName,
+      'englishPayTypeName': englishPayTypeName,
       'recordDate': recordDate,
       'transactionAmount': transactionAmount,
       'txType': txType,
       'txTypeName': txTypeName,
+      'englishTxTypeName': englishTxTypeName,
     };
   }
 }
@@ -173,7 +196,8 @@ class AllWalletHistoryItem {
   factory AllWalletHistoryItem.fromJson(Map<String, dynamic> json) {
     return AllWalletHistoryItem(
       transactionDate: json['transactionDate'],
-      transactionDetail: JsonUtils.parseList(
+      transactionDetail:
+          JsonUtils.parseList(
             json,
             'transactionDetail',
             (e) => RecentWalletHistoryItem.fromJson(e),

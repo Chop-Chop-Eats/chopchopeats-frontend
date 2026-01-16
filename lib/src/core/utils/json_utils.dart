@@ -1,5 +1,7 @@
+import 'dart:convert';
+
 /// JSON数据转换工具类
-/// 
+///
 /// 提供通用的JSON数据类型转换方法，避免类型转换错误
 class JsonUtils {
   JsonUtils._();
@@ -29,23 +31,45 @@ class JsonUtils {
   ) {
     final value = json[key];
     if (value == null) return null;
-    
-    if (value is! List) return null;
+
+    dynamic listValue = value;
+    if (value is String) {
+      if (value.isEmpty) return null;
+      try {
+        // 兼容后端把列表以 JSON 字符串返回的情况
+        listValue = jsonDecode(value);
+      } catch (e) {
+        return null;
+      }
+    }
+
+    if (listValue is! List) return null;
     
     try {
       final result = <T>[];
-      for (var i = 0; i < value.length; i++) {
-        final e = value[i];
+      for (var i = 0; i < listValue.length; i++) {
+        final e = listValue[i];
         if (e == null) {
           // 跳过 null 元素
           continue;
         }
-        if (e is! Map<String, dynamic>) {
-          // 跳过非 Map 元素
-          continue;
-        }
         try {
-          final item = fromJson(e);
+          Map<String, dynamic>? itemMap;
+          if (e is Map) {
+            itemMap = Map<String, dynamic>.from(e);
+          } else if (e is String) {
+            final decoded = jsonDecode(e);
+            if (decoded is Map) {
+              itemMap = Map<String, dynamic>.from(decoded);
+            }
+          }
+
+          if (itemMap == null) {
+            // 跳过非 Map 元素
+            continue;
+          }
+
+          final item = fromJson(itemMap);
           result.add(item);
         } catch (itemError) {
           // 记录单个元素的解析错误，但继续处理其他元素
@@ -206,4 +230,3 @@ class JsonUtils {
     }
   }
 }
-

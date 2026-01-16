@@ -52,6 +52,7 @@ abstract class AppLocalizations {
   // ============== 提示信息 ==============
   String get loadingText;
   String get noDataText;
+  String get noProductsText;
   String get networkErrorText;
   String get emptyListText;
   String get tryAgainText;

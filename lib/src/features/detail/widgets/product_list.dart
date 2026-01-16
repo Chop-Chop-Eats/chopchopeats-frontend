@@ -85,7 +85,7 @@ class _ProductListState extends ConsumerState<ProductList> {
                 Icon(Icons.error_outline, size: 48.w, color: Colors.red[300]),
                 CommonSpacing.medium,
                 Text(
-                  '加载失败',
+                  l10n.loadingFailedWithError,
                   style: TextStyle(fontSize: 14.sp, color: Colors.red[500]),
                 ),
                 CommonSpacing.small,
@@ -120,7 +120,7 @@ class _ProductListState extends ConsumerState<ProductList> {
                 ),
                 CommonSpacing.medium,
                 Text(
-                  '暂无商品',
+                  l10n.noProductsText,
                   style: TextStyle(fontSize: 14.sp, color: Colors.grey[500]),
                 ),
               ],

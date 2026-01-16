@@ -234,7 +234,7 @@ class OrderCard extends StatelessWidget {
     else if (status != null && status >= 200 && status < 300) {
       buttons.add(
         _buildButton(
-          l10n.orderRequestRefund,
+          l10n.orderCancelOrder,
           Colors.white,
           Colors.black,
           onRefund,

@@ -27,7 +27,10 @@ class _WalletDetailPageState extends ConsumerState<WalletDetailPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // 检查是否已加载过，避免重复加载
       final currentState = ref.read(walletHistoryProvider);
-      Logger.info("WalletDetailPage", "加载全部钱包交易记录 hasLoaded=${currentState.hasLoaded}, isLoading=${currentState.isLoading}");
+      Logger.info(
+        "WalletDetailPage",
+        "加载全部钱包交易记录 hasLoaded=${currentState.hasLoaded}, isLoading=${currentState.isLoading}",
+      );
       // 如果未加载过且不在加载中，则加载
       if (!currentState.hasLoaded && !currentState.isLoading) {
         ref.read(walletHistoryProvider.notifier).loadWalletHistory();
@@ -50,17 +53,14 @@ class _WalletDetailPageState extends ConsumerState<WalletDetailPage> {
       items.add(
         Padding(
           padding: EdgeInsets.symmetric(vertical: 12.h),
-          child: Text(
-            historyItem.transactionDate,
-            style: AppValues.labelValue,
-          ),
+          child: Text(historyItem.transactionDate, style: AppValues.labelValue),
         ),
       );
       // 添加该日期下的所有交易明细
       for (final detail in historyItem.transactionDetail) {
         items.add(
           BalanceItem(
-            title: detail.payTypeName,
+            title: detail.getLocalizedPayTypeName(),
             value: '\$${detail.transactionAmount.toStringAsFixed(2)}',
             time: dateFormat.format(detail.recordDate),
             balance: '\$${detail.balanceAfter.toStringAsFixed(2)}',
@@ -72,22 +72,26 @@ class _WalletDetailPageState extends ConsumerState<WalletDetailPage> {
     return Scaffold(
       body: Column(
         children: [
-          CommonAppBar(title: l10n.walletTitle, backgroundColor: Colors.transparent),
+          CommonAppBar(
+            title: l10n.walletTitle,
+            backgroundColor: Colors.transparent,
+          ),
           Expanded(
-            child: isLoading
-                ? const Center(child: CommonIndicator())
-                : history.isEmpty
+            child:
+                isLoading
+                    ? const Center(child: CommonIndicator())
+                    : history.isEmpty
                     ? CommonEmpty()
                     : Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 16.w),
-                        child: ListView.builder(
-                          padding: EdgeInsets.zero,
-                          itemCount: items.length,
-                          itemBuilder: (context, index) {
-                            return items[index];
-                          },
-                        ),
+                      padding: EdgeInsets.symmetric(horizontal: 16.w),
+                      child: ListView.builder(
+                        padding: EdgeInsets.zero,
+                        itemCount: items.length,
+                        itemBuilder: (context, index) {
+                          return items[index];
+                        },
                       ),
+                    ),
           ),
         ],
       ),

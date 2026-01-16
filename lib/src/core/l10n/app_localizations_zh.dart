@@ -68,6 +68,8 @@ class AppLocalizationsZh implements AppLocalizations {
   @override
   String get noDataText => '暂无数据';
   @override
+  String get noProductsText => '暂无商品';
+  @override
   String get networkErrorText => '网络错误，请稍后重试';
   @override
   String get emptyListText => '列表为空';
