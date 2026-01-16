@@ -818,12 +818,19 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
         }
       }
 
-      // 验证通过后才返回上一页（乐观更新）
-      if (mounted) {
-        Navigate.pop(context);
-      }
-
-      if (product.skuSetting == 1) {
+      // 如果没有选择任何SKU，或者选择了SKU
+      if (selectedSkusList.isEmpty) {
+        // 没有选择SKU，作为普通商品添加
+        await notifier.increment(
+          shopId: widget.shopId,
+          diningDate: diningDate,
+          productId: product.id,
+          productName: product.chineseName,
+          englishProductName: product.englishName,
+          selectedSkus: null,
+          productPrice: product.productPrice,
+        );
+      } else if (product.skuSetting == 1) {
         // 构建selectedSkus列表（传递所有选中的SKU）
         final selectedSkus =
             selectedSkusList
@@ -863,6 +870,11 @@ class _ProductDetailPageState extends ConsumerState<ProductDetailPage> {
       }
 
       toast.success(l10n.addToCartSuccess);
+      
+      // 添加成功后才返回上一页
+      if (mounted) {
+        Navigate.pop(context);
+      }
     } catch (e) {
       Logger.error('ProductDetailPage', '加入购物车失败: $e');
       toast.warn('加入购物车失败，请稍后重试');

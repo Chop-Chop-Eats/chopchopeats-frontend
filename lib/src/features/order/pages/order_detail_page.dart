@@ -27,7 +27,7 @@ class OrderDetailPage extends ConsumerWidget {
     return Scaffold(
       backgroundColor: const Color(0xFFF4F4F4),
       appBar: AppBar(
-        backgroundColor: const Color(0xFFF5F5F5),
+        backgroundColor: const Color(0xFFF4F4F4),
         elevation: 0,
         leading: const BackButton(color: Colors.black),
       ),

@@ -124,8 +124,8 @@ class CartItemList extends ConsumerWidget {
       );
     }
 
-    // 如果没有 productSpecName，尝试从 selectedSkus 或 skus 中获取
-    final skuList = item.selectedSkus ?? item.skus;
+    // 只显示用户实际选择的SKU（selectedSkus），不显示所有可用SKU（skus）
+    final skuList = item.selectedSkus;
     if (skuList == null || skuList.isEmpty) {
       return const SizedBox.shrink();
     }
